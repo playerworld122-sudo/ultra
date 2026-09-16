@@ -9,89 +9,91 @@
 html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Impact','Arial Black',sans-serif;touch-action:none;user-select:none}
 #game{position:fixed;inset:0}canvas{display:block}
 #crosshair{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:24px;height:24px;pointer-events:none;z-index:5}
-#crosshair .h,#crosshair .v{position:absolute;background:#ff0033;box-shadow:0 0 6px #ff0033}
+#crosshair .h,#crosshair .v{position:absolute;background:#f03;box-shadow:0 0 6px #f03}
 #crosshair .h{left:0;top:50%;width:100%;height:2px;transform:translateY(-50%)}
 #crosshair .v{top:0;left:50%;height:100%;width:2px;transform:translateX(-50%)}
-#ui{position:fixed;top:12px;left:12px;color:#fff;font-size:14px;letter-spacing:.1em;text-shadow:0 0 8px #ff0033;z-index:10;pointer-events:none}
-#styleMeter{color:#ffdd00;font-size:20px;margin-top:4px}
-#waveLabel{color:#ff66aa;font-size:16px;margin-top:4px}
+#ui{position:fixed;top:12px;left:12px;color:#fff;font-size:14px;letter-spacing:.1em;text-shadow:0 0 8px #f03;z-index:10;pointer-events:none}
+#styleMeter{color:#fd0;font-size:20px;margin-top:4px}
+#waveLabel{color:#f6a;font-size:16px;margin-top:4px}
 #weaponUI{position:fixed;bottom:70px;right:20px;z-index:10;pointer-events:none;text-align:right}
-#weaponName{color:#ff0033;font-size:22px;letter-spacing:.15em;text-shadow:0 0 15px #ff0033}
+#weaponName{color:#f03;font-size:22px;letter-spacing:.15em;text-shadow:0 0 15px #f03}
 #weaponAmmo{color:#fff;font-size:22px;margin-top:2px;font-family:monospace}
-#weaponAmmo .cur{color:#ffdd00}#weaponAmmo .max{color:#888}
-#weaponAmmo.empty{color:#ff0033;animation:blink .6s infinite}
-@keyframes blink{50%{opacity:.3}}
-#reloadHint{color:#ffaa00;font-size:14px;font-family:monospace;margin-top:2px;display:none}
-#reloadHint.show{display:block;animation:blink .8s infinite}
-#reloadBar{position:fixed;bottom:110px;right:20px;width:180px;height:6px;background:rgba(0,0,0,.6);border:1px solid #ffaa00;display:none;z-index:10}
-#reloadBar.show{display:block}#reloadFill{height:100%;width:0;background:#ffaa00}
-#hpBar{position:fixed;bottom:20px;left:20px;width:200px;height:16px;border:2px solid #ff0033;background:#1a0000;z-index:10}
-#hpFill{height:100%;width:100%;background:linear-gradient(90deg,#ff0033,#ff5500)}
-#bossBar{position:fixed;top:50px;left:50%;transform:translateX(-50%);width:60%;max-width:600px;height:22px;border:3px solid #ff0033;background:#1a0000;display:none;z-index:15}
-#bossFill{height:100%;width:100%;background:linear-gradient(90deg,#ff0033,#ff8800)}
-#bossName{position:fixed;top:22px;left:50%;transform:translateX(-50%);color:#ff0033;font-size:18px;letter-spacing:.3em;display:none;z-index:15}
+#weaponAmmo .cur{color:#fd0}#weaponAmmo .max{color:#888}
+#weaponAmmo.empty{color:#f03;animation:bk .6s infinite}
+@keyframes bk{50%{opacity:.3}}
+#reloadHint{color:#fa0;font-size:14px;font-family:monospace;margin-top:2px;display:none}
+#reloadHint.show{display:block;animation:bk .8s infinite}
+#reloadBar{position:fixed;bottom:110px;right:20px;width:180px;height:6px;background:rgba(0,0,0,.6);border:1px solid #fa0;display:none;z-index:10}
+#reloadBar.show{display:block}#reloadFill{height:100%;width:0;background:#fa0}
+#hpBar{position:fixed;bottom:20px;left:20px;width:200px;height:16px;border:2px solid #f03;background:#1a0000;z-index:10}
+#hpFill{height:100%;width:100%;background:linear-gradient(90deg,#f03,#f50)}
+#bossBar{position:fixed;top:50px;left:50%;transform:translateX(-50%);width:60%;max-width:600px;height:22px;border:3px solid #f03;background:#1a0000;display:none;z-index:15}
+#bossFill{height:100%;width:100%;background:linear-gradient(90deg,#f03,#f80)}
+#bossName{position:fixed;top:22px;left:50%;transform:translateX(-50%);color:#f03;font-size:18px;letter-spacing:.3em;display:none;z-index:15}
 #joystick{position:fixed;bottom:25px;left:25px;width:140px;height:140px;border-radius:50%;background:rgba(255,0,51,.08);border:2px solid rgba(255,0,51,.5);z-index:30;touch-action:none;display:none}
-#joystickKnob{position:absolute;left:50%;top:50%;width:60px;height:60px;border-radius:50%;background:rgba(255,0,51,.6);border:2px solid #ff0033;transform:translate(-50%,-50%);pointer-events:none}
+#joystickKnob{position:absolute;left:50%;top:50%;width:60px;height:60px;border-radius:50%;background:rgba(255,0,51,.6);border:2px solid #f03;transform:translate(-50%,-50%);pointer-events:none}
 #lookArea{position:fixed;right:0;top:0;width:55%;height:100%;z-index:20;touch-action:none;display:none}
 .btn{position:fixed;border-radius:50%;display:none;align-items:center;justify-content:center;font-weight:bold;z-index:40;touch-action:none;font-family:inherit;user-select:none}
-#fireBtn{right:25px;bottom:25px;width:100px;height:100px;background:rgba(255,0,51,.28);border:3px solid #ff0033;color:#ff0033;font-size:15px}
-#dashBtn{right:145px;bottom:100px;width:70px;height:70px;background:rgba(0,255,200,.15);border:3px solid #00ffc8;color:#00ffc8;font-size:12px}
-#jumpBtn{right:25px;bottom:145px;width:70px;height:70px;background:rgba(255,200,0,.15);border:3px solid #ffcc00;color:#ffcc00;font-size:12px}
-#swapBtn{right:145px;bottom:180px;width:70px;height:70px;background:rgba(150,0,255,.15);border:3px solid #aa44ff;color:#aa44ff;font-size:11px}
-#reloadBtn{right:225px;bottom:100px;width:70px;height:70px;background:rgba(255,150,0,.15);border:3px solid #ff9900;color:#ff9900;font-size:11px}
-#damage{position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle,transparent 40%,#ff0033 140%);opacity:0;z-index:8;transition:opacity .15s}
+#fireBtn{right:25px;bottom:25px;width:100px;height:100px;background:rgba(255,0,51,.28);border:3px solid #f03;color:#f03;font-size:15px}
+#dashBtn{right:145px;bottom:100px;width:70px;height:70px;background:rgba(0,255,200,.15);border:3px solid #0fc;color:#0fc;font-size:12px}
+#jumpBtn{right:25px;bottom:145px;width:70px;height:70px;background:rgba(255,200,0,.15);border:3px solid #fc0;color:#fc0;font-size:12px}
+#swapBtn{right:145px;bottom:180px;width:70px;height:70px;background:rgba(150,0,255,.15);border:3px solid #a4f;color:#a4f;font-size:11px}
+#reloadBtn{right:225px;bottom:100px;width:70px;height:70px;background:rgba(255,150,0,.15);border:3px solid #f90;color:#f90;font-size:11px}
+#damage{position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle,transparent 40%,#f03 140%);opacity:0;z-index:8;transition:opacity .15s}
 #gameOver,#victory,#shop,#introShop,#startScreen,#clickToPlay{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:100;padding:20px}
 #gameOver{background:rgba(0,0,0,.9)}#victory{background:radial-gradient(circle,rgba(50,0,20,.95),rgba(0,0,0,.98));z-index:120;text-align:center}
 #shop{background:rgba(0,0,0,.94);z-index:150}#introShop{background:rgba(0,0,0,.75);z-index:90}
 #startScreen{background:rgba(0,0,0,.95);z-index:200}#clickToPlay{background:rgba(0,0,0,.6);z-index:50;cursor:pointer}
-h1{color:#ff0033;font-size:48px;text-shadow:0 0 30px #ff0033;margin-bottom:10px;letter-spacing:.15em}
-#victory h1{color:#ffdd00;font-size:64px;text-shadow:0 0 60px #ffdd00}
-#startScreen h1{font-size:56px}
-button{background:transparent;border:2px solid #ff0033;color:#ff0033;font-family:inherit;cursor:pointer;letter-spacing:.2em}
+h1{color:#f03;font-size:48px;text-shadow:0 0 30px #f03;margin-bottom:10px;letter-spacing:.15em}
+#victory h1{color:#fd0;font-size:64px;text-shadow:0 0 60px #fd0}#startScreen h1{font-size:56px}
+button{background:transparent;border:2px solid #f03;color:#f03;font-family:inherit;cursor:pointer;letter-spacing:.2em}
 #gameOver button,#victory button{padding:14px 44px;font-size:20px}
-#victory button{border-color:#ffdd00;color:#ffdd00}
-#startScreen button{padding:16px 60px;font-size:22px;border-width:3px}
-#waveBanner{position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);color:#ff0033;font-size:64px;letter-spacing:.15em;text-shadow:0 0 40px #ff0033;opacity:0;transition:opacity .4s;pointer-events:none;z-index:60;text-align:center}
-#waveBanner.show{opacity:1}#waveBanner .sub{font-size:22px;color:#ffdd00;letter-spacing:.3em;margin-top:8px}
+#victory button{border-color:#fd0;color:#fd0}#startScreen button{padding:16px 60px;font-size:22px;border-width:3px}
+#waveBanner{position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);color:#f03;font-size:64px;letter-spacing:.15em;text-shadow:0 0 40px #f03;opacity:0;transition:opacity .4s;pointer-events:none;z-index:60;text-align:center}
+#waveBanner.show{opacity:1}#waveBanner .sub{font-size:22px;color:#fd0;letter-spacing:.3em;margin-top:8px}
 #hint{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);color:#888;font-size:11px;font-family:monospace;z-index:10;pointer-events:none;text-align:center;width:100%}
 #shopItems,#introItems{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;max-width:1000px}
-.shopItem,.introItem{width:240px;background:rgba(255,0,51,.06);border:3px solid #ff0033;padding:22px 18px;cursor:pointer;text-align:center;font-family:inherit}
-.shopItem .name,.introItem .name{color:#ff0033;font-size:22px;letter-spacing:.15em;margin-bottom:10px}
+.shopItem,.introItem{width:240px;background:rgba(255,0,51,.06);border:3px solid #f03;padding:22px 18px;cursor:pointer;text-align:center;font-family:inherit}
+.shopItem .name,.introItem .name{color:#f03;font-size:22px;letter-spacing:.15em;margin-bottom:10px}
 .shopItem .stat,.introItem .stat{color:#fff;font-size:12px;font-family:monospace;margin:4px 0}
-.shopItem .stat span,.introItem .stat span{color:#ffdd00}
+.shopItem .stat span,.introItem .stat span{color:#fd0}
 #elevatorUI{position:fixed;inset:0;display:none;pointer-events:none;z-index:80}
-#floorCounter{position:absolute;top:80px;left:50%;transform:translateX(-50%);color:#ff0033;font-size:72px;text-shadow:0 0 40px #ff0033}
-#elevatorStatus{position:absolute;bottom:120px;left:50%;transform:translateX(-50%);color:#ffdd00;font-size:16px;font-family:monospace}
-#dialogueBox{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:90%;max-width:700px;background:rgba(0,0,0,.88);border:2px solid #ff0033;padding:18px 22px;z-index:95;display:none;cursor:pointer}
-#dialogueBox .speaker{color:#ff0033;font-size:16px;letter-spacing:.2em;margin-bottom:8px}
+#floorCounter{position:absolute;top:80px;left:50%;transform:translateX(-50%);color:#f03;font-size:72px;text-shadow:0 0 40px #f03}
+#elevatorStatus{position:absolute;bottom:120px;left:50%;transform:translateX(-50%);color:#fd0;font-size:16px;font-family:monospace}
+#dialogueBox{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:90%;max-width:700px;background:rgba(0,0,0,.88);border:2px solid #f03;padding:18px 22px;z-index:95;display:none;cursor:pointer}
+#dialogueBox .speaker{color:#f03;font-size:16px;letter-spacing:.2em;margin-bottom:8px}
 #dialogueBox .text{color:#fff;font-size:14px;font-family:monospace;line-height:1.5}
 #dialogueBox .continue{color:#888;font-size:11px;font-family:monospace;margin-top:10px;text-align:right}
-#muteBtn{position:fixed;top:12px;right:12px;width:44px;height:44px;background:rgba(0,0,0,.6);border:2px solid #ff0033;color:#ff0033;font-size:18px;cursor:pointer;z-index:50;display:flex;align-items:center;justify-content:center}
+#muteBtn{position:fixed;top:12px;right:12px;width:44px;height:44px;background:rgba(0,0,0,.6);border:2px solid #f03;color:#f03;font-size:18px;cursor:pointer;z-index:50;display:flex;align-items:center;justify-content:center}
 #muteBtn.muted{color:#666;border-color:#666}
 .sub{color:#888;font-size:14px;font-family:monospace;margin-bottom:20px;letter-spacing:3px}
-.owned{color:#ffdd00;font-family:monospace;font-size:12px;margin-bottom:20px}
+.owned{color:#fd0;font-family:monospace;font-size:12px;margin-bottom:20px}
+#chatBox{position:fixed;bottom:12px;right:12px;width:260px;z-index:170;font-family:monospace;display:none}
+#chatLog{max-height:110px;overflow-y:auto;background:rgba(0,0,0,.75);border:1px solid #f03;padding:5px;font-size:11px;color:#fff;margin-bottom:4px}
+#chatLog .w{color:#fd0}
+#chatInput{width:100%;padding:5px;background:rgba(0,0,0,.8);border:1px solid #f03;color:#fff;font-family:monospace;font-size:11px;outline:none}
 </style>
 </head>
 <body>
 <div id="lobby" style="position:fixed;inset:0;background:rgba(0,0,0,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:300;gap:18px;font-family:inherit">
 <div id="lobbyMain" style="display:flex;flex-direction:column;align-items:center;gap:18px">
 <h1 style="font-size:48px">ULTRAKILL ONLINE</h1>
-<button id="lobbySolo" style="padding:14px 44px;border-color:#ff0033;color:#ff0033;font-size:18px">ОДИНОЧНАЯ</button>
-<button id="lobbyHost" style="padding:14px 44px;border-color:#00ff88;color:#00ff88;font-size:18px">СОЗДАТЬ КОМНАТУ</button>
+<button id="lobbySolo" style="padding:14px 44px;border-color:#f03;color:#f03;font-size:18px">ОДИНОЧНАЯ</button>
+<button id="lobbyHost" style="padding:14px 44px;border-color:#0f8;color:#0f8;font-size:18px">СОЗДАТЬ КОМНАТУ</button>
 <div style="display:flex;gap:8px">
-<input id="lobbyJoinId" placeholder="КОД КОМНАТЫ" style="padding:12px;background:#111;border:2px solid #ffaa00;color:#ffaa00;font-family:monospace;outline:none">
-<button id="lobbyJoin" style="padding:12px 22px;border-color:#ffaa00;color:#ffaa00;font-size:14px">ВОЙТИ</button>
+<input id="lobbyJoinId" placeholder="КОД КОМНАТЫ" style="padding:12px;background:#111;border:2px solid #fa0;color:#fa0;font-family:monospace;outline:none">
+<button id="lobbyJoin" style="padding:12px 22px;border-color:#fa0;color:#fa0;font-size:14px">ВОЙТИ</button>
 </div>
-<div id="lobbyStatus" style="color:#ffdd00;font-family:monospace;font-size:13px;min-height:20px"></div>
+<div id="lobbyStatus" style="color:#fd0;font-family:monospace;font-size:13px;min-height:20px"></div>
 </div>
 <div id="lobbyRoom" style="display:none;flex-direction:column;align-items:center;gap:16px">
-<h2 style="color:#ff0033;font-size:28px;letter-spacing:.2em">КОМНАТА</h2>
+<h2 style="color:#f03;font-size:28px;letter-spacing:.2em">КОМНАТА</h2>
 <div style="color:#888;font-family:monospace;font-size:12px">КОД ДЛЯ ДРУЗЕЙ:</div>
-<div style="color:#ffaa00;font-family:monospace;font-size:20px;letter-spacing:3px;padding:10px 24px;border:2px solid #ffaa00" id="roomCode">----</div>
+<div style="color:#fa0;font-family:monospace;font-size:20px;letter-spacing:3px;padding:10px 24px;border:2px solid #fa0" id="roomCode">----</div>
 <div style="color:#888;font-family:monospace;font-size:12px;margin-top:6px">ИГРОКИ:</div>
 <div id="playerList" style="display:flex;flex-direction:column;gap:6px;min-height:40px;min-width:200px;align-items:center"></div>
-<button id="startGameBtn" style="display:none;padding:14px 44px;border-color:#ff0033;color:#ff0033;font-size:18px;margin-top:10px">НАЧАТЬ ИГРУ</button>
-<div id="roomStatus" style="color:#ffdd00;font-family:monospace;font-size:13px;min-height:20px"></div>
+<button id="startGameBtn" style="display:none;padding:14px 44px;border-color:#f03;color:#f03;font-size:18px;margin-top:10px">НАЧАТЬ ИГРУ</button>
+<div id="roomStatus" style="color:#fd0;font-family:monospace;font-size:13px;min-height:20px"></div>
 </div>
 </div>
 <div id="game"></div>
@@ -112,11 +114,12 @@ button{background:transparent;border:2px solid #ff0033;color:#ff0033;font-family
 <div id="elevatorUI"><div id="floorCounter">-12</div><div id="elevatorStatus">ПОДЪЁМ...</div></div>
 <div id="dialogueBox"><div class="speaker">V1-TRADER</div><div class="text" id="dialogueText"></div><div class="continue">▼ КЛИК / ПРОБЕЛ</div></div>
 <div id="introShop"><h1>ARSENAL</h1><div class="sub" id="introSub"></div><div class="owned" id="introOwned"></div><div id="introItems"></div></div>
-<div id="clickToPlay"><h2 style="color:#ff0033;font-size:32px">КЛИКНИ ЧТОБЫ ИГРАТЬ</h2><p style="color:#888;margin-top:12px;font-family:monospace">WASD · МЫШЬ · ЛКМ · R · Q · SHIFT · ПРОБЕЛ</p></div>
+<div id="clickToPlay"><h2 style="color:#f03;font-size:32px">КЛИКНИ ЧТОБЫ ИГРАТЬ</h2><p style="color:#888;margin-top:12px;font-family:monospace">WASD · МЫШЬ · ЛКМ · R · Q · SHIFT · ПРОБЕЛ</p></div>
 <div id="startScreen"><h1>ULTRAKILL</h1><div class="sub">30 WAVES · 3 BOSSES</div><button id="startBtn">START</button></div>
 <div id="shop"><h1>ARSENAL</h1><div class="sub" id="shopSub"></div><div class="owned" id="shopOwned"></div><div id="shopItems"></div></div>
-<div id="victory"><h1>VICTORY</h1><div class="sub">30 ВОЛН ПРОЙДЕНО</div><p id="victoryStats" style="color:#fff;font-family:monospace;margin-bottom:30px"></p><div style="display:flex;gap:20px"><button id="restartVictoryBtn">ЗАНОВО</button><button id="endlessBtn" style="border-color:#aa44ff;color:#aa44ff">ENDLESS</button></div></div>
+<div id="victory"><h1>VICTORY</h1><div class="sub">30 ВОЛН ПРОЙДЕНО</div><p id="victoryStats" style="color:#fff;font-family:monospace;margin-bottom:30px"></p><div style="display:flex;gap:20px"><button id="restartVictoryBtn">ЗАНОВО</button><button id="endlessBtn" style="border-color:#a4f;color:#a4f">ENDLESS</button></div></div>
 <div id="gameOver"><h1>YOU DIED</h1><p id="finalScore" style="color:#fff;font-size:20px;margin-bottom:24px"></p><button id="restartBtn">RESTART</button></div>
+<div id="chatBox"><div id="chatLog"></div><input id="chatInput" placeholder="Сообщение..." maxlength="120"></div>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -171,6 +174,7 @@ const WP=[
 {name:'RAILGUN',damage:100,fireRate:600,spread:0,recoil:2.2,auto:false,color:0x1a0a2a,accent:0xaa00ff,model:'rifle',desc:'Идеал.',mag:4,reloadTime:2.6},
 {name:'PLASMA',damage:25,fireRate:200,spread:.02,recoil:.6,auto:true,color:0x1a2a2a,accent:0x00ffff,model:'smg',desc:'Энергия.',mag:20,reloadTime:1.6}];
 let ownedWeapons=[],currentWeaponIdx=0,weaponAmmo={};
+let mapHue=.55;
 
 function init(){
 isMobile=('ontouchstart' in window)&&navigator.maxTouchPoints>0;
@@ -193,6 +197,7 @@ document.getElementById('startBtn').onclick=startGame;
 document.getElementById('restartBtn').onclick=restart;
 document.getElementById('restartVictoryBtn').onclick=restart;
 document.getElementById('endlessBtn').onclick=()=>{endlessMode=true;document.getElementById('victory').style.display='none';gameRunning=true;startWave(MAX_WAVES+1)};
+document.getElementById('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();sendChat()}});
 animate();
 }
 
@@ -216,7 +221,7 @@ startWave(MAX_WAVES);
 function genMap(){
 if(mapGroup){mapGroup.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){if(Array.isArray(o.material))o.material.forEach(m=>m.dispose());else o.material.dispose()}});scene.remove(mapGroup)}
 mapGroup=new THREE.Group();scene.add(mapGroup);
-const h=Math.random();
+const h=mapHue;
 const bg=new THREE.Color().setHSL(h,.5,.05),fc=new THREE.Color().setHSL(h,.25,.13),wc=new THREE.Color().setHSL(h,.55,.08);
 const pc=new THREE.Color().setHSL(h,.5,.15),ec=new THREE.Color().setHSL(h,1,.35),gc=new THREE.Color().setHSL(h,1,.55),gsc=new THREE.Color().setHSL(h,.8,.18);
 scene.background=bg;scene.fog=new THREE.Fog(bg.getHex(),25,80);
@@ -345,6 +350,18 @@ gamePhase='dialogue';dialogueState.active=true;dialogueState.lineIdx=0;
 document.getElementById('dialogueBox').style.display='block';
 document.getElementById('dialogueText').textContent=dialogueState.lines[0];
 SFX.dialogueBlip();
+if(netRole!=='single'){
+if(dialogueState.autoTimer)clearInterval(dialogueState.autoTimer);
+dialogueState.autoTimer=setInterval(()=>{
+if(gamePhase!=='dialogue'){clearInterval(dialogueState.autoTimer);return}
+dialogueState.lineIdx++;
+if(dialogueState.lineIdx<dialogueState.lines.length){
+document.getElementById('dialogueText').textContent=dialogueState.lines[dialogueState.lineIdx];
+SFX.dialogueBlip();
+}else{clearInterval(dialogueState.autoTimer);endDialogue()}
+},2200);
+return;
+}
 document.addEventListener('keydown',dialogueAdvanceHandler);
 document.addEventListener('click',dialogueAdvanceHandler);
 document.addEventListener('touchstart',dialogueAdvanceHandler,{passive:true});
@@ -352,7 +369,7 @@ document.addEventListener('touchstart',dialogueAdvanceHandler,{passive:true});
 
 function dialogueAdvanceHandler(e){
 if(gamePhase!=='dialogue')return;
-if(e.target&&e.target.closest){if(e.target.closest('.introItem'))return;if(e.target.closest('.shopItem'))return;if(e.target.closest('#startScreen'))return;if(e.target.closest('#gameOver'))return;if(e.target.closest('#victory'))return;if(e.target.closest('#muteBtn'))return}
+if(e.target&&e.target.closest){if(e.target.closest('.introItem')||e.target.closest('.shopItem')||e.target.closest('#startScreen')||e.target.closest('#gameOver')||e.target.closest('#victory')||e.target.closest('#muteBtn')||e.target.closest('#chatBox'))return}
 if(e.type==='keydown'){if(e.code!=='Space'&&e.code!=='Enter')return;e.preventDefault()}
 dialogueState.lineIdx++;
 if(dialogueState.lineIdx<dialogueState.lines.length){document.getElementById('dialogueText').textContent=dialogueState.lines[dialogueState.lineIdx];SFX.dialogueBlip()}
@@ -361,6 +378,7 @@ else endDialogue();
 
 function endDialogue(){
 dialogueState.active=false;
+if(dialogueState.autoTimer){clearInterval(dialogueState.autoTimer);dialogueState.autoTimer=null}
 document.removeEventListener('keydown',dialogueAdvanceHandler);
 document.removeEventListener('click',dialogueAdvanceHandler);
 document.removeEventListener('touchstart',dialogueAdvanceHandler);
@@ -378,7 +396,7 @@ for(let i=av.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[av[i],av
 const off=av.slice(0,3);
 if(off.length===0){document.getElementById('introShop').style.display='flex';items.innerHTML='<div style="color:#fff;font-family:monospace;padding:20px">Всё оружие открыто. +25 HP</div>';player.maxHp+=25;player.hp=player.maxHp;setTimeout(()=>{document.getElementById('introShop').style.display='none';removeNPC();beginWavePhase()},2500);return}
 off.forEach(w=>{const W=WP[w];const it=document.createElement('div');it.className='introItem';
-it.innerHTML=`<div class="name">${W.name}</div><div class="stat">УРОН: <span>${W.damage}</span></div><div class="stat">ТЕМП: <span>${Math.round(1000/W.fireRate)}/с</span></div><div class="stat">МАГАЗИН: <span>${W.mag}</span></div><div class="stat">РЕЖИМ: <span>${W.auto?'АВТО':'ОДИН'}</span></div><div class="stat" style="color:#ffdd00;margin-top:10px">${W.desc}</div>`;
+it.innerHTML=`<div class="name">${W.name}</div><div class="stat">УРОН: <span>${W.damage}</span></div><div class="stat">ТЕМП: <span>${Math.round(1000/W.fireRate)}/с</span></div><div class="stat">МАГАЗИН: <span>${W.mag}</span></div><div class="stat">РЕЖИМ: <span>${W.auto?'АВТО':'ОДИН'}</span></div><div class="stat" style="color:#fd0;margin-top:10px">${W.desc}</div>`;
 it.onclick=ev=>{ev.stopPropagation();pickIntroWeapon(w)};items.appendChild(it)});
 document.getElementById('introShop').style.display='flex';
 ['weaponUI','crosshair','ui','hpBar'].forEach(id=>document.getElementById(id).style.display='block');
@@ -391,6 +409,7 @@ if(weaponAmmo[i]===undefined)weaponAmmo[i]=WP[i].mag;
 currentWeaponIdx=i;buildWeapon(i);weaponRecoil=2;
 if(weaponGroup)weaponGroup.visible=true;
 removeNPC();beginWavePhase();
+if(netRole==='host')netBroadcast({t:'wp',w:i});
 }
 
 function removeNPC(){if(npcGroup){scene.remove(npcGroup);npcGroup=null}}
@@ -398,6 +417,8 @@ function removeNPC(){if(npcGroup){scene.remove(npcGroup);npcGroup=null}}
 function beginWavePhase(){
 gamePhase='playing';gameRunning=true;waveInProgress=false;waveActive=false;currentWave=nextWaveAfterElevator-1;
 if(!isMobile){document.getElementById('clickToPlay').style.display='flex';renderer.domElement.requestPointerLock()}
+showChat();
+if(netRole==='client')return;
 startWave(nextWaveAfterElevator);
 }
 
@@ -416,7 +437,6 @@ for(let i=0;i<3;i++){const f=new THREE.Mesh(new THREE.BoxGeometry(.105,.032,.085
 if(W.model==='pistol'){
 const g=new THREE.Mesh(new THREE.BoxGeometry(.11,.14,.42),gm);g.position.set(0,.06,-.22);ra.add(g);
 const b=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.28,12),dm);b.rotation.x=Math.PI/2;b.position.set(0,.06,-.57);ra.add(b);
-const r=new THREE.Mesh(new THREE.BoxGeometry(.08,.025,.22),dm);r.position.set(0,.135,-.22);ra.add(r);
 const ac=new THREE.Mesh(new THREE.BoxGeometry(.12,.018,.32),am);ac.position.set(0,.135,-.25);ra.add(ac);
 const mg=new THREE.Mesh(new THREE.BoxGeometry(.075,.18,.09),dm);mg.position.set(0,-.1,-.1);ra.add(mg);
 muzzleFlash=new THREE.Mesh(new THREE.SphereGeometry(.14,8,8),new THREE.MeshBasicMaterial({color:0xffdd00,transparent:true,opacity:0}));muzzleFlash.position.set(0,.06,-.72);
@@ -424,7 +444,6 @@ muzzleFlash=new THREE.Mesh(new THREE.SphereGeometry(.14,8,8),new THREE.MeshBasic
 const g=new THREE.Mesh(new THREE.BoxGeometry(.1,.14,.55),gm);g.position.set(0,.06,-.3);ra.add(g);
 const b=new THREE.Mesh(new THREE.CylinderGeometry(.032,.032,.32,12),dm);b.rotation.x=Math.PI/2;b.position.set(0,.06,-.72);ra.add(b);
 const st=new THREE.Mesh(new THREE.BoxGeometry(.07,.1,.2),dm);st.position.set(0,.05,.15);ra.add(st);
-const si=new THREE.Mesh(new THREE.BoxGeometry(.04,.05,.08),dm);si.position.set(0,.145,-.3);ra.add(si);
 const ac=new THREE.Mesh(new THREE.BoxGeometry(.105,.016,.4),am);ac.position.set(0,.135,-.35);ra.add(ac);
 const mg=new THREE.Mesh(new THREE.BoxGeometry(.07,.22,.09),dm);mg.position.set(0,-.14,-.28);ra.add(mg);
 muzzleFlash=new THREE.Mesh(new THREE.SphereGeometry(.13,8,8),new THREE.MeshBasicMaterial({color:W.accent,transparent:true,opacity:0}));muzzleFlash.position.set(0,.06,-.9);
@@ -432,7 +451,6 @@ muzzleFlash=new THREE.Mesh(new THREE.SphereGeometry(.13,8,8),new THREE.MeshBasic
 const g=new THREE.Mesh(new THREE.BoxGeometry(.14,.15,.7),gm);g.position.set(0,.06,-.35);ra.add(g);
 const b=new THREE.Mesh(new THREE.CylinderGeometry(.055,.055,.55,14),dm);b.rotation.x=Math.PI/2;b.position.set(0,.06,-.95);ra.add(b);
 const b2=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,.52,14),dm);b2.rotation.x=Math.PI/2;b2.position.set(0,-.04,-.94);ra.add(b2);
-const pu=new THREE.Mesh(new THREE.BoxGeometry(.13,.09,.22),dm);pu.position.set(0,-.02,-.65);ra.add(pu);
 const ac=new THREE.Mesh(new THREE.BoxGeometry(.15,.02,.5),am);ac.position.set(0,.14,-.4);ra.add(ac);
 const st=new THREE.Mesh(new THREE.BoxGeometry(.1,.13,.25),gm);st.position.set(0,.04,.15);ra.add(st);
 muzzleFlash=new THREE.Mesh(new THREE.SphereGeometry(.28,10,10),new THREE.MeshBasicMaterial({color:0xff5500,transparent:true,opacity:0}));muzzleFlash.position.set(0,.06,-1.25);
@@ -512,6 +530,7 @@ document.getElementById('waveLabel').textContent='WAVE '+n+(endlessMode&&n>MAX_W
 const isBoss=n%10===0;
 showBanner(isBoss?'BOSS':'WAVE '+n,isBoss?'WAVE '+n:null,isBoss?2000:1500);
 SFX.waveStart();
+if(netRole==='host')netBroadcast({t:'wave',n:n});
 if(netRole==='client'){waveActive=true;waveInProgress=true;return}
 setTimeout(()=>{hideBanner();spawnWaveEnemies(n,isBoss);waveActive=true;waveInProgress=true},isBoss?2000:1500);
 }
@@ -566,9 +585,6 @@ const aR=aL.clone();aR.position.x=1.5;g.add(aR);
 const hm=new THREE.MeshStandardMaterial({color:0xff0033,emissive:0xff0033,emissiveIntensity:2});
 const hL=new THREE.Mesh(new THREE.ConeGeometry(.2,.8,6),hm);hL.position.set(-.5,5.9,0);hL.rotation.z=.3;g.add(hL);
 const hR=hL.clone();hR.position.x=.5;hR.rotation.z=-.3;g.add(hR);
-const cm=new THREE.MeshStandardMaterial({color:0x221133,roughness:.4,metalness:.95});
-const cL=new THREE.Mesh(new THREE.CylinderGeometry(.15,.15,.9,10),cm);cL.rotation.x=Math.PI/2;cL.position.set(-1.5,2.7,.6);g.add(cL);
-const cR=cL.clone();cR.position.x=1.5;g.add(cR);
 const rm=new THREE.MeshBasicMaterial({color:0xaa44ff,transparent:true,opacity:.4});
 const ring=new THREE.Mesh(new THREE.TorusGeometry(1.6,.08,8,24),rm);ring.rotation.x=Math.PI/2;ring.position.y=.15;g.add(ring);
 const amm=new THREE.MeshBasicMaterial({color:0xff0033,transparent:true,opacity:.25});
@@ -664,9 +680,9 @@ document.getElementById('shopOwned').textContent='АРСЕНАЛ: '+ownedWeapons
 const av=[];for(let i=0;i<WP.length;i++)if(!ownedWeapons.includes(i))av.push(i);
 for(let i=av.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[av[i],av[j]]=[av[j],av[i]]}
 const off=av.slice(0,Math.min(3,av.length));
-if(off.length===0){shop.style.display='flex';ic.innerHTML='<div style="color:#fff;font-family:monospace">Всё оружие открыто. +25 HP</div>';player.maxHp+=25;player.hp=player.maxHp;setTimeout(()=>{shop.style.display='none';gamePhase='playing';startWave(currentWave+1)},2200);return}
+if(off.length===0){shop.style.display='flex';ic.innerHTML='<div style="color:#fff;font-family:monospace">Всё оружие открыто. +25 HP</div>';player.maxHp+=25;player.hp=player.maxHp;setTimeout(()=>{shop.style.display='none';gamePhase='playing';if(netRole!=='client')startWave(currentWave+1)},2200);return}
 off.forEach(w=>{const W=WP[w];const it=document.createElement('div');it.className='shopItem';
-it.innerHTML=`<div class="name">${W.name}</div><div class="stat">УРОН: <span>${W.damage}</span></div><div class="stat">ТЕМП: <span>${Math.round(1000/W.fireRate)}/с</span></div><div class="stat">МАГАЗИН: <span>${W.mag}</span></div><div class="stat" style="color:#ffdd00;margin-top:10px">${W.desc}</div>`;
+it.innerHTML=`<div class="name">${W.name}</div><div class="stat">УРОН: <span>${W.damage}</span></div><div class="stat">ТЕМП: <span>${Math.round(1000/W.fireRate)}/с</span></div><div class="stat">МАГАЗИН: <span>${W.mag}</span></div><div class="stat" style="color:#fd0;margin-top:10px">${W.desc}</div>`;
 it.onclick=()=>pickWeapon(w);ic.appendChild(it)});
 shop.style.display='flex';
 }
@@ -677,13 +693,13 @@ if(weaponAmmo[i]===undefined)weaponAmmo[i]=WP[i].mag;
 currentWeaponIdx=i;buildWeapon(i);weaponRecoil=2;SFX.swap();
 document.getElementById('shop').style.display='none';gamePhase='playing';
 if(!isMobile&&!pointerLocked){document.getElementById('clickToPlay').style.display='flex';renderer.domElement.requestPointerLock()}
-startWave(currentWave+1);
+if(netRole!=='client')startWave(currentWave+1);
 }
 
 function setupDesktopControls(){
 if(desktopControlsReady)return;desktopControlsReady=true;
-document.getElementById('hint').textContent='WASD · МЫШЬ · ЛКМ · R · Q · SHIFT · ПРОБЕЛ';
-addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='Space')e.preventDefault();if(e.code==='KeyQ'&&gamePhase==='playing')swapWeapon();if(e.code==='KeyR'&&gamePhase==='playing')startReload()});
+document.getElementById('hint').textContent='WASD · МЫШЬ · ЛКМ · R · Q · SHIFT · ПРОБЕЛ · ENTER — ЧАТ';
+addEventListener('keydown',e=>{if(e.target&&e.target.id==='chatInput')return;keys[e.code]=true;if(e.code==='Space')e.preventDefault();if(e.code==='KeyQ'&&gamePhase==='playing')swapWeapon();if(e.code==='KeyR'&&gamePhase==='playing')startReload()});
 addEventListener('keyup',e=>keys[e.code]=false);
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false});
 const ctp=document.getElementById('clickToPlay');
@@ -691,7 +707,7 @@ renderer.domElement.addEventListener('click',()=>{if(gamePhase==='playing'&&!poi
 ctp.addEventListener('click',()=>{if(gamePhase==='playing'&&!pointerLocked)renderer.domElement.requestPointerLock()});
 document.addEventListener('pointerlockchange',()=>{pointerLocked=document.pointerLockElement===renderer.domElement;ctp.style.display=(gamePhase==='playing'&&!pointerLocked)?'flex':'none'});
 document.addEventListener('mousemove',e=>{if(pointerLocked){yaw-=e.movementX*.0022;pitch-=e.movementY*.0022;pitch=Math.max(-Math.PI/2+.05,Math.min(Math.PI/2-.05,pitch))}});
-document.addEventListener('mousedown',e=>{if(e.button===0&&pointerLocked)mouseDown=true;if(e.button===2&&pointerLocked)startReload()});
+document.addEventListener('mousedown',e=>{if(e.target&&e.target.id==='chatInput')return;if(e.button===0&&pointerLocked)mouseDown=true;if(e.button===2&&pointerLocked)startReload()});
 document.addEventListener('mouseup',e=>{if(e.button===0)mouseDown=false});
 document.addEventListener('contextmenu',e=>{if(pointerLocked)e.preventDefault()});
 }
@@ -836,10 +852,13 @@ weaponReloadTilt=Math.sin(pct*Math.PI)*.6;
 if(pct>=1)finishReload();
 }else{weaponReloadTilt*=.8;if(weaponReloadTilt<.001)weaponReloadTilt=0}
 
+const chatActive=document.activeElement&&document.activeElement.id==='chatInput';
 if(!isMobile){
+if(!chatActive){
 if(keys['Space']&&gamePhase==='playing'){doJump();keys['Space']=false}
 if((keys['ShiftLeft']||keys['ShiftRight'])&&gamePhase==='playing'){doDash();keys['ShiftLeft']=false;keys['ShiftRight']=false}
 if(mouseDown&&pointerLocked&&gamePhase==='playing'){const W=WP[currentWeaponIdx];if(W.auto)shoot();else{if(!shoot._lr){shoot();shoot._lr=true}}}else shoot._lr=false;
+}
 }else{
 if(fireHold&&gamePhase==='playing'){const W=WP[currentWeaponIdx];if(W.auto)shoot();else{if(!shoot._lr){shoot();shoot._lr=true}}}else shoot._lr=false;
 }
@@ -998,15 +1017,19 @@ function netToHost(m){if(hostConn&&hostConn.open)hostConn.send(m)}
 function onClientMsg(conn,msg){
 if(msg.t==='p'){updateRemotePlayer(conn.peer,msg);netBroadcastExcept(conn,Object.assign({},msg,{id:conn.peer}))}
 else if(msg.t==='shoot')hostHandleClientShot(conn.peer,msg);
+else if(msg.t==='chat'){addChat('ГОСТЬ',msg.msg);netBroadcastExcept(conn,msg)}
 }
 
 function onHostMsg(msg){
 if(msg.t==='players')updatePlayerListUI(msg.ids);
-else if(msg.t==='go'){document.getElementById('lobby').style.display='none';startGame()}
+else if(msg.t==='go'){mapHue=msg.h!==undefined?msg.h:.55;document.getElementById('lobby').style.display='none';startGame()}
 else if(msg.t==='p')updateRemotePlayer(msg.id,msg);
 else if(msg.t==='e')applyEnemyState(msg.list);
 else if(msg.t==='kill')removeGhostEnemy(msg.eid);
 else if(msg.t==='dmg'){player.hp-=msg.amount;damageTimer=8;SFX.playerDamage();if(player.hp<=0){player.hp=0;gameOver()}}
+else if(msg.t==='wp'){if(gamePhase==='introShop')pickIntroWeapon(msg.w)}
+else if(msg.t==='wave'){if(gamePhase==='playing'||gamePhase==='shop')startWave(msg.n)}
+else if(msg.t==='chat')addChat(msg.who,msg.msg);
 }
 
 function hostHandleClientShot(cid,msg){
@@ -1106,10 +1129,37 @@ m.position.z+=(g.tz-m.position.z)*.3;
 }
 }
 
+function showChat(){if(netRole!=='single')document.getElementById('chatBox').style.display='block'}
+
+function addChat(who,msg){
+const el=document.getElementById('chatLog');
+const d=document.createElement('div');
+d.innerHTML='<span class="w">'+who+':</span> '+String(msg).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'})[c]);
+el.appendChild(d);
+el.scrollTop=el.scrollHeight;
+while(el.children.length>25)el.removeChild(el.firstChild);
+}
+
+function sendChat(){
+const inp=document.getElementById('chatInput');
+const v=inp.value.trim();
+if(!v)return;
+const who=netRole==='host'?'ХОСТ':'ГОСТЬ';
+addChat('Я',v);
+if(netRole==='host')netBroadcast({t:'chat',who:'ХОСТ',msg:v});
+else netToHost({t:'chat',who:'ГОСТЬ',msg:v});
+inp.value='';
+}
+
 document.getElementById('lobbySolo').onclick=()=>{document.getElementById('lobby').style.display='none';startGame()};
 document.getElementById('lobbyHost').onclick=()=>initNetwork('host');
 document.getElementById('lobbyJoin').onclick=()=>{const id=document.getElementById('lobbyJoinId').value.trim();if(id)initNetwork('client',id)};
-document.getElementById('startGameBtn').onclick=()=>{netBroadcast({t:'go'});document.getElementById('lobby').style.display='none';startGame()};
+document.getElementById('startGameBtn').onclick=()=>{
+const h=Math.random();mapHue=h;
+netBroadcast({t:'go',h:h});
+document.getElementById('lobby').style.display='none';
+startGame();
+};
 
 init();
 document.getElementById('startScreen').style.display='none';

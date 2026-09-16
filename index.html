@@ -102,7 +102,6 @@ button:disabled:hover{background:rgba(20,4,7,.55);color:inherit;box-shadow:none}
 .lobby-input{padding:12px 14px;background:#0e0508;border:1px solid var(--gold);color:var(--gold);font-family:var(--mono);letter-spacing:1px;outline:none;font-size:13px;transition:border-color .15s,box-shadow .15s}
 .lobby-input:focus{border-color:#fff2b0;box-shadow:0 0 0 2px rgba(255,204,51,.2)}
 .lobby-input::placeholder{color:#6b5a2a}
-#nameTag{position:absolute;color:var(--cyan);font-family:var(--mono);font-size:11px;text-shadow:0 0 4px #000;pointer-events:none;white-space:nowrap}
 #spectatorHud{position:fixed;left:50%;top:20px;transform:translateX(-50%);color:var(--gold);font-family:var(--mono);font-size:13px;letter-spacing:.15em;z-index:180;display:none;background:rgba(6,1,2,.8);padding:12px 26px;border:1px solid var(--red);text-align:center;pointer-events:none;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
 #spectatorHud .sub2{color:#777;font-size:10px;margin-top:6px;letter-spacing:.15em}
 #lobby{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;font-family:var(--disp);background:radial-gradient(ellipse at 50% 0%,rgba(255,23,68,.1),transparent 55%),repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0,rgba(255,255,255,.012) 1px,transparent 1px,transparent 3px),#050103}
@@ -130,8 +129,6 @@ button:disabled:hover{background:rgba(20,4,7,.55);color:inherit;box-shadow:none}
 .lobby-btn-cyan:hover{background:var(--cyan);color:#012}
 .lobby-btn-gold{border-color:var(--gold);color:var(--gold)}
 .lobby-btn-gold:hover{background:var(--gold);color:#1a1400}
-.lobby-btn-gray{border-color:#555;color:#888;padding:10px 24px;font-size:11px}
-.lobby-btn-gray:hover{background:#555;color:#eee}
 .join-row{display:flex;gap:8px;margin-top:24px;align-items:center;flex-wrap:wrap;justify-content:center}
 #tabPlayHint{color:#555;font-family:var(--mono);font-size:11px;margin-top:8px;letter-spacing:.08em}
 #tabPlayHint b{color:var(--gold);font-weight:600}
@@ -238,7 +235,7 @@ button:disabled:hover{background:rgba(20,4,7,.55);color:inherit;box-shadow:none}
 </div>
 <div class="lobby-bottom">
 <div id="lobbyStatus"></div>
-<div class="lobby-credit">v1.2 · PEERJS · THREE.JS</div>
+<div class="lobby-credit">v1.4 · PEERJS · THREE.JS</div>
 </div>
 </div>
 <div id="lobbyRoom">
@@ -359,7 +356,6 @@ const ARENAS=[
 {name:'FACTORY',minW:20,maxW:29,hue:.58,hueR:.09,sat:.4,satFloor:.15,litFloor:.11,litWall:.07,litPillar:.14,fogFar:60,emberCount:120,emberSpeed:.014,emberColor:'cyan',pillarMin:14,pillarMax:22,pillarSize:[1,2],decor:'grid'},
 {name:'HELL',minW:30,maxW:9999,hue:.99,hueR:.03,sat:.7,satFloor:.35,litFloor:.09,litWall:.05,litPillar:.12,fogFar:45,emberCount:200,emberSpeed:.022,emberColor:'red',pillarMin:18,pillarMax:26,pillarSize:[1,2],decor:'hell'}
 ];
-
 function getArenaForWave(w){for(const a of ARENAS)if(w>=a.minW&&w<=a.maxW)return a;return ARENAS[ARENAS.length-1]}
 
 function init(){
@@ -1380,6 +1376,7 @@ startElevatorIntro(1);
 let peer=null,netRole='single',hostConn=null,clientConns=[];
 const remotePlayers={},ghostEnemies={};
 let netIdCounter=0,netSendAcc=0;
+const clientNicks=[];
 
 function sanitizeNick(s){let n=String(s||'').toLowerCase().replace(/[^a-z0-9а-яё\-_]/gi,'').trim();if(!n)n='player';return n.slice(0,14)}
 function buildRoomCode(nick){return nick+'-lobby'}
@@ -1408,15 +1405,14 @@ updatePlayerListUI(players);
 netBroadcast({t:'players',players:players});
 dirTouch();
 }
-const clientNicks=[];
 
-function initNetwork(role,roomCode){
+function initNetwork(role,roomCode,retry){
 netRole=role;
 const peerOpts={};
 if(role==='host')peerOpts.id=roomCode;
 peer=new Peer(peerOpts.id,{debug:0});
 peer.on('open',id=>{
-if(role==='host'){showRoomScreen(id,true);roomStatus('Ждём игроков...');broadcastPlayers()}
+if(role==='host'){showRoomScreen(id,true);roomStatus('Ждём игроков...');broadcastPlayers();if(myServer)myServer.code=id}
 else{
 showRoomScreen(roomCode,false);roomStatus('Подключение...');
 hostConn=peer.connect(roomCode,{reliable:true});
@@ -1438,9 +1434,17 @@ broadcastPlayers();
 });
 });
 peer.on('error',e=>{
+if(e.type==='unavailable-id'&&role==='host'&&!retry){
+const alt=roomCode+'-'+Math.random().toString(36).slice(2,5);
+if(myServer)myServer.code=alt;
+try{peer.destroy()}catch(_){}
+initNetwork('host',alt,true);
+return;
+}
+if(e.type==='peer-unavailable'&&role==='client'){roomStatus('КОМНАТА НЕ НАЙДЕНА — ПРОВЕРЬ КОД');return}
 roomStatus('ОШИБКА: '+e.type);
-if(e.type==='unavailable-id'){srvStatus('КОД ЗАНЯТ — ПОПРОБУЙ ДРУГОЕ ИМЯ');lobbyStatus('КОД ЗАНЯТ')}
-else if(e.type==='peer-unavailable'){roomStatus('СЕРВЕР НЕ ОТВЕЧАЕТ')}
+if(e.type==='unavailable-id')lobbyStatus('КОД ЗАНЯТ — ПОПРОБУЙ ДРУГОЕ ИМЯ');
+else if(e.type==='peer-unavailable')lobbyStatus('СЕРВЕР НЕ ОТВЕЧАЕТ');
 else lobbyStatus('ОШИБКА: '+e.type);
 });
 }
@@ -1650,77 +1654,26 @@ let dirPruneTimer=null,dirHbTimer=null,dirAutoTimer=null;
 let dirRegId=null;
 const dirRegistry={};
 let myServer=null,srvTab='play';
+let dirQueue=[];
 function srvStatus(s){const el=document.getElementById('srvStatus');if(el)el.textContent=s}
 function dirEnsure(cb){
 if(dirIsHost||(dirConn&&dirConn.open)){if(cb)cb();return}
-if(dirConnecting){if(cb)dirQueue.push(cb);return}
-dirQueue.length=0;
 if(cb)dirQueue.push(cb);
+if(dirConnecting)return;
 dirConnecting=true;
 dirFindAlive(0);
 }
-let dirQueue=[];
+function dirFinish(){
+dirConnecting=false;
+const q=dirQueue.slice();dirQueue.length=0;
+for(const f of q){try{f()}catch(e){}}
+}
 function dirFindAlive(i){
 if(i>=DIR_IDS.length){
-dirConnecting=false;
 srvStatus('СЕРВЕРНЫЙ СПИСОК НЕДОСТУПЕН — ИГРАЙ ПО КОДУ КОМНАТЫ');
-const q=dirQueue.slice();dirQueue.length=0;
-for(const f of q){try{f()}catch(e){}}
+dirFinish();
 return;
 }
-let done=false;
-let p;
-try{p=new Peer(undefined,{debug:0})}catch(e){return dirFindAlive(i+1)}
-p.on('open',()=>{
-const c=p.connect(DIR_IDS[i],{reliable:true});
-let answered=false;
-c.on('open',()=>{answered=true});
-c.on('data',m=>{
-if(done)return;
-if(m.t==='servers'){
-done=true;
-dirPeer=p;dirConn=c;dirIsHost=false;dirConnecting=false;
-c.on('data',mm=>{if(mm.t==='servers')renderServers(mm.list)});
-c.on('close',()=>{dirConn=null;try{p.destroy()}catch(_){}});
-renderServers(m.list);
-srvStatus('');
-if(myServer)dirPublish();
-const q=dirQueue.slice();dirQueue.length=0;
-for(const f of q){try{f()}catch(e){}}
-}
-});
-c.on('error',()=>{});
-setTimeout(()=>{
-if(done)return;
-if(!answered){
-try{p.destroy()}catch(_){}
-done=true;
-dirFindAlive(i+1);
-}
-},1200);
-});
-p.on('error',e=>{
-if(done)return;done=true;
-try{p.destroy()}catch(_){}
-if(e.type==='unavailable-id'){
-dirTryBecomeHost(i,p);
-return;
-}
-dirFindAlive(i+1);
-});
-p.on('disconnected',()=>{
-if(done)return;done=true;
-try{p.destroy()}catch(_){}
-dirFindAlive(i+1);
-});
-setTimeout(()=>{
-if(done)return;done=true;
-try{p.destroy()}catch(_){}
-dirFindAlive(i+1);
-},3000);
-}
-function dirTryBecomeHost(i,oldPeer){
-try{oldPeer.destroy()}catch(_){}
 let done=false;
 let p;
 try{p=new Peer(DIR_IDS[i],{debug:0})}catch(e){return dirFindAlive(i+1)}
@@ -1735,12 +1688,64 @@ c.on('close',()=>{dirConns=dirConns.filter(x=>x!==c);dirDropOwner(c.peer);dirPus
 c.on('error',()=>{});
 });
 if(!dirPruneTimer)dirPruneTimer=setInterval(dirPrune,5000);
-dirConnecting=false;
 srvStatus('');
 if(myServer)dirPublish();
 dirPush();
-const q=dirQueue.slice();dirQueue.length=0;
-for(const f of q){try{f()}catch(e){}}
+dirFinish();
+});
+p.on('error',e=>{
+if(done)return;done=true;
+try{p.destroy()}catch(_){}
+if(e.type==='unavailable-id'){dirConnectAsClient(i);return}
+dirFindAlive(i+1);
+});
+p.on('disconnected',()=>{
+if(done)return;done=true;
+try{p.destroy()}catch(_){}
+dirPeer=null;dirIsHost=false;
+dirFindAlive(i+1);
+});
+setTimeout(()=>{
+if(done)return;done=true;
+try{p.destroy()}catch(_){}
+dirFindAlive(i+1);
+},4000);
+}
+function dirConnectAsClient(i){
+let done=false;
+let p;
+try{p=new Peer(undefined,{debug:0})}catch(e){return dirFindAlive(i+1)}
+p.on('open',()=>{
+const c=p.connect(DIR_IDS[i],{reliable:true});
+let answered=false;
+c.on('open',()=>{answered=true});
+c.on('data',m=>{
+if(done)return;
+if(m.t==='servers'){
+done=true;
+dirPeer=p;dirConn=c;dirIsHost=false;
+dirRegId=DIR_IDS[i];
+c.on('data',mm=>{if(mm.t==='servers')renderServers(mm.list)});
+c.on('close',()=>{
+dirConn=null;
+if(!dirIsHost){try{p.destroy()}catch(_){};dirPeer=null;dirRegId=null}
+});
+c.on('error',()=>{});
+renderServers(m.list);
+srvStatus('');
+if(myServer)dirPublish();
+dirFinish();
+}
+});
+c.on('error',()=>{});
+setTimeout(()=>{
+if(done)return;
+if(!answered){
+done=true;
+try{p.destroy()}catch(_){}
+dirFindAlive(i+1);
+}
+},1500);
 });
 p.on('error',()=>{
 if(done)return;done=true;
@@ -1749,14 +1754,14 @@ dirFindAlive(i+1);
 });
 p.on('disconnected',()=>{
 if(done)return;done=true;
-dirPeer=null;dirIsHost=false;
 try{p.destroy()}catch(_){}
+dirFindAlive(i+1);
 });
 setTimeout(()=>{
 if(done)return;done=true;
 try{p.destroy()}catch(_){}
 dirFindAlive(i+1);
-},3000);
+},4000);
 }
 function dirHandle(c,m){
 if(m.t==='register'){
@@ -1902,22 +1907,17 @@ refreshServers();
 if(!dirAutoTimer)dirAutoTimer=setInterval(()=>{if(srvTab==='servers'&&document.getElementById('lobbyMain').style.display!=='none')refreshServers()},8000);
 }
 }
-function showTab(t){
-srvTab=t;
-const play=t==='play';
-document.getElementById('tabPlay').style.display=play?'flex':'none';
-document.getElementById('tabServers').style.display=play?'none':'flex';
-const tabs=document.querySelectorAll('#lobbyTabs .tab');
-for(const b of tabs)b.classList.toggle('active',b.dataset.tab===t);
-if(!play){refreshServers();if(!dirAutoTimer)dirAutoTimer=setInterval(()=>{if(srvTab==='servers'&&document.getElementById('lobbyMain').style.display!=='none')refreshServers()},8000)}
-}
 
 document.querySelectorAll('#lobbyTabs .tab').forEach(b=>{b.onclick=()=>showTab(b.dataset.tab)});
-document.getElementById('srvRefresh').onclick=()=>{dirTries=0;refreshServers()};
+document.getElementById('srvRefresh').onclick=()=>{refreshServers()};
 document.getElementById('srvCreateBtn').onclick=createServer;
 document.getElementById('srvInfoClose').onclick=hideServerInfo;
 document.getElementById('srvInfo').onclick=e=>{if(e.target.id==='srvInfo')hideServerInfo()};
-document.getElementById('srvInfoJoin').onclick=()=>{const s=findServer(infoCode);if(!s||(myServer&&s.code===myServer.code))return;hideServerInfo();joinServer(s)};
+document.getElementById('srvInfoJoin').onclick=()=>{
+const s=findServer(infoCode);
+if(!s||(myServer&&s.code===myServer.code))return;
+hideServerInfo();joinServer(s);
+};
 document.getElementById('srvInfoCopy').onclick=()=>{
 const s=findServer(infoCode);if(!s)return;
 const btn=document.getElementById('srvInfoCopy');
@@ -1929,14 +1929,19 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&infoCode)hideServerInfo()});
 document.getElementById('roomBack').onclick=()=>{dirUnregister();setTimeout(()=>location.reload(),150)};
 addEventListener('beforeunload',()=>{try{dirUnregister()}catch(e){}});
 
-document.getElementById('lobbySolo').onclick=()=>{myNick=sanitizeNick(document.getElementById('nickInput').value)||'player';document.getElementById('lobby').style.display='none';startGame()};
+document.getElementById('lobbySolo').onclick=()=>{
+myNick=sanitizeNick(document.getElementById('nickInput').value)||'player';
+document.getElementById('lobby').style.display='none';
+startGame();
+};
 document.getElementById('lobbyHost').onclick=()=>{
 myNick=sanitizeNick(document.getElementById('nickInput').value);
 document.getElementById('nickInput').value=myNick;
 const room=buildRoomCode(myNick);
 myServer={code:room,name:'Комната '+myNick,nick:myNick,wave:0,started:false,since:Date.now()};
 initNetwork('host',room);
-dirEnsure(()=>{dirPublish();dirStartHeartbeat()});
+dirStartHeartbeat();
+dirEnsure(()=>{dirPublish()});
 };
 document.getElementById('lobbyJoin').onclick=()=>{
 myNick=sanitizeNick(document.getElementById('nickInput').value);

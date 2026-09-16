@@ -102,6 +102,7 @@ button:disabled:hover{background:rgba(20,4,7,.55);color:inherit;box-shadow:none}
 .lobby-input{padding:12px 14px;background:#0e0508;border:1px solid var(--gold);color:var(--gold);font-family:var(--mono);letter-spacing:1px;outline:none;font-size:13px;transition:border-color .15s,box-shadow .15s}
 .lobby-input:focus{border-color:#fff2b0;box-shadow:0 0 0 2px rgba(255,204,51,.2)}
 .lobby-input::placeholder{color:#6b5a2a}
+#nameTag{position:absolute;color:var(--cyan);font-family:var(--mono);font-size:11px;text-shadow:0 0 4px #000;pointer-events:none;white-space:nowrap}
 #spectatorHud{position:fixed;left:50%;top:20px;transform:translateX(-50%);color:var(--gold);font-family:var(--mono);font-size:13px;letter-spacing:.15em;z-index:180;display:none;background:rgba(6,1,2,.8);padding:12px 26px;border:1px solid var(--red);text-align:center;pointer-events:none;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
 #spectatorHud .sub2{color:#777;font-size:10px;margin-top:6px;letter-spacing:.15em}
 #lobby{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;font-family:var(--disp);background:radial-gradient(ellipse at 50% 0%,rgba(255,23,68,.1),transparent 55%),repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0,rgba(255,255,255,.012) 1px,transparent 1px,transparent 3px),#050103}
@@ -129,6 +130,8 @@ button:disabled:hover{background:rgba(20,4,7,.55);color:inherit;box-shadow:none}
 .lobby-btn-cyan:hover{background:var(--cyan);color:#012}
 .lobby-btn-gold{border-color:var(--gold);color:var(--gold)}
 .lobby-btn-gold:hover{background:var(--gold);color:#1a1400}
+.lobby-btn-gray{border-color:#555;color:#888;padding:10px 24px;font-size:11px}
+.lobby-btn-gray:hover{background:#555;color:#eee}
 .join-row{display:flex;gap:8px;margin-top:24px;align-items:center;flex-wrap:wrap;justify-content:center}
 #tabPlayHint{color:#555;font-family:var(--mono);font-size:11px;margin-top:8px;letter-spacing:.08em}
 #tabPlayHint b{color:var(--gold);font-weight:600}
@@ -235,7 +238,7 @@ button:disabled:hover{background:rgba(20,4,7,.55);color:inherit;box-shadow:none}
 </div>
 <div class="lobby-bottom">
 <div id="lobbyStatus"></div>
-<div class="lobby-credit">v1.7 · PEERJS · THREE.JS</div>
+<div class="lobby-credit">v1.2 · PEERJS · THREE.JS</div>
 </div>
 </div>
 <div id="lobbyRoom">
@@ -294,8 +297,7 @@ button:disabled:hover{background:rgba(20,4,7,.55);color:inherit;box-shadow:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 'use strict';
-const _ICE=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}];
-  const SFX={ctx:null,muted:false,
+const SFX={ctx:null,muted:false,
 init(){if(!this.ctx){try{this.ctx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}},
 resume(){if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume()},
 tone(f,d,t,v,s){if(!this.ctx||this.muted)return;t=t||'sine';v=v===undefined?.15:v;const c=this.ctx.currentTime,o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type=t;o.frequency.setValueAtTime(f,c);if(s)o.frequency.exponentialRampToValueAtTime(Math.max(s,1),c+d);g.gain.setValueAtTime(v,c);g.gain.exponentialRampToValueAtTime(.0001,c+d);o.connect(g);g.connect(this.ctx.destination);o.start(c);o.stop(c+d+.02)},
@@ -357,6 +359,7 @@ const ARENAS=[
 {name:'FACTORY',minW:20,maxW:29,hue:.58,hueR:.09,sat:.4,satFloor:.15,litFloor:.11,litWall:.07,litPillar:.14,fogFar:60,emberCount:120,emberSpeed:.014,emberColor:'cyan',pillarMin:14,pillarMax:22,pillarSize:[1,2],decor:'grid'},
 {name:'HELL',minW:30,maxW:9999,hue:.99,hueR:.03,sat:.7,satFloor:.35,litFloor:.09,litWall:.05,litPillar:.12,fogFar:45,emberCount:200,emberSpeed:.022,emberColor:'red',pillarMin:18,pillarMax:26,pillarSize:[1,2],decor:'hell'}
 ];
+
 function getArenaForWave(w){for(const a of ARENAS)if(w>=a.minW&&w<=a.maxW)return a;return ARENAS[ARENAS.length-1]}
 
 function init(){
@@ -796,7 +799,8 @@ weaponGroup.add(ra);weaponGroup.add(la);weaponGroup.userData={rightArm:ra,leftAr
 document.getElementById('weaponName').textContent=W.name;
 updateAmmoUI();
 }
-  function updateAmmoUI(){
+
+function updateAmmoUI(){
 const W=WP[currentWeaponIdx];
 const c=weaponAmmo[currentWeaponIdx]!==undefined?weaponAmmo[currentWeaponIdx]:W.mag;
 document.getElementById('ammoCur').textContent=c;
@@ -1372,10 +1376,10 @@ if(isMobile){['joystick','lookArea','fireBtn','dashBtn','jumpBtn','swapBtn','rel
 else setupDesktopControls();
 startElevatorIntro(1);
 }
-  let peer=null,netRole='single',hostConn=null,clientConns=[];
+
+let peer=null,netRole='single',hostConn=null,clientConns=[];
 const remotePlayers={},ghostEnemies={};
 let netIdCounter=0,netSendAcc=0;
-const clientNicks=[];
 
 function sanitizeNick(s){let n=String(s||'').toLowerCase().replace(/[^a-z0-9а-яё\-_]/gi,'').trim();if(!n)n='player';return n.slice(0,14)}
 function buildRoomCode(nick){return nick+'-lobby'}
@@ -1389,7 +1393,6 @@ document.getElementById('roomCode').textContent=code;
 document.getElementById('roomTitle').textContent=myServer?myServer.name:'';
 document.getElementById('startGameBtn').style.display=isHost?'block':'none';
 }
-
 function updatePlayerListUI(players){
 const el=document.getElementById('playerList');el.innerHTML='';
 for(const p of players){
@@ -1399,19 +1402,19 @@ d.style.cssText='color:'+(p.id===peer.id?'#0f8':'#fd0')+';font-family:monospace;
 el.appendChild(d);
 }
 }
-
 function broadcastPlayers(){
 const players=[{id:peer.id,nick:myNick},...clientNicks];
 updatePlayerListUI(players);
 netBroadcast({t:'players',players:players});
 dirTouch();
 }
+const clientNicks=[];
 
 function initNetwork(role,roomCode){
 netRole=role;
 const peerOpts={};
 if(role==='host')peerOpts.id=roomCode;
-peer=new Peer(peerOpts.id,{debug:0,config:{iceServers:_ICE},host:'uk3d-server.onrender.com',port:443,path:'/uk3d',secure:true});
+peer=new Peer(peerOpts.id,{debug:0});
 peer.on('open',id=>{
 if(role==='host'){showRoomScreen(id,true);roomStatus('Ждём игроков...');broadcastPlayers()}
 else{
@@ -1501,8 +1504,22 @@ netBroadcast({t:'e',list:list});
 }
 }
 
+function makeNameTag(nick){
+const c=document.createElement('canvas');c.width=256;c.height=64;
+const x=c.getContext('2d');
+x.fillStyle='rgba(0,0,0,.6)';x.fillRect(0,0,256,64);
+x.strokeStyle='#22e0d0';x.lineWidth=3;x.strokeRect(2,2,252,60);
+x.font='bold 30px monospace';x.textAlign='center';x.textBaseline='middle';
+x.fillStyle='#22e0d0';x.fillText(String(nick||'?').slice(0,14),128,34);
+const t=new THREE.CanvasTexture(c);
+if('encoding' in t)t.encoding=THREE.sRGBEncoding;
+const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthTest:false,depthWrite:false}));
+s.scale.set(1.8,.45,1);s.position.y=3.15;
+return s;
+}
 function makeGhostMesh(nick){
 const g=new THREE.Group();
+g.add(makeNameTag(nick));
 const bm=new THREE.MeshStandardMaterial({color:0xdddddd,roughness:.5,metalness:.6});
 const dm=new THREE.MeshStandardMaterial({color:0x222222,roughness:.6,metalness:.8});
 const vm=new THREE.MeshStandardMaterial({color:0x00ff88,emissive:0x00ff88,emissiveIntensity:2});
@@ -1518,7 +1535,6 @@ const lR=lL.clone();lR.position.x=.25;g.add(lR);
 const lt=new THREE.PointLight(0x00ff88,1.2,6);lt.position.y=2.5;g.add(lt);
 return g;
 }
-
 function updateRemotePlayer(id,msg,nick){
 let rp=remotePlayers[id];
 if(!rp){
@@ -1530,9 +1546,7 @@ g.rotation.y=(msg.yaw||0)+Math.PI;
 rp.tx=msg.x;rp.ty=msg.y;rp.tz=msg.z;rp.tyaw=(msg.yaw||0)+Math.PI;rp.yaw=msg.yaw||0;
 if(nick)rp.nick=nick;
 }
-
 function removeRemotePlayer(id){const rp=remotePlayers[id];if(!rp)return;scene.remove(rp.group);delete remotePlayers[id]}
-
 function interpRemotePlayers(){
 for(const id in remotePlayers){
 const rp=remotePlayers[id],g=rp.group;
@@ -1545,7 +1559,6 @@ while(dy<-Math.PI)dy+=Math.PI*2;
 g.rotation.y+=dy*.25;
 }
 }
-
 function makeGhostEnemy(boss,imm){
 const g=new THREE.Group();
 if(boss){
@@ -1579,7 +1592,6 @@ const aR=aL.clone();aR.position.x=.55;g.add(aR);
 }
 return g;
 }
-
 function applyEnemyState(list){
 const seen=new Set();
 for(const es of list){
@@ -1591,9 +1603,7 @@ g.tx=es.x;g.ty=es.y;g.tz=es.z;g.try_=es.ry||0;
 }
 for(const id in ghostEnemies)if(!seen.has(id))removeGhostEnemy(id);
 }
-
 function removeGhostEnemy(id){const g=ghostEnemies[id];if(!g)return;scene.remove(g.mesh);delete ghostEnemies[id]}
-
 function interpGhostEnemies(){
 for(const id in ghostEnemies){
 const g=ghostEnemies[id],m=g.mesh;
@@ -1608,16 +1618,13 @@ if(m.userData.ring){m.userData.ring.rotation.z+=.02;m.userData.ring.material.opa
 if(m.userData.aura){m.userData.aura.rotation.z-=.015;m.userData.aura.material.opacity=.15+Math.sin(performance.now()*.005)*.15}
 }
 }
-
 function showChat(){
 if(netRole==='single')return;
 const cb=document.getElementById('chatBox');
 cb.style.display='block';
 if(isMobile){cb.style.bottom='';cb.style.right='';cb.style.top='90px';cb.style.left='12px';cb.style.width='220px'}
 }
-
 function esc(s){return String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c])}
-
 function addChat(who,msg,isMe){
 const el=document.getElementById('chatLog');
 const d=document.createElement('div');
@@ -1626,7 +1633,6 @@ el.appendChild(d);
 el.scrollTop=el.scrollHeight;
 while(el.children.length>30)el.removeChild(el.firstChild);
 }
-
 function sendChat(){
 const inp=document.getElementById('chatInput');
 const v=inp.value.trim();
@@ -1637,47 +1643,146 @@ else netToHost({t:'chat',nick:myNick,msg:v});
 inp.value='';
 }
 
-const WS_URL='wss://uk3d-server.onrender.com';
-let ws=null,wsReady=false,wsTries=0,wsTimer=null;
-let dirQueue=[],dirHbTimer=null,dirAutoTimer=null;
+const DIR_IDS=['uk3d-srv-a1','uk3d-srv-b2','uk3d-srv-c3','uk3d-srv-d4','uk3d-srv-e5'];
+const DIR_STALE=20000;
+let dirPeer=null,dirConn=null,dirIsHost=false,dirConns=[],dirConnecting=false;
+let dirPruneTimer=null,dirHbTimer=null,dirAutoTimer=null;
+let dirRegId=null;
 const dirRegistry={};
 let myServer=null,srvTab='play';
-let infoCode=null,shownServers=[];
 function srvStatus(s){const el=document.getElementById('srvStatus');if(el)el.textContent=s}
-function dirConnect(cb){
-if(wsReady){if(cb)cb();return}
+function dirEnsure(cb){
+if(dirIsHost||(dirConn&&dirConn.open)){if(cb)cb();return}
+if(dirConnecting){if(cb)dirQueue.push(cb);return}
+dirQueue.length=0;
 if(cb)dirQueue.push(cb);
-if(ws&&ws.readyState===0)return;
-try{if(ws)ws.close()}catch(e){}
-ws=null;wsReady=false;
-try{ws=new WebSocket(WS_URL)}catch(e){srvStatus('НЕ УДАЛОСЬ ПОДКЛЮЧИТЬСЯ');return}
-ws.onopen=()=>{
-wsReady=true;wsTries=0;
+dirConnecting=true;
+dirFindAlive(0);
+}
+let dirQueue=[];
+function dirFindAlive(i){
+if(i>=DIR_IDS.length){
+dirConnecting=false;
+srvStatus('СЕРВЕРНЫЙ СПИСОК НЕДОСТУПЕН — ИГРАЙ ПО КОДУ КОМНАТЫ');
+const q=dirQueue.slice();dirQueue.length=0;
+for(const f of q){try{f()}catch(e){}}
+return;
+}
+let done=false;
+let p;
+try{p=new Peer(DIR_IDS[i],{debug:0})}catch(e){return dirFindAlive(i+1)}
+p.on('open',()=>{
+if(done)return;done=true;
+dirRegId=DIR_IDS[i];
+dirPeer=p;dirIsHost=true;
+p.on('connection',c=>{
+dirConns.push(c);
+c.on('data',m=>dirHandle(c,m));
+c.on('close',()=>{dirConns=dirConns.filter(x=>x!==c);dirDropOwner(c.peer);dirPush()});
+c.on('error',()=>{});
+});
+if(!dirPruneTimer)dirPruneTimer=setInterval(dirPrune,5000);
+dirConnecting=false;
 srvStatus('');
-try{ws.send(JSON.stringify({t:'list'}))}catch(e){}
+if(myServer)dirPublish();
+dirPush();
+const q=dirQueue.slice();dirQueue.length=0;
+for(const f of q){try{f()}catch(e){}}
+});
+p.on('error',e=>{
+if(done)return;done=true;
+try{p.destroy()}catch(_){}
+if(e.type==='unavailable-id'){
+dirConnectAsClient(i);
+return;
+}
+dirFindAlive(i+1);
+});
+p.on('disconnected',()=>{
+if(done)return;done=true;
+dirPeer=null;dirIsHost=false;
+try{p.destroy()}catch(_){}
+dirFindAlive(i+1);
+});
+setTimeout(()=>{
+if(done)return;done=true;
+try{p.destroy()}catch(_){}
+dirFindAlive(i+1);
+},3000);
+}
+function dirConnectAsClient(i){
+let done=false;
+let p;
+try{p=new Peer(undefined,{debug:0})}catch(e){return dirFindAlive(i+1)}
+p.on('open',()=>{
+const c=p.connect(DIR_IDS[i],{reliable:true});
+let answered=false;
+c.on('open',()=>{answered=true});
+c.on('data',m=>{
+if(done)return;
+if(m.t==='servers'){
+done=true;
+dirPeer=p;dirConn=c;dirIsHost=false;dirConnecting=false;
+c.on('data',mm=>{if(mm.t==='servers')renderServers(mm.list)});
+c.on('close',()=>{dirConn=null;try{p.destroy()}catch(_){}});
+renderServers(m.list);
+srvStatus('');
 if(myServer)dirPublish();
 const q=dirQueue.slice();dirQueue.length=0;
 for(const f of q){try{f()}catch(e){}}
-};
-ws.onmessage=e=>{
-let m;try{m=JSON.parse(e.data)}catch{return}
-if(m.t==='list')renderServers(m.list);
-};
-ws.onerror=()=>{};
-ws.onclose=()=>{
-wsReady=false;ws=null;
-if(wsTries++<5){
-if(!wsTimer)wsTimer=setTimeout(()=>{wsTimer=null;dirConnect()},Math.min(2000*wsTries,10000));
-}else{
-srvStatus('РЕЕСТР НЕДОСТУПЕН');
 }
-};
+});
+c.on('error',()=>{});
+setTimeout(()=>{
+if(done)return;
+if(!answered){
+try{p.destroy()}catch(_){}
+done=true;
+dirFindAlive(i+1);
 }
-function dirEnsure(cb){dirConnect(cb)}
+},1200);
+});
+p.on('error',()=>{
+if(done)return;done=true;
+try{p.destroy()}catch(_){}
+dirFindAlive(i+1);
+});
+p.on('disconnected',()=>{
+if(done)return;done=true;
+try{p.destroy()}catch(_){}
+dirFindAlive(i+1);
+});
+setTimeout(()=>{
+if(done)return;done=true;
+try{p.destroy()}catch(_){}
+dirFindAlive(i+1);
+},3000);
+}
+function dirHandle(c,m){
+if(m.t==='register'){
+dirRegistry[m.code]={code:m.code,name:m.name,nick:m.nick,wave:m.wave,started:m.started,since:m.since,ts:Date.now(),owner:c.peer};
+dirPush();
+}else if(m.t==='unregister'){delete dirRegistry[m.code];dirPush()}
+else if(m.t==='list'){if(c.open)c.send({t:'servers',list:dirList()})}
+}
+function dirDropOwner(pid){for(const k in dirRegistry)if(dirRegistry[k].owner===pid)delete dirRegistry[k]}
+function dirPrune(){
+const n=Date.now();let ch=false;
+for(const k in dirRegistry)if(n-dirRegistry[k].ts>DIR_STALE){delete dirRegistry[k];ch=true}
+if(ch)dirPush();
+}
+function dirList(){return Object.keys(dirRegistry).map(k=>dirRegistry[k]).sort((a,b)=>b.ts-a.ts)}
+function dirPush(){const l=dirList();for(const c of dirConns)if(c.open)c.send({t:'servers',list:l});if(dirIsHost)renderServers(l)}
 function dirPublish(){
 if(!myServer)return;
-if(!wsReady){dirConnect(()=>{if(myServer)dirPublish()});return}
-try{ws.send(JSON.stringify({t:'register',code:myServer.code,name:myServer.name,nick:myServer.nick,wave:myServer.wave,started:myServer.started,since:myServer.since}))}catch(e){}
+const m={t:'register',code:myServer.code,name:myServer.name,nick:myServer.nick,wave:myServer.wave,started:myServer.started,since:myServer.since};
+if(dirIsHost){dirRegistry[m.code]=Object.assign({},m,{ts:Date.now(),owner:'local'});dirPush();return}
+if(dirConn&&dirConn.open){dirConn.send(m);return}
+dirEnsure(()=>{
+if(!myServer)return;
+if(dirIsHost){dirRegistry[myServer.code]=Object.assign({},m,{ts:Date.now(),owner:'local'});dirPush()}
+else if(dirConn&&dirConn.open)dirConn.send(m);
+});
 }
 function dirTouch(){
 if(!myServer||netRole!=='host')return;
@@ -1688,50 +1793,95 @@ dirPublish();
 function dirStartHeartbeat(){if(dirHbTimer)return;dirHbTimer=setInterval(()=>{if(myServer&&netRole==='host')dirTouch()},5000)}
 function dirUnregister(){
 if(!myServer)return;
-if(wsReady&&ws)try{ws.send(JSON.stringify({t:'unregister',code:myServer.code}))}catch(e){}
+const code=myServer.code;
+if(dirIsHost){delete dirRegistry[code];dirPush()}
+else if(dirConn&&dirConn.open)dirConn.send({t:'unregister',code:code});
 myServer=null;
 }
+let shownServers=[];
 function renderServers(list){
-const el=document.getElementById('serverList');if(!el)return;
+const el=document.getElementById('serverList');
+if(!el)return;
 shownServers=(list||[]).filter(s=>s&&s.code);
 document.getElementById('srvCount').textContent='('+shownServers.length+')';
 el.innerHTML='';
-if(!shownServers.length){el.innerHTML='<div id="srvEmpty">Пока никто не играет.<br>Открой свой сервер — друзья увидят его здесь.</div>';if(infoCode)renderServerInfo();return}
+if(!shownServers.length){
+el.innerHTML='<div id="srvEmpty">Пока никто не играет.<br>Открой свой сервер — друзья увидят его здесь.</div>';
+if(infoCode)renderServerInfo();
+return;
+}
 for(const s of shownServers){
 const mine=myServer&&s.code===myServer.code;
 const row=document.createElement('div');
 row.className='srvRow'+(mine?' mine':'');
 row.innerHTML='<div class="nm">'+esc(s.name)+'<div class="meta">'+esc(s.nick)+' · '+esc(s.code)+'</div></div>'+'<div class="st '+(s.started?'live':'lobby')+'">'+(s.started?('ВОЛНА '+(s.wave||1)):'В ЛОББИ')+'</div>';
-const info=document.createElement('button');info.className='info';info.textContent='О СЕРВЕРЕ';info.onclick=()=>showServerInfo(s.code);row.appendChild(info);
-const b=document.createElement('button');b.textContent=mine?'ВАШ':'ВОЙТИ';if(mine)b.disabled=true;else b.onclick=()=>joinServer(s);row.appendChild(b);
+const info=document.createElement('button');
+info.className='info';info.textContent='О СЕРВЕРЕ';
+info.onclick=()=>showServerInfo(s.code);
+row.appendChild(info);
+const b=document.createElement('button');
+b.textContent=mine?'ВАШ':'ВОЙТИ';
+if(mine)b.disabled=true;else b.onclick=()=>joinServer(s);
+row.appendChild(b);
 el.appendChild(row);
 }
 if(infoCode)renderServerInfo();
 }
+let infoCode=null;
 function findServer(code){for(const s of shownServers)if(s.code===code)return s;return null}
-function ago(ms){if(!ms)return '—';const s=Math.max(0,Math.round((Date.now()-ms)/1000));if(s<60)return s+' с';const m=Math.floor(s/60);if(m<60)return m+' мин';return Math.floor(m/60)+' ч '+(m%60)+' мин'}
+function ago(ms){
+if(!ms)return '—';
+const s=Math.max(0,Math.round((Date.now()-ms)/1000));
+if(s<60)return s+' с';
+const m=Math.floor(s/60);
+if(m<60)return m+' мин';
+return Math.floor(m/60)+' ч '+(m%60)+' мин';
+}
 function showServerInfo(code){infoCode=code;document.getElementById('srvInfo').style.display='flex';renderServerInfo()}
 function renderServerInfo(){
-const s=findServer(infoCode);const box=document.getElementById('srvInfo');if(!s){box.style.display='none';infoCode=null;return}
+const s=findServer(infoCode);
+const box=document.getElementById('srvInfo');
+if(!s){box.style.display='none';infoCode=null;return}
 const mine=myServer&&s.code===myServer.code;
 document.getElementById('srvInfoName').textContent=s.name;
 document.getElementById('srvInfoTag').textContent=mine?'ВАШ СЕРВЕР':'СЕРВЕР';
-const rows=[['ХОСТ',s.nick],['КОД',s.code],['СОСТОЯНИЕ',s.started?('идёт бой, волна '+(s.wave||1)):'ждёт игроков'],['СОЗДАН',ago(s.since)+' назад'],['НА СВЯЗИ',ago(s.ts)+' назад']];
+const rows=[
+['ХОСТ',s.nick],
+['КОД',s.code],
+['СОСТОЯНИЕ',s.started?('идёт бой, волна '+(s.wave||1)):'ждёт игроков в лобби'],
+['АРЕНА',getArenaForWave(s.wave||1).name],
+['СОЗДАН',ago(s.since)+' назад'],
+['НА СВЯЗИ',ago(s.ts)+' назад']
+];
 document.getElementById('srvInfoFields').innerHTML=rows.map(r=>'<div class="srvField"><span class="k">'+r[0]+'</span><span class="v">'+esc(r[1])+'</span></div>').join('');
-const join=document.getElementById('srvInfoJoin');join.textContent=mine?'ЭТО ВЫ':'ВОЙТИ';join.disabled=!!mine;join.style.opacity=mine?'.4':'1';
+const join=document.getElementById('srvInfoJoin');
+join.textContent=mine?'ЭТО ВЫ':'ВОЙТИ';
+join.disabled=!!mine;
+join.style.opacity=mine?'.4':'1';
 }
 function hideServerInfo(){infoCode=null;document.getElementById('srvInfo').style.display='none'}
 function refreshServers(){
-if(!wsReady){srvStatus('Подключение...');dirConnect(()=>{if(wsReady)srvStatus('')});return}
+if(dirConnecting){srvStatus('Уже ищем...');return}
 srvStatus('Обновляем...');
-try{ws.send(JSON.stringify({t:'list'}))}catch(e){}
-setTimeout(()=>srvStatus(''),800);
+if(dirIsHost){renderServers(dirList());srvStatus('');return}
+if(dirConn&&dirConn.open){dirConn.send({t:'list'});srvStatus('');return}
+dirEnsure(()=>{
+if(dirIsHost){renderServers(dirList());srvStatus('')}
+else if(dirConn&&dirConn.open){dirConn.send({t:'list'});srvStatus('')}
+});
 }
-function joinServer(s){myNick=sanitizeNick(document.getElementById('nickInput').value);document.getElementById('nickInput').value=myNick;srvStatus('Подключаемся к '+s.name+'...');initNetwork('client',s.code)}
+function joinServer(s){
+myNick=sanitizeNick(document.getElementById('nickInput').value);
+document.getElementById('nickInput').value=myNick;
+srvStatus('Подключаемся к '+s.name+'...');
+initNetwork('client',s.code);
+}
 function createServer(){
 if(myServer)return;
-myNick=sanitizeNick(document.getElementById('nickInput').value);document.getElementById('nickInput').value=myNick;
-let name=String(document.getElementById('srvName').value||'').trim().slice(0,24);if(!name)name='Сервер '+myNick;
+myNick=sanitizeNick(document.getElementById('nickInput').value);
+document.getElementById('nickInput').value=myNick;
+let name=String(document.getElementById('srvName').value||'').trim().slice(0,24);
+if(!name)name='Сервер '+myNick;
 const slug=myNick.replace(/[^a-z0-9\-_]/g,'')||'srv';
 const code=slug+'-'+Math.random().toString(36).slice(2,6);
 myServer={code:code,name:name,nick:myNick,wave:0,started:false,since:Date.now()};
@@ -1752,17 +1902,22 @@ refreshServers();
 if(!dirAutoTimer)dirAutoTimer=setInterval(()=>{if(srvTab==='servers'&&document.getElementById('lobbyMain').style.display!=='none')refreshServers()},8000);
 }
 }
+function showTab(t){
+srvTab=t;
+const play=t==='play';
+document.getElementById('tabPlay').style.display=play?'flex':'none';
+document.getElementById('tabServers').style.display=play?'none':'flex';
+const tabs=document.querySelectorAll('#lobbyTabs .tab');
+for(const b of tabs)b.classList.toggle('active',b.dataset.tab===t);
+if(!play){refreshServers();if(!dirAutoTimer)dirAutoTimer=setInterval(()=>{if(srvTab==='servers'&&document.getElementById('lobbyMain').style.display!=='none')refreshServers()},8000)}
+}
 
 document.querySelectorAll('#lobbyTabs .tab').forEach(b=>{b.onclick=()=>showTab(b.dataset.tab)});
-document.getElementById('srvRefresh').onclick=()=>{wsTries=0;refreshServers()};
+document.getElementById('srvRefresh').onclick=()=>{dirTries=0;refreshServers()};
 document.getElementById('srvCreateBtn').onclick=createServer;
 document.getElementById('srvInfoClose').onclick=hideServerInfo;
 document.getElementById('srvInfo').onclick=e=>{if(e.target.id==='srvInfo')hideServerInfo()};
-document.getElementById('srvInfoJoin').onclick=()=>{
-const s=findServer(infoCode);
-if(!s||(myServer&&s.code===myServer.code))return;
-hideServerInfo();joinServer(s);
-};
+document.getElementById('srvInfoJoin').onclick=()=>{const s=findServer(infoCode);if(!s||(myServer&&s.code===myServer.code))return;hideServerInfo();joinServer(s)};
 document.getElementById('srvInfoCopy').onclick=()=>{
 const s=findServer(infoCode);if(!s)return;
 const btn=document.getElementById('srvInfoCopy');
@@ -1774,11 +1929,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&infoCode)hideServerInfo()});
 document.getElementById('roomBack').onclick=()=>{dirUnregister();setTimeout(()=>location.reload(),150)};
 addEventListener('beforeunload',()=>{try{dirUnregister()}catch(e){}});
 
-document.getElementById('lobbySolo').onclick=()=>{
-myNick=sanitizeNick(document.getElementById('nickInput').value)||'player';
-document.getElementById('lobby').style.display='none';
-startGame();
-};
+document.getElementById('lobbySolo').onclick=()=>{myNick=sanitizeNick(document.getElementById('nickInput').value)||'player';document.getElementById('lobby').style.display='none';startGame()};
 document.getElementById('lobbyHost').onclick=()=>{
 myNick=sanitizeNick(document.getElementById('nickInput').value);
 document.getElementById('nickInput').value=myNick;

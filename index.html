@@ -235,7 +235,7 @@ button:disabled:hover{background:rgba(20,4,7,.55);color:inherit;box-shadow:none}
 </div>
 <div class="lobby-bottom">
 <div id="lobbyStatus"></div>
-<div class="lobby-credit">v1.6 · PEERJS · THREE.JS</div>
+<div class="lobby-credit">v1.7 · PEERJS · THREE.JS</div>
 </div>
 </div>
 <div id="lobbyRoom">
@@ -294,7 +294,7 @@ button:disabled:hover{background:rgba(20,4,7,.55);color:inherit;box-shadow:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 'use strict';
-const _ICE=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},{urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},{urls:'turn:openrelay.metered.ca:443?transport=tcp',username:'openrelayproject',credential:'openrelayproject'}];
+const _ICE=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}];
   const SFX={ctx:null,muted:false,
 init(){if(!this.ctx){try{this.ctx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}},
 resume(){if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume()},
@@ -1637,238 +1637,109 @@ else netToHost({t:'chat',nick:myNick,msg:v});
 inp.value='';
 }
 
-const DIR_ID='ultrakill-dir-v1';
-const DIR_STALE=20000;
-let dirPeer=null,dirConn=null,dirIsHost=false,dirConns=[],dirConnecting=false,dirTries=0;
-let dirQueue=[],dirPruneTimer=null,dirHbTimer=null,dirAutoTimer=null;
+const WS_URL='wss://uk3d-server.onrender.com';
+let ws=null,wsReady=false,wsTries=0,wsTimer=null;
+let dirQueue=[],dirHbTimer=null,dirAutoTimer=null;
 const dirRegistry={};
 let myServer=null,srvTab='play';
-
+let infoCode=null,shownServers=[];
 function srvStatus(s){const el=document.getElementById('srvStatus');if(el)el.textContent=s}
-
-function dirEnsure(cb){
-if(dirIsHost||(dirConn&&dirConn.open)){if(cb)cb();return}
+function dirConnect(cb){
+if(wsReady){if(cb)cb();return}
 if(cb)dirQueue.push(cb);
-if(dirConnecting)return;
-dirConnecting=true;
-dirClaim();
-}
-
-function dirReady(){
-dirConnecting=false;dirTries=0;
+if(ws&&ws.readyState===0)return;
+try{if(ws)ws.close()}catch(e){}
+ws=null;wsReady=false;
+try{ws=new WebSocket(WS_URL)}catch(e){srvStatus('НЕ УДАЛОСЬ ПОДКЛЮЧИТЬСЯ');return}
+ws.onopen=()=>{
+wsReady=true;wsTries=0;
+srvStatus('');
+try{ws.send(JSON.stringify({t:'list'}))}catch(e){}
+if(myServer)dirPublish();
 const q=dirQueue.slice();dirQueue.length=0;
 for(const f of q){try{f()}catch(e){}}
+};
+ws.onmessage=e=>{
+let m;try{m=JSON.parse(e.data)}catch{return}
+if(m.t==='list')renderServers(m.list);
+};
+ws.onerror=()=>{};
+ws.onclose=()=>{
+wsReady=false;ws=null;
+if(wsTries++<5){
+if(!wsTimer)wsTimer=setTimeout(()=>{wsTimer=null;dirConnect()},Math.min(2000*wsTries,10000));
+}else{
+srvStatus('РЕЕСТР НЕДОСТУПЕН');
 }
-
-function dirFail(m){
-dirConnecting=false;dirQueue.length=0;
-srvStatus(m);
+};
 }
-
-function dirReset(){
-try{if(dirPeer)dirPeer.destroy()}catch(e){}
-dirPeer=null;dirConn=null;dirIsHost=false;dirConns=[];
-}
-
-function dirClaim(){
-if(typeof Peer==='undefined')return dirFail('СЕТЬ НЕДОСТУПНА');
-if(dirTries++>3)return dirFail('РЕЕСТР НЕ ОТВЕЧАЕТ — ЖМИ ОБНОВИТЬ');
-let done=false;
-try{dirPeer=new Peer(DIR_ID,{debug:0,config:{iceServers:_ICE}})}catch(e){return dirFail('СЕТЬ НЕДОСТУПНА')}
-dirPeer.on('open',()=>{
-if(done)return;done=true;
-dirIsHost=true;
-dirPeer.on('connection',c=>{
-dirConns.push(c);
-c.on('data',m=>dirHandle(c,m));
-c.on('close',()=>{dirConns=dirConns.filter(x=>x!==c);dirDropOwner(c.peer);dirPush()});
-c.on('error',()=>{});
-});
-if(!dirPruneTimer)dirPruneTimer=setInterval(dirPrune,5000);
-dirReady();
-if(myServer)dirPublish();
-});
-dirPeer.on('error',e=>{
-if(e.type==='unavailable-id'){if(done)return;done=true;dirReset();dirJoin();return}
-if(e.type==='peer-unavailable'||e.type==='network')return;
-if(done)return;done=true;dirFail('РЕЕСТР НЕДОСТУПЕН: '+e.type);
-});
-dirPeer.on('close',()=>{if(dirIsHost){dirIsHost=false;dirPeer=null}});
-setTimeout(()=>{if(!done){done=true;dirReset();dirFail('НЕТ СВЯЗИ С РЕЕСТРОМ')}},9000);
-}
-
-function dirJoin(){
-let done=false;
-try{dirPeer=new Peer(undefined,{debug:0,config:{iceServers:_ICE}})}catch(e){return dirFail('СЕТЬ НЕДОСТУПНА')}
-dirPeer.on('open',()=>{
-dirConn=dirPeer.connect(DIR_ID,{reliable:true});
-dirConn.on('open',()=>{if(done)return;done=true;dirConn.send({t:'list'});dirReady()});
-dirConn.on('data',m=>{if(m.t==='servers')renderServers(m.list)});
-dirConn.on('close',()=>{dirConn=null});
-dirConn.on('error',()=>{});
-});
-dirPeer.on('error',e=>{
-if(e.type==='peer-unavailable'){if(done)return;done=true;dirReset();setTimeout(dirClaim,400);return}
-if(done)return;done=true;dirFail('ОШИБКА: '+e.type);
-});
-setTimeout(()=>{if(!done){done=true;dirReset();setTimeout(dirClaim,200)}},9000);
-}
-
-function dirHandle(c,m){
-if(m.t==='register'){
-dirRegistry[m.code]={code:m.code,name:m.name,nick:m.nick,wave:m.wave,started:m.started,since:m.since,ts:Date.now(),owner:c.peer};
-dirPush();
-}else if(m.t==='unregister'){delete dirRegistry[m.code];dirPush()}
-else if(m.t==='list'){if(c.open)c.send({t:'servers',list:dirList()})}
-}
-
-function dirDropOwner(pid){for(const k in dirRegistry)if(dirRegistry[k].owner===pid)delete dirRegistry[k]}
-
-function dirPrune(){
-const n=Date.now();let ch=false;
-for(const k in dirRegistry)if(n-dirRegistry[k].ts>DIR_STALE){delete dirRegistry[k];ch=true}
-if(ch)dirPush();
-}
-
-function dirList(){return Object.keys(dirRegistry).map(k=>dirRegistry[k]).sort((a,b)=>b.ts-a.ts)}
-
-function dirPush(){
-const l=dirList();
-for(const c of dirConns)if(c.open)c.send({t:'servers',list:l});
-if(dirIsHost)renderServers(l);
-}
-
+function dirEnsure(cb){dirConnect(cb)}
 function dirPublish(){
 if(!myServer)return;
-const m={t:'register',code:myServer.code,name:myServer.name,nick:myServer.nick,wave:myServer.wave,started:myServer.started,since:myServer.since};
-if(dirIsHost){dirRegistry[m.code]=Object.assign({},m,{ts:Date.now(),owner:'local'});dirPush()}
-else if(dirConn&&dirConn.open)dirConn.send(m);
-else dirEnsure(()=>{if(myServer)dirPublish()});
+if(!wsReady){dirConnect(()=>{if(myServer)dirPublish()});return}
+try{ws.send(JSON.stringify({t:'register',code:myServer.code,name:myServer.name,nick:myServer.nick,wave:myServer.wave,started:myServer.started,since:myServer.since}))}catch(e){}
 }
-
 function dirTouch(){
 if(!myServer||netRole!=='host')return;
 myServer.wave=currentWave;
 myServer.started=gamePhase!=='menu';
 dirPublish();
 }
-
-function dirStartHeartbeat(){
-if(dirHbTimer)return;
-dirHbTimer=setInterval(()=>{if(myServer&&netRole==='host')dirTouch()},5000);
-}
-
+function dirStartHeartbeat(){if(dirHbTimer)return;dirHbTimer=setInterval(()=>{if(myServer&&netRole==='host')dirTouch()},5000)}
 function dirUnregister(){
 if(!myServer)return;
-const code=myServer.code;
-if(dirIsHost){delete dirRegistry[code];dirPush()}
-else if(dirConn&&dirConn.open)dirConn.send({t:'unregister',code:code});
+if(wsReady&&ws)try{ws.send(JSON.stringify({t:'unregister',code:myServer.code}))}catch(e){}
 myServer=null;
 }
-
-let shownServers=[];
-
 function renderServers(list){
-const el=document.getElementById('serverList');
-if(!el)return;
+const el=document.getElementById('serverList');if(!el)return;
 shownServers=(list||[]).filter(s=>s&&s.code);
 document.getElementById('srvCount').textContent='('+shownServers.length+')';
 el.innerHTML='';
-if(!shownServers.length){el.innerHTML='<div id="srvEmpty">Пока никто не играет.<br>Открой свой сервер — друзья увидят его здесь.</div>';return}
+if(!shownServers.length){el.innerHTML='<div id="srvEmpty">Пока никто не играет.<br>Открой свой сервер — друзья увидят его здесь.</div>';if(infoCode)renderServerInfo();return}
 for(const s of shownServers){
 const mine=myServer&&s.code===myServer.code;
 const row=document.createElement('div');
 row.className='srvRow'+(mine?' mine':'');
-row.innerHTML='<div class="nm">'+esc(s.name)+'<div class="meta">'+esc(s.nick)+' · '+esc(s.code)+'</div></div>'
-+'<div class="st '+(s.started?'live':'lobby')+'">'+(s.started?('ВОЛНА '+(s.wave||1)):'В ЛОББИ')+'</div>';
-const info=document.createElement('button');
-info.className='info';info.textContent='О СЕРВЕРЕ';
-info.onclick=()=>showServerInfo(s.code);
-row.appendChild(info);
-const b=document.createElement('button');
-b.textContent=mine?'ВАШ':'ВОЙТИ';
-if(mine)b.disabled=true;else b.onclick=()=>joinServer(s);
-row.appendChild(b);
+row.innerHTML='<div class="nm">'+esc(s.name)+'<div class="meta">'+esc(s.nick)+' · '+esc(s.code)+'</div></div>'+'<div class="st '+(s.started?'live':'lobby')+'">'+(s.started?('ВОЛНА '+(s.wave||1)):'В ЛОББИ')+'</div>';
+const info=document.createElement('button');info.className='info';info.textContent='О СЕРВЕРЕ';info.onclick=()=>showServerInfo(s.code);row.appendChild(info);
+const b=document.createElement('button');b.textContent=mine?'ВАШ':'ВОЙТИ';if(mine)b.disabled=true;else b.onclick=()=>joinServer(s);row.appendChild(b);
 el.appendChild(row);
 }
 if(infoCode)renderServerInfo();
 }
-
-let infoCode=null;
-
-function findServer(code){
-for(const s of shownServers)if(s.code===code)return s;
-return null;
-}
-
-function ago(ms){
-if(!ms)return '—';
-const s=Math.max(0,Math.round((Date.now()-ms)/1000));
-if(s<60)return s+' с';
-const m=Math.floor(s/60);
-if(m<60)return m+' мин';
-return Math.floor(m/60)+' ч '+(m%60)+' мин';
-}
-
-function showServerInfo(code){
-infoCode=code;
-document.getElementById('srvInfo').style.display='flex';
-renderServerInfo();
-}
-
+function findServer(code){for(const s of shownServers)if(s.code===code)return s;return null}
+function ago(ms){if(!ms)return '—';const s=Math.max(0,Math.round((Date.now()-ms)/1000));if(s<60)return s+' с';const m=Math.floor(s/60);if(m<60)return m+' мин';return Math.floor(m/60)+' ч '+(m%60)+' мин'}
+function showServerInfo(code){infoCode=code;document.getElementById('srvInfo').style.display='flex';renderServerInfo()}
 function renderServerInfo(){
-const s=findServer(infoCode);
-const box=document.getElementById('srvInfo');
-if(!s){box.style.display='none';infoCode=null;return}
+const s=findServer(infoCode);const box=document.getElementById('srvInfo');if(!s){box.style.display='none';infoCode=null;return}
 const mine=myServer&&s.code===myServer.code;
 document.getElementById('srvInfoName').textContent=s.name;
 document.getElementById('srvInfoTag').textContent=mine?'ВАШ СЕРВЕР':'СЕРВЕР';
-const rows=[
-['ХОСТ',s.nick],
-['КОД',s.code],
-['СОСТОЯНИЕ',s.started?('идёт бой, волна '+(s.wave||1)):'ждёт игроков в лобби'],
-['РЕЖИМ',s.started?'вход по ходу игры':'старт по команде хоста'],
-['СОЗДАН',ago(s.since)+' назад'],
-['НА СВЯЗИ',ago(s.ts)+' назад']
-];
+const rows=[['ХОСТ',s.nick],['КОД',s.code],['СОСТОЯНИЕ',s.started?('идёт бой, волна '+(s.wave||1)):'ждёт игроков'],['СОЗДАН',ago(s.since)+' назад'],['НА СВЯЗИ',ago(s.ts)+' назад']];
 document.getElementById('srvInfoFields').innerHTML=rows.map(r=>'<div class="srvField"><span class="k">'+r[0]+'</span><span class="v">'+esc(r[1])+'</span></div>').join('');
-const join=document.getElementById('srvInfoJoin');
-join.textContent=mine?'ЭТО ВЫ':'ВОЙТИ';
-join.disabled=!!mine;
-join.style.opacity=mine?'.4':'1';
+const join=document.getElementById('srvInfoJoin');join.textContent=mine?'ЭТО ВЫ':'ВОЙТИ';join.disabled=!!mine;join.style.opacity=mine?'.4':'1';
 }
-
 function hideServerInfo(){infoCode=null;document.getElementById('srvInfo').style.display='none'}
-
 function refreshServers(){
+if(!wsReady){srvStatus('Подключение...');dirConnect(()=>{if(wsReady)srvStatus('')});return}
 srvStatus('Обновляем...');
-dirEnsure(()=>{
-if(dirIsHost){renderServers(dirList());srvStatus('')}
-else if(dirConn&&dirConn.open){dirConn.send({t:'list'});srvStatus('')}
-});
+try{ws.send(JSON.stringify({t:'list'}))}catch(e){}
+setTimeout(()=>srvStatus(''),800);
 }
-
-function joinServer(s){
-myNick=sanitizeNick(document.getElementById('nickInput').value);
-document.getElementById('nickInput').value=myNick;
-srvStatus('Подключаемся к '+s.name+'...');
-initNetwork('client',s.code);
-}
-
+function joinServer(s){myNick=sanitizeNick(document.getElementById('nickInput').value);document.getElementById('nickInput').value=myNick;srvStatus('Подключаемся к '+s.name+'...');initNetwork('client',s.code)}
 function createServer(){
 if(myServer)return;
-myNick=sanitizeNick(document.getElementById('nickInput').value);
-document.getElementById('nickInput').value=myNick;
-let name=String(document.getElementById('srvName').value||'').trim().slice(0,24);
-if(!name)name='Сервер '+myNick;
+myNick=sanitizeNick(document.getElementById('nickInput').value);document.getElementById('nickInput').value=myNick;
+let name=String(document.getElementById('srvName').value||'').trim().slice(0,24);if(!name)name='Сервер '+myNick;
 const slug=myNick.replace(/[^a-z0-9\-_]/g,'')||'srv';
 const code=slug+'-'+Math.random().toString(36).slice(2,6);
 myServer={code:code,name:name,nick:myNick,wave:0,started:false,since:Date.now()};
 srvStatus('Открываем сервер...');
 initNetwork('host',code);
-dirEnsure(()=>{dirPublish();dirStartHeartbeat()});
+dirStartHeartbeat();
+dirEnsure(()=>{dirPublish()});
 }
-
 function showTab(t){
 srvTab=t;
 const play=t==='play';
@@ -1883,7 +1754,7 @@ if(!dirAutoTimer)dirAutoTimer=setInterval(()=>{if(srvTab==='servers'&&document.g
 }
 
 document.querySelectorAll('#lobbyTabs .tab').forEach(b=>{b.onclick=()=>showTab(b.dataset.tab)});
-document.getElementById('srvRefresh').onclick=()=>{dirTries=0;refreshServers()};
+document.getElementById('srvRefresh').onclick=()=>{wsTries=0;refreshServers()};
 document.getElementById('srvCreateBtn').onclick=createServer;
 document.getElementById('srvInfoClose').onclick=hideServerInfo;
 document.getElementById('srvInfo').onclick=e=>{if(e.target.id==='srvInfo')hideServerInfo()};

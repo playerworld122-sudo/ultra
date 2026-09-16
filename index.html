@@ -105,14 +105,39 @@ button:disabled{opacity:.35;cursor:not-allowed}
 #spectatorHud{position:fixed;left:50%;top:20px;transform:translateX(-50%);color:var(--gold);font-family:var(--mono);font-size:13px;letter-spacing:.15em;z-index:180;display:none;background:rgba(6,1,2,.85);padding:14px 28px;border:1px solid var(--red);text-align:center;pointer-events:none}
 #spectatorHud .sub2{color:#888;font-size:10px;margin-top:6px;letter-spacing:.15em}
 .nameTag{position:fixed;transform:translate(-50%,-100%);color:var(--green);font-family:var(--mono);font-size:12px;font-weight:700;text-shadow:0 0 4px #000,0 0 8px #000;background:rgba(0,0,0,.6);padding:2px 8px;border:1px solid rgba(0,255,136,.5);border-radius:3px;pointer-events:none;z-index:15;white-space:nowrap;letter-spacing:.06em}
-#lobby{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;font-family:var(--disp);background:radial-gradient(ellipse at 50% 0%,rgba(255,23,68,.12),transparent 60%),repeating-linear-gradient(0deg,rgba(255,255,255,.014) 0,rgba(255,255,255,.014) 1px,transparent 1px,transparent 3px),#050103}
-#lobbyMain{display:flex;flex-direction:column;align-items:center;gap:14px;width:min(96vw,640px);padding:32px 28px;background:rgba(8,2,4,.94);border:1px solid var(--panel-line);box-shadow:0 0 80px rgba(255,23,68,.2);position:relative}
-#lobbyMain::before,#lobbyMain::after{content:'';position:absolute;width:20px;height:20px}
+#lobby{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;font-family:var(--disp);background:radial-gradient(ellipse at 50% 0%,rgba(255,23,68,.14),transparent 60%),repeating-linear-gradient(0deg,rgba(255,255,255,.014) 0,rgba(255,255,255,.014) 1px,transparent 1px,transparent 3px),#050103;overflow:hidden}
+#lobby::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 85%,rgba(162,75,255,.09),transparent 45%),radial-gradient(circle at 85% 15%,rgba(34,224,208,.09),transparent 45%);pointer-events:none;animation:lobbyPulse 6s ease-in-out infinite}
+@keyframes lobbyPulse{0%,100%{opacity:.7}50%{opacity:1}}
+#lobbyMain{display:flex;flex-direction:column;align-items:center;gap:14px;width:min(96vw,560px);padding:36px 32px;background:rgba(8,2,4,.94);border:1px solid var(--panel-line);box-shadow:0 0 90px rgba(255,23,68,.22),0 0 40px rgba(255,23,68,.1) inset;position:relative;z-index:1}
+#lobbyMain::before,#lobbyMain::after{content:'';position:absolute;width:22px;height:22px}
 #lobbyMain::before{top:-1px;left:-1px;border-top:3px solid var(--red);border-left:3px solid var(--red)}
 #lobbyMain::after{bottom:-1px;right:-1px;border-bottom:3px solid var(--red);border-right:3px solid var(--red)}
-#lobbyStatus{color:var(--gold);font-family:var(--mono);font-size:12px;min-height:18px;text-align:center;letter-spacing:.05em}
+.menu-glow{position:absolute;top:-40%;left:50%;transform:translateX(-50%);width:120%;height:80%;background:radial-gradient(ellipse at center,rgba(255,23,68,.28),transparent 60%);pointer-events:none;animation:glowPulse 4.5s ease-in-out infinite;z-index:0}
+@keyframes glowPulse{0%,100%{opacity:.55}50%{opacity:1}}
+.menu-tag{color:var(--red);font-family:var(--mono);font-size:11px;letter-spacing:.5em;position:relative;z-index:1}
+.menu-title{position:relative;z-index:1;font-size:52px;letter-spacing:.1em;margin:0;color:var(--red);text-shadow:0 0 20px var(--red),0 0 60px rgba(255,23,68,.55);animation:titlePulse 3s ease-in-out infinite}
+@keyframes titlePulse{0%,100%{text-shadow:0 0 20px var(--red),0 0 60px rgba(255,23,68,.55)}50%{text-shadow:0 0 30px var(--red),0 0 80px rgba(255,23,68,.75)}}
+.menu-sub{color:#888;font-family:var(--mono);font-size:12px;letter-spacing:.28em;position:relative;z-index:1;margin-bottom:6px}
+.menu-nick-row{display:flex;gap:10px;align-items:center;position:relative;z-index:1;width:100%;justify-content:center;margin-top:6px}
+.menu-nick-label{color:#888;font-family:var(--mono);font-size:11px;letter-spacing:.15em}
+.menu-nick-row input{width:240px}
+.menu-main-btns{display:flex;flex-direction:column;gap:10px;width:100%;max-width:340px;position:relative;z-index:1;margin-top:10px}
+.btn-solo{padding:16px 40px;font-size:18px;letter-spacing:.3em;border-width:2px}
+.btn-servers{padding:13px 40px;font-size:14px;letter-spacing:.25em;border-color:var(--cyan);color:var(--cyan)}
+.btn-servers:hover{background:var(--cyan);color:#032a26;box-shadow:0 0 18px var(--cyan)}
+.menu-hr{width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--panel-line),transparent);margin:6px 0;position:relative;z-index:1}
+.menu-quick-label{color:#888;font-family:var(--mono);font-size:10px;letter-spacing:.35em;position:relative;z-index:1}
+.menu-quick-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;position:relative;z-index:1;width:100%}
+.menu-quick-row input{width:200px}
+.btn-create{padding:12px 22px;border-color:var(--green);color:var(--green);font-size:12px}
+.btn-create:hover{background:var(--green);color:#002a17;box-shadow:0 0 18px var(--green)}
+.btn-join{padding:12px 22px;border-color:var(--gold);color:var(--gold);font-size:12px}
+.btn-join:hover{background:var(--gold);color:#2a1e00;box-shadow:0 0 18px var(--gold)}
+.menu-hint{color:#555;font-family:var(--mono);font-size:10px;letter-spacing:.08em;position:relative;z-index:1}
+.menu-hint span{color:var(--gold)}
+#lobbyStatus{color:var(--gold);font-family:var(--mono);font-size:12px;min-height:18px;text-align:center;letter-spacing:.05em;position:relative;z-index:1}
 .lobby-hr{width:100%;height:1px;background:var(--panel-line);margin:8px 0}
-#serverPanel{display:none;flex-direction:column;align-items:center;gap:12px;width:min(96vw,640px);padding:28px;background:rgba(8,2,4,.94);border:1px solid var(--panel-line);box-shadow:0 0 80px rgba(0,252,200,.15);position:relative}
+#serverPanel{display:none;flex-direction:column;align-items:center;gap:12px;width:min(96vw,620px);padding:28px;background:rgba(8,2,4,.94);border:1px solid var(--panel-line);box-shadow:0 0 80px rgba(0,252,200,.15);position:relative}
 #serverPanel::before,#serverPanel::after{content:'';position:absolute;width:20px;height:20px}
 #serverPanel::before{top:-1px;left:-1px;border-top:3px solid var(--cyan);border-left:3px solid var(--cyan)}
 #serverPanel::after{bottom:-1px;right:-1px;border-bottom:3px solid var(--cyan);border-right:3px solid var(--cyan)}
@@ -131,38 +156,80 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .srvRow .st.live{color:var(--gold);border-color:rgba(255,204,51,.4)}
 .srvRow button{padding:8px 18px;font-size:11px;flex:none}
 .srvRow.mine button{border-color:var(--gold);color:var(--gold)}
-#lobbyRoom{display:none;flex-direction:column;align-items:center;gap:14px;width:min(96vw,500px);padding:28px;background:rgba(8,2,4,.94);border:1px solid var(--panel-line);position:relative}
+#lobbyRoom{display:none;flex-direction:column;align-items:center;gap:12px;width:min(96vw,540px);padding:28px;background:rgba(8,2,4,.94);border:1px solid var(--panel-line);box-shadow:0 0 80px rgba(255,23,68,.2);position:relative;z-index:1}
 #lobbyRoom::before,#lobbyRoom::after{content:'';position:absolute;width:20px;height:20px}
 #lobbyRoom::before{top:-1px;left:-1px;border-top:3px solid var(--red);border-left:3px solid var(--red)}
 #lobbyRoom::after{bottom:-1px;right:-1px;border-bottom:3px solid var(--red);border-right:3px solid var(--red)}
-#roomTitle{color:#ccc;font-family:var(--mono);font-size:13px;text-align:center}
-#roomCode{color:var(--gold);font-family:var(--mono);font-size:22px;letter-spacing:.15em;padding:12px 28px;border:1px solid var(--gold);background:rgba(255,204,51,.06)}
-#playerList{display:flex;flex-direction:column;gap:6px;width:100%;align-items:center;min-height:40px}
-#startGameBtn{display:none;padding:14px 54px;font-size:16px;letter-spacing:.25em;margin-top:8px}
-#roomStatus{color:var(--gold);font-family:var(--mono);font-size:12px;min-height:18px;text-align:center}
+.room-header{display:flex;align-items:center;gap:14px;width:100%;justify-content:center}
+.room-header .rt{color:var(--red);font-size:24px;letter-spacing:.24em}
+.room-header .rt-name{color:#aaa;font-family:var(--mono);font-size:11px;letter-spacing:.12em}
+#roomTitle{color:#ccc;font-family:var(--mono);font-size:13px;text-align:center;letter-spacing:.05em}
+#roomCode{color:var(--gold);font-family:var(--mono);font-size:22px;letter-spacing:.15em;padding:12px 26px;border:1px solid var(--gold);background:rgba(255,204,51,.06);text-shadow:0 0 12px rgba(255,204,51,.5)}
+.room-code-row{display:flex;gap:10px;align-items:center}
+.room-code-row button{padding:10px 16px;font-size:11px;border-color:var(--gold);color:var(--gold)}
+.room-code-row button:hover{background:var(--gold);color:#2a1e00}
+.room-label{color:#888;font-family:var(--mono);font-size:10px;letter-spacing:.28em;margin-top:4px}
+#playerList{display:flex;flex-direction:column;gap:6px;width:100%;min-height:40px}
+.playerRow{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid rgba(255,23,68,.25);background:rgba(255,23,68,.05);font-family:var(--mono);transition:all .15s}
+.playerRow.me{border-color:rgba(0,255,136,.45);background:rgba(0,255,136,.07)}
+.playerRow.host{border-color:rgba(255,204,51,.45);background:rgba(255,204,51,.06)}
+.playerRow.host.me{border-color:rgba(255,204,51,.6);background:rgba(255,204,51,.1)}
+.playerRow .playerIcon{width:34px;height:34px;flex:none;display:flex;align-items:center;justify-content:center;background:rgba(255,23,68,.18);border:1px solid rgba(255,23,68,.5);color:var(--red);font-weight:700;font-size:13px;letter-spacing:.05em;text-transform:uppercase}
+.playerRow.me .playerIcon{background:rgba(0,255,136,.15);border-color:rgba(0,255,136,.5);color:var(--green)}
+.playerRow.host .playerIcon{background:rgba(255,204,51,.15);border-color:rgba(255,204,51,.5);color:var(--gold)}
+.playerRow .playerNick{flex:1;color:#fff;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:.02em}
+.playerRow .playerNick .crown{color:var(--gold);margin-left:6px;font-size:14px}
+.playerRow .youTag{color:var(--green);font-size:9px;border:1px solid rgba(0,255,136,.45);padding:1px 5px;margin-left:8px;letter-spacing:.12em;vertical-align:middle}
+.playerRow .playerStatus{font-size:10px;letter-spacing:.14em;padding:5px 11px;border:1px solid;flex:none;font-weight:600}
+.playerRow .playerStatus.ready{color:var(--green);border-color:rgba(0,255,136,.55);background:rgba(0,255,136,.08);text-shadow:0 0 8px rgba(0,255,136,.6)}
+.playerRow .playerStatus.wait{color:#888;border-color:rgba(120,120,120,.4);background:rgba(120,120,120,.05)}
+.kickBtn{width:28px;height:28px;padding:0;font-size:12px;line-height:1;border-color:rgba(255,23,68,.5);color:var(--red);flex:none;display:flex;align-items:center;justify-content:center;border-radius:0}
+.kickBtn:hover{background:var(--red);color:#0a0002;box-shadow:0 0 12px var(--red)}
+.room-actions{display:flex;gap:10px;width:100%;margin-top:6px;flex-wrap:wrap;justify-content:center}
+#readyBtn{padding:14px 40px;font-size:14px;letter-spacing:.22em;border-color:var(--green);color:var(--green);flex:1;min-width:160px;border-width:2px}
+#readyBtn:hover{background:var(--green);color:#002a17;box-shadow:0 0 20px var(--green)}
+#readyBtn.isReady{background:rgba(0,255,136,.18);border-color:var(--green);color:var(--green);box-shadow:0 0 20px rgba(0,255,136,.4) inset}
+#startGameBtn{padding:14px 40px;font-size:14px;letter-spacing:.22em;flex:1;min-width:180px;border-width:2px}
+#roomStatus{color:var(--gold);font-family:var(--mono);font-size:12px;min-height:18px;text-align:center;letter-spacing:.05em}
 #roomBack{padding:10px 26px;font-size:11px;border-color:#555;color:#888;margin-top:6px}
-@media (max-width:720px){h1{font-size:36px}#lobbyMain{padding:24px 16px}#ui{padding:8px 14px;font-size:11px}#styleMeter{font-size:22px}#kills{font-size:15px}}
+#roomBack:hover{background:#333;color:#fff;box-shadow:none}
+#playerCount{color:var(--gold);font-family:var(--mono);font-size:11px}
+@media (max-width:720px){
+h1{font-size:36px}
+#lobbyMain{padding:26px 18px}
+.menu-title{font-size:38px}
+#ui{padding:8px 14px;font-size:11px}
+#styleMeter{font-size:22px}
+#kills{font-size:15px}
+.menu-quick-row input{width:160px}
+.menu-nick-row input{width:180px}
+#playerList{max-height:200px;overflow-y:auto}
+}
 </style>
 </head>
 <body>
 <div id="lobby">
 <div id="lobbyMain">
-<div style="color:var(--red);font-family:var(--mono);font-size:11px;letter-spacing:.5em">V1 // ПРОТОКОЛ</div>
-<h1 style="font-size:40px;margin-bottom:4px">ULTRAKILL</h1>
-<div class="sub" style="margin-bottom:20px">30 ВОЛН · 3 БОССА · КООПЕРАТИВ</div>
-<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
-<span style="color:#888;font-family:var(--mono);font-size:11px">НИК:</span>
-<input id="nickInput" placeholder="narrator" maxlength="14" class="lobby-input" style="width:220px" value="">
+<div class="menu-glow"></div>
+<div class="menu-tag">V1 // ПРОТОКОЛ</div>
+<h1 class="menu-title">ULTRAKILL</h1>
+<div class="menu-sub">30 ВОЛН · 3 БОССА · КООПЕРАТИВ</div>
+<div class="menu-nick-row">
+<span class="menu-nick-label">НИК:</span>
+<input id="nickInput" placeholder="narrator" maxlength="14" class="lobby-input" value="">
 </div>
-<div class="lobby-hr"></div>
-<button id="lobbySolo" style="padding:14px 60px;font-size:17px;letter-spacing:.3em">ОДИНОЧНАЯ</button>
-<button id="lobbyServers" style="padding:12px 60px;border-color:var(--cyan);color:var(--cyan);font-size:15px;letter-spacing:.25em">СЕРВЕРЫ</button>
-<div style="display:flex;gap:8px;margin-top:6px;align-items:center;flex-wrap:wrap;justify-content:center">
-<input id="roomInput" placeholder="код комнаты" class="lobby-input" style="width:240px">
-<button id="lobbyHost" style="padding:12px 22px;border-color:var(--green);color:var(--green);font-size:13px">СОЗДАТЬ</button>
-<button id="lobbyJoin" style="padding:12px 22px;border-color:var(--gold);color:var(--gold);font-size:13px">ВОЙТИ</button>
+<div class="menu-main-btns">
+<button id="lobbySolo" class="btn-solo">ОДИНОЧНАЯ</button>
+<button id="lobbyServers" class="btn-servers">СЕРВЕРЫ</button>
 </div>
-<div style="color:#555;font-family:var(--mono);font-size:10px;margin-top:6px;letter-spacing:.08em">код = ваш ник + <span style="color:var(--gold)">-lobby</span></div>
+<div class="menu-hr"></div>
+<div class="menu-quick-label">БЫСТРАЯ ИГРА</div>
+<div class="menu-quick-row">
+<input id="roomInput" placeholder="код комнаты" class="lobby-input">
+<button id="lobbyHost" class="btn-create">СОЗДАТЬ</button>
+<button id="lobbyJoin" class="btn-join">ВОЙТИ</button>
+</div>
+<div class="menu-hint">код = ваш ник + <span>-lobby</span></div>
 <div id="lobbyStatus"></div>
 </div>
 <div id="serverPanel">
@@ -177,13 +244,21 @@ button:disabled{opacity:.35;cursor:not-allowed}
 <button id="srvBack" style="padding:8px 26px;border-color:#555;color:#888;font-size:11px">НАЗАД</button>
 </div>
 <div id="lobbyRoom">
-<div style="color:var(--red);font-size:24px;letter-spacing:.24em">КОМНАТА</div>
+<div class="room-header">
+<div class="rt">ПАТИ</div>
+</div>
 <div id="roomTitle"></div>
-<div style="color:#888;font-family:var(--mono);font-size:11px;letter-spacing:.2em">КОД ДЛЯ ДРУЗЕЙ:</div>
+<div class="room-label">КОД ДЛЯ ДРУЗЕЙ</div>
+<div class="room-code-row">
 <div id="roomCode">----</div>
-<div style="color:#888;font-family:var(--mono);font-size:11px;letter-spacing:.2em;margin-top:6px">ИГРОКИ:</div>
+<button id="copyCodeBtn">КОПИРОВАТЬ</button>
+</div>
+<div class="room-label">ИГРОКИ <span id="playerCount">(0)</span></div>
 <div id="playerList"></div>
+<div class="room-actions">
+<button id="readyBtn">ГОТОВ</button>
 <button id="startGameBtn">НАЧАТЬ ИГРУ</button>
+</div>
 <div id="roomStatus"></div>
 <button id="roomBack">ВЫЙТИ</button>
 </div>
@@ -220,7 +295,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 <script>
 'use strict';
 const _ICE=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}];
-  const SFX={ctx:null,muted:false,
+const SFX={ctx:null,muted:false,
 init(){if(!this.ctx){try{this.ctx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}},
 resume(){if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume()},
 tone(f,d,t,v,s){if(!this.ctx||this.muted)return;t=t||'sine';v=v===undefined?.15:v;const c=this.ctx.currentTime,o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type=t;o.frequency.setValueAtTime(f,c);if(s)o.frequency.exponentialRampToValueAtTime(Math.max(s,1),c+d);g.gain.setValueAtTime(v,c);g.gain.exponentialRampToValueAtTime(.0001,c+d);o.connect(g);g.connect(this.ctx.destination);o.start(c);o.stop(c+d+.02)},
@@ -1208,6 +1283,7 @@ const SIGNAL_PATH='/uk3d';
 const WS_URL='wss://uk3d-server.onrender.com';
 let ws=null,wsReady=false,wsTries=0,wsTimer=null,hbTimer=null;
 let myServer=null,shownServers=[];
+let myReady=false;
 
 function sanitizeNick(s){let n=String(s||'').toLowerCase().replace(/[^a-z0-9а-яё\-_]/gi,'').trim();if(!n)n='player';return n.slice(0,14)}
 function buildRoomCode(nick){return nick+'-lobby'}
@@ -1225,27 +1301,69 @@ if(c)c.style.display='flex';
 const rc=document.getElementById('roomCode');
 if(rc)rc.textContent=code;
 const rt=document.getElementById('roomTitle');
-if(rt)rt.textContent=myServer&&myServer.name?myServer.name:'';
-const sb=document.getElementById('startGameBtn');
-if(sb)sb.style.display=isHost?'block':'none';
+if(rt)rt.textContent=myServer&&myServer.name?myServer.name:'ПРИГЛАШЕНИЕ';
+}
+
+function makePlayerRow(p,myId,isHostOfRoom){
+const d=document.createElement('div');
+d.className='playerRow'+(p.id===myId?' me':'')+(p.host?' host':'');
+const initial=String(p.nick||'?').slice(0,2);
+let html='<div class="playerIcon">'+esc(initial)+'</div>';
+html+='<div class="playerNick">'+esc(p.nick||'?');
+if(p.host)html+='<span class="crown">♛</span>';
+if(p.id===myId)html+='<span class="youTag">ВЫ</span>';
+html+='</div>';
+html+='<div class="playerStatus '+(p.ready?'ready':'wait')+'">'+(p.ready?'ГОТОВ':'ОЖИДАНИЕ')+'</div>';
+d.innerHTML=html;
+if(isHostOfRoom&&p.id!==myId){
+const kick=document.createElement('button');
+kick.className='kickBtn';
+kick.textContent='✕';
+kick.title='Кикнуть';
+kick.onclick=()=>kickPlayer(p.id);
+d.appendChild(kick);
+}
+return d;
 }
 
 function updatePlayerListUI(players){
 const el=document.getElementById('playerList');
 if(!el)return;
-el.innerHTML='';
 const myId=peer?peer.id:null;
-for(const p of players){
-const d=document.createElement('div');
-d.textContent='● '+p.nick+(p.id===myId?' (ВЫ)':'');
-d.style.cssText='color:'+(p.id===myId?'#00ff88':'#ffcc33')+';font-family:monospace;font-size:14px;';
-el.appendChild(d);
+const me=players.find(p=>p.id===myId);
+const isHostOfRoom=!!(me&&me.host);
+el.innerHTML='';
+for(const p of players)el.appendChild(makePlayerRow(p,myId,isHostOfRoom));
+const cnt=document.getElementById('playerCount');
+if(cnt)cnt.textContent='('+players.length+')';
+const rb=document.getElementById('readyBtn');
+const sb=document.getElementById('startGameBtn');
+if(rb){
+if(isHostOfRoom){rb.style.display='none'}
+else{
+rb.style.display='block';
+rb.textContent=me&&me.ready?'ОТМЕНИТЬ ГОТОВНОСТЬ':'ГОТОВ';
+rb.classList.toggle('isReady',!!(me&&me.ready));
+}
+}
+if(sb){
+if(isHostOfRoom){
+sb.style.display='block';
+const clients=players.filter(p=>!p.host);
+const readyCount=clients.filter(p=>p.ready).length;
+const allReady=clients.length===0||readyCount===clients.length;
+sb.disabled=!allReady;
+sb.textContent=allReady?'НАЧАТЬ ИГРУ':('ЖДЁМ ГОТОВНОСТИ '+readyCount+'/'+clients.length);
+}else{
+sb.style.display='none';
+}
 }
 }
 
 function broadcastPlayers(){
 if(!peer)return;
-const players=[{id:peer.id,nick:myNick},...clientNicks];
+const players=[{id:peer.id,nick:myNick,ready:true,host:true}];
+for(const c of clientNicks)players.push({id:c.id,nick:c.nick,ready:!!c.ready,host:false});
 updatePlayerListUI(players);
 netBroadcast({t:'players',players:players});
 if(myServer)dirPublish();
@@ -1253,6 +1371,7 @@ if(myServer)dirPublish();
 
 function initNetwork(role,roomCode){
 netRole=role;
+myReady=false;
 const cfg={debug:0,config:{iceServers:_ICE},host:SIGNAL_HOST,port:443,path:SIGNAL_PATH,secure:true};
 const opts=role==='host'?{id:roomCode}:{};
 try{peer=new Peer(opts.id,cfg)}catch(e){roomStatus('ОШИБКА ЗАПУСКА');return}
@@ -1272,7 +1391,7 @@ return;
 showRoomScreen(roomCode,false);
 roomStatus('Подключение...');
 hostConn=peer.connect(roomCode,{reliable:true});
-hostConn.on('open',()=>{roomStatus('Ждём хоста...');hostConn.send({t:'hello',nick:myNick})});
+hostConn.on('open',()=>{roomStatus('Ожидание хоста...');hostConn.send({t:'hello',nick:myNick})});
 hostConn.on('data',onHostMsg);
 hostConn.on('close',()=>roomStatus('Хост отключился'));
 }
@@ -1309,13 +1428,24 @@ function netBroadcast(m){for(const c of clientConns)if(c.open)c.send(m)}
 function netBroadcastExcept(sk,m){for(const c of clientConns)if(c!==sk&&c.open)c.send(m)}
 function netToHost(m){if(hostConn&&hostConn.open)hostConn.send(m)}
 
+function kickPlayer(id){
+if(netRole!=='host')return;
+const c=clientConns.find(c=>c.peer===id);
+if(c){try{c.send({t:'kick'})}catch(e){}setTimeout(()=>{try{c.close()}catch(e){}},80)}
+}
+
 function onClientMsg(conn,msg){
 if(msg.t==='hello'){
 const i=clientNicks.findIndex(c=>c.id===conn.peer);
 if(i>=0)clientNicks[i].nick=msg.nick;
-else clientNicks.push({id:conn.peer,nick:msg.nick});
+else clientNicks.push({id:conn.peer,nick:msg.nick,ready:false});
 broadcastPlayers();
 if(gamePhase!=='menu'&&conn.open)conn.send({t:'go',h:mapHue});
+return;
+}
+if(msg.t==='ready'){
+const c=clientNicks.find(c=>c.id===conn.peer);
+if(c){c.ready=!!msg.ready;broadcastPlayers()}
 return;
 }
 if(msg.t==='p'){
@@ -1345,6 +1475,7 @@ netBroadcastExcept(conn,msg);
 function onHostMsg(msg){
 if(msg.t==='players'){updatePlayerListUI(msg.players);return}
 if(msg.t==='go'){mapHue=msg.h!==undefined?msg.h:.55;document.getElementById('lobby').style.display='none';startGame();return}
+if(msg.t==='kick'){roomStatus('ВЫ ИСКЛЮЧЕНЫ ИЗ КОМНАТЫ');setTimeout(()=>location.reload(),1200);return}
 if(msg.t==='p'){updateRemotePlayer(msg.id,msg,msg.nick);return}
 if(msg.t==='e'){applyEnemyState(msg.list);return}
 if(msg.t==='kill'){removeGhostEnemy(msg.eid);return}
@@ -1696,11 +1827,26 @@ if(!room){lobbyStatus('Введите код комнаты');return}
 initNetwork('client',room);
 };
 document.getElementById('startGameBtn').onclick=()=>{
+if(netRole!=='host')return;
 const h=Math.random();mapHue=h;
 netBroadcast({t:'go',h:h});
 document.getElementById('lobby').style.display='none';
 startGame();
 if(myServer){myServer.started=true;dirPublish()}
+};
+document.getElementById('readyBtn').onclick=()=>{
+if(netRole!=='client')return;
+myReady=!myReady;
+netToHost({t:'ready',ready:myReady});
+};
+document.getElementById('copyCodeBtn').onclick=()=>{
+const code=document.getElementById('roomCode').textContent;
+if(!code||code==='----')return;
+try{navigator.clipboard.writeText(code)}catch(e){}
+const b=document.getElementById('copyCodeBtn');
+const old=b.textContent;
+b.textContent='СКОПИРОВАНО';
+setTimeout(()=>b.textContent=old,1200);
 };
 document.getElementById('roomBack').onclick=()=>{
 try{dirUnregister()}catch(e){}

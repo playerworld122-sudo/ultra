@@ -417,7 +417,6 @@ if(weaponAmmo[i]===undefined)weaponAmmo[i]=WP[i].mag;
 currentWeaponIdx=i;buildWeapon(i);weaponRecoil=2;
 if(weaponGroup)weaponGroup.visible=true;
 removeNPC();beginWavePhase();
-if(netRole==='host')netBroadcast({t:'wp',w:i});
 }
 
 function removeNPC(){if(npcGroup){scene.remove(npcGroup);npcGroup=null}}
@@ -606,9 +605,20 @@ document.getElementById('bossBar').style.display='block';
 document.getElementById('bossFill').style.width='100%';
 }
 
-function bossShoot(e){
+function getNearestTargetPos(ex,ez){
+let bx=player.pos.x,bz=player.pos.z,by=player.pos.y,bd=Math.hypot(bx-ex,bz-ez);
+for(const cid in remotePlayers){
+const rp=remotePlayers[cid];
+const d=Math.hypot(rp.group.position.x-ex,rp.group.position.z-ez);
+if(d<bd){bd=d;bx=rp.group.position.x;bz=rp.group.position.z;by=rp.group.position.y+PLAYER_HEIGHT}
+}
+return{x:bx,y:by,z:bz};
+}
+
+function bossShoot(e,target){
+target=target||getNearestTargetPos(e.mesh.position.x,e.mesh.position.z);
 const o=new THREE.Vector3(e.mesh.position.x,e.mesh.position.y+5,e.mesh.position.z);
-const t=new THREE.Vector3(player.pos.x,player.pos.y-.3,player.pos.z);
+const t=new THREE.Vector3(target.x,(target.y!==undefined?target.y:player.pos.y)-.3,target.z);
 const d=new THREE.Vector3().subVectors(t,o);d.normalize();
 const sp=.42,spr=.04;
 const vx=(d.x+(Math.random()-.5)*spr)*sp,vy=(d.y+(Math.random()-.5)*spr)*sp,vz=(d.z+(Math.random()-.5)*spr)*sp;
@@ -626,13 +636,14 @@ const z=Math.max(-(ARENA-2),Math.min(ARENA-2,p.z+Math.sin(a)*r));
 spawnEnemy(currentWave,x,z);
 }
 
-function updateBossAI(e){
+function updateBossAI(e,target){
+target=target||getNearestTargetPos(e.mesh.position.x,e.mesh.position.z);
 e.phase=e.hp/e.maxHp>.5?1:2;
 e.shootCooldown--;
-if(e.shootCooldown<=0){const s=e.phase===1?1:2;for(let i=0;i<s;i++)setTimeout(()=>{if(e.hp>0&&gameRunning)bossShoot(e)},i*150);e.shootCooldown=e.phase===1?100:60}
+if(e.shootCooldown<=0){const s=e.phase===1?1:2;for(let i=0;i<s;i++)setTimeout(()=>{if(e.hp>0&&gameRunning)bossShoot(e,getNearestTargetPos(e.mesh.position.x,e.mesh.position.z))},i*150);e.shootCooldown=e.phase===1?100:60}
 if(e.phase===2){
 e.dashCooldown--;
-if(e.dashCooldown<=0&&e.dashTimer<=0){const dx=player.pos.x-e.mesh.position.x,dz=player.pos.z-e.mesh.position.z,d=Math.hypot(dx,dz)||1;e.dashVX=(dx/d)*.55;e.dashVZ=(dz/d)*.55;e.dashTimer=30;e.dashCooldown=200+Math.random()*120}
+if(e.dashCooldown<=0&&e.dashTimer<=0){const dx=target.x-e.mesh.position.x,dz=target.z-e.mesh.position.z,d=Math.hypot(dx,dz)||1;e.dashVX=(dx/d)*.55;e.dashVZ=(dz/d)*.55;e.dashTimer=30;e.dashCooldown=200+Math.random()*120}
 e.minionCooldown--;
 if(e.minionCooldown<=0){const c=2+Math.floor(Math.random()*2);for(let i=0;i<c;i++)spawnMinionNear(e.mesh.position);e.minionCooldown=500+Math.random()*200}
 }
@@ -890,16 +901,18 @@ weaponRecoil*=.8;if(weaponRecoil<.001)weaponRecoil=0;
 if(muzzleFlash.material.opacity>0){muzzleFlash.material.opacity-=.22;if(muzzleFlash.material.opacity<0)muzzleFlash.material.opacity=0;muzzleLight.intensity*=.7;if(muzzleLight.intensity<.05)muzzleLight.intensity=0}
 
 for(const e of enemies){
-const dx=player.pos.x-e.mesh.position.x,dz=player.pos.z-e.mesh.position.z,dist=Math.hypot(dx,dz)||1;
-if(e.isBoss){updateBossAI(e);if(e.dashTimer<=0&&dist>2.5){e.mesh.position.x+=(dx/dist)*e.speed;e.mesh.position.z+=(dz/dist)*e.speed}}
+const target=getNearestTargetPos(e.mesh.position.x,e.mesh.position.z);
+const dx=target.x-e.mesh.position.x,dz=target.z-e.mesh.position.z,dist=Math.hypot(dx,dz)||1;
+if(e.isBoss){updateBossAI(e,target);if(e.dashTimer<=0&&dist>2.5){e.mesh.position.x+=(dx/dist)*e.speed;e.mesh.position.z+=(dz/dist)*e.speed}}
 else if(dist>1.2){e.mesh.position.x+=(dx/dist)*e.speed;e.mesh.position.z+=(dz/dist)*e.speed}
-e.mesh.lookAt(player.pos.x,e.mesh.position.y,player.pos.z);
+e.mesh.lookAt(target.x,e.mesh.position.y,target.z);
 if(e.ring){e.ring.rotation.z+=.02;e.ring.material.opacity=.3+Math.sin(performance.now()*.004)*.15}
 if(e.aura){e.aura.rotation.z-=.015;e.aura.material.opacity=.15+Math.sin(performance.now()*.005)*.15}
 if(e.hitFlash>0){e.hitFlash--;e.bodyMat.emissive.setHex(0xffffff);e.bodyMat.emissiveIntensity=2.5}
 else{e.bodyMat.emissive.setHex(e.originalEmissive);e.bodyMat.emissiveIntensity=e.isBoss?1:.6}
 const hd=e.isBoss?3:1.3;
-if(dist<hd){player.hp-=e.touchDamage;damageTimer=8;if(Math.random()<.15)SFX.playerDamage();if(player.hp<=0){player.hp=0;gameOver()}}
+const pdx=player.pos.x-e.mesh.position.x,pdz=player.pos.z-e.mesh.position.z;
+if(Math.hypot(pdx,pdz)<hd){player.hp-=e.touchDamage;damageTimer=8;if(Math.random()<.15)SFX.playerDamage();if(player.hp<=0){player.hp=0;gameOver()}}
 if(netRole==='host'){
 for(const cid in remotePlayers){
 const rp=remotePlayers[cid];
@@ -914,7 +927,15 @@ const p=enemyProjectiles[i];
 p.mesh.position.x+=p.vx;p.mesh.position.y+=p.vy;p.mesh.position.z+=p.vz;p.life--;
 const dx=p.mesh.position.x-player.pos.x,dy=p.mesh.position.y-player.pos.y,dz=p.mesh.position.z-player.pos.z;
 const d=Math.hypot(dx,dy,dz);
-if(d<.9){player.hp-=p.damage;damageTimer=12;SFX.playerDamage();if(player.hp<=0){player.hp=0;gameOver()}scene.remove(p.mesh);p.mesh.geometry.dispose();p.mesh.material.dispose();enemyProjectiles.splice(i,1);continue}
+let hitRemote=false;
+if(netRole==='host'){
+for(const cid in remotePlayers){
+const rp=remotePlayers[cid];
+const rdx=p.mesh.position.x-rp.group.position.x,rdy=p.mesh.position.y-(rp.group.position.y+PLAYER_HEIGHT),rdz=p.mesh.position.z-rp.group.position.z;
+if(Math.hypot(rdx,rdy,rdz)<.9){const c=clientConns.find(c=>c.peer===cid);if(c&&c.open)c.send({t:'dmg',amount:p.damage});hitRemote=true;break}
+}
+}
+if(d<.9||hitRemote){if(d<.9){player.hp-=p.damage;damageTimer=12;SFX.playerDamage();if(player.hp<=0){player.hp=0;gameOver()}}scene.remove(p.mesh);p.mesh.geometry.dispose();p.mesh.material.dispose();enemyProjectiles.splice(i,1);continue}
 if(p.life<=0||p.mesh.position.y<-1||p.mesh.position.y>25||d>100){scene.remove(p.mesh);p.mesh.geometry.dispose();p.mesh.material.dispose();enemyProjectiles.splice(i,1)}
 }
 
@@ -1064,7 +1085,6 @@ else if(msg.t==='p')updateRemotePlayer(msg.id,msg,msg.nick);
 else if(msg.t==='e')applyEnemyState(msg.list);
 else if(msg.t==='kill')removeGhostEnemy(msg.eid);
 else if(msg.t==='dmg'){player.hp-=msg.amount;damageTimer=8;SFX.playerDamage();if(player.hp<=0){player.hp=0;gameOver()}}
-else if(msg.t==='wp'){if(gamePhase==='introShop')pickIntroWeapon(msg.w)}
 else if(msg.t==='wave'){if(gamePhase==='playing'||gamePhase==='shop')startWave(msg.n)}
 else if(msg.t==='chat')addChat(msg.nick,msg.msg,false);
 }
@@ -1113,10 +1133,11 @@ function updateRemotePlayer(id,msg,nick){
 let rp=remotePlayers[id];
 if(!rp){
 const g=makeGhostMesh(nick);scene.add(g);
-rp=remotePlayers[id]={group:g,tx:msg.x,ty:msg.y,tz:msg.z,tyaw:msg.yaw||0,nick:nick||msg.nick||'?'};
+rp=remotePlayers[id]={group:g,tx:msg.x,ty:msg.y,tz:msg.z,tyaw:(msg.yaw||0)+Math.PI,nick:nick||msg.nick||'?'};
 g.position.set(msg.x,msg.y-PLAYER_HEIGHT,msg.z);
+g.rotation.y=(msg.yaw||0)+Math.PI;
 }
-rp.tx=msg.x;rp.ty=msg.y;rp.tz=msg.z;rp.tyaw=msg.yaw||0;
+rp.tx=msg.x;rp.ty=msg.y;rp.tz=msg.z;rp.tyaw=(msg.yaw||0)+Math.PI;
 if(nick)rp.nick=nick;
 }
 
@@ -1152,9 +1173,10 @@ return g;
 function applyEnemyState(list){
 const seen=new Set();
 for(const es of list){
-seen.add(es.id);
-let g=ghostEnemies[es.id];
-if(!g){const m=makeGhostEnemy(es.boss,es.imm);m.position.set(es.x,es.y,es.z);scene.add(m);g=ghostEnemies[es.id]={mesh:m,tx:es.x,ty:es.y,tz:es.z}}
+const key=String(es.id);
+seen.add(key);
+let g=ghostEnemies[key];
+if(!g){const m=makeGhostEnemy(es.boss,es.imm);m.position.set(es.x,es.y,es.z);scene.add(m);g=ghostEnemies[key]={mesh:m,tx:es.x,ty:es.y,tz:es.z}}
 g.tx=es.x;g.ty=es.y;g.tz=es.z;
 }
 for(const id in ghostEnemies)if(!seen.has(id))removeGhostEnemy(id);

@@ -1411,7 +1411,7 @@ function initNetwork(role,roomCode){
 netRole=role;
 const peerOpts={};
 if(role==='host')peerOpts.id=roomCode;
-peer=new Peer(peerOpts.id,{debug:0,config:{iceServers:_ICE}});
+peer=new Peer(peerOpts.id,{debug:0,config:{iceServers:_ICE},host:'uk3d-server.onrender.com',port:443,path:'/uk3d',secure:true});
 peer.on('open',id=>{
 if(role==='host'){showRoomScreen(id,true);roomStatus('Ждём игроков...');broadcastPlayers()}
 else{

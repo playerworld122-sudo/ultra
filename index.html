@@ -68,11 +68,11 @@ button{background:transparent;border:2px solid #f03;color:#f03;font-family:inher
 #muteBtn.muted{color:#666;border-color:#666}
 .sub{color:#888;font-size:14px;font-family:monospace;margin-bottom:20px;letter-spacing:3px}
 .owned{color:#fd0;font-family:monospace;font-size:12px;margin-bottom:20px}
-#chatBox{position:fixed;bottom:12px;right:12px;width:280px;z-index:170;font-family:monospace;display:none}
-#chatLog{max-height:120px;overflow-y:auto;background:rgba(0,0,0,.75);border:1px solid #f03;padding:5px;font-size:11px;color:#fff;margin-bottom:4px}
+#chatBox{position:fixed;bottom:12px;right:12px;width:280px;z-index:170;font-family:monospace;display:none;pointer-events:none}
+#chatLog{max-height:120px;overflow-y:auto;background:rgba(0,0,0,.75);border:1px solid #f03;padding:5px;font-size:11px;color:#fff;margin-bottom:4px;pointer-events:auto}
 #chatLog .w{color:#fd0;font-weight:bold}
 #chatLog .me{color:#0f8}
-#chatInput{width:100%;padding:5px;background:rgba(0,0,0,.8);border:1px solid #f03;color:#fff;font-family:monospace;font-size:11px;outline:none}
+#chatInput{width:100%;padding:5px;background:rgba(0,0,0,.8);border:1px solid #f03;color:#fff;font-family:monospace;font-size:11px;outline:none;pointer-events:auto}
 .lobby-input{padding:12px;background:#111;border:2px solid #fa0;color:#fa0;font-family:monospace;letter-spacing:2px;outline:none;text-transform:lowercase}
 #nameTag{position:absolute;color:#0f8;font-family:monospace;font-size:11px;text-shadow:0 0 4px #000;pointer-events:none;white-space:nowrap}
 </style>
@@ -1106,7 +1106,7 @@ netSendAcc=0;
 const posMsg={t:'p',nick:myNick,x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:yaw,pitch:pitch};
 if(netRole==='host')netBroadcast(posMsg);else netToHost(posMsg);
 if(netRole==='host'){
-const list=enemies.map(e=>({id:e.netId,x:e.mesh.position.x,y:e.mesh.position.y,z:e.mesh.position.z,boss:e.isBoss,imm:e.immortal}));
+const list=enemies.map(e=>({id:e.netId,x:e.mesh.position.x,y:e.mesh.position.y,z:e.mesh.position.z,ry:e.mesh.rotation.y,boss:e.isBoss,imm:e.immortal}));
 netBroadcast({t:'e',list:list});
 }
 }
@@ -1159,13 +1159,33 @@ g.rotation.y+=dy*.25;
 function makeGhostEnemy(boss,imm){
 const g=new THREE.Group();
 if(boss){
-const m=new THREE.MeshStandardMaterial({color:imm?0xff00ff:0x8800ff,emissive:imm?0xff00aa:0x440088,emissiveIntensity:1,roughness:.5,metalness:.7});
-const b=new THREE.Mesh(new THREE.BoxGeometry(2.2,4.2,1.6),m);b.position.y=2.1;g.add(b);
-const h=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.4,1.4),m);h.position.y=5;g.add(h);
+const bm=new THREE.MeshStandardMaterial({color:imm?0xff00ff:0x8800ff,roughness:.5,metalness:.7,emissive:imm?0xff00aa:0x440088,emissiveIntensity:1});
+const body=new THREE.Mesh(new THREE.BoxGeometry(2.2,4.2,1.6),bm);body.position.y=2.1;g.add(body);
+const hd=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.4,1.4),bm);hd.position.y=5;g.add(hd);
+const em=new THREE.MeshBasicMaterial({color:0xff0033});
+const eL=new THREE.Mesh(new THREE.SphereGeometry(.2,10,10),em);eL.position.set(-.35,5.1,.75);g.add(eL);
+const eR=eL.clone();eR.position.x=.35;g.add(eR);
+const ag=new THREE.BoxGeometry(.55,2.6,.55);
+const aL=new THREE.Mesh(ag,bm);aL.position.set(-1.5,2.4,0);g.add(aL);
+const aR=aL.clone();aR.position.x=1.5;g.add(aR);
+const hm=new THREE.MeshStandardMaterial({color:0xff0033,emissive:0xff0033,emissiveIntensity:2});
+const hL=new THREE.Mesh(new THREE.ConeGeometry(.2,.8,6),hm);hL.position.set(-.5,5.9,0);hL.rotation.z=.3;g.add(hL);
+const hR=hL.clone();hR.position.x=.5;hR.rotation.z=-.3;g.add(hR);
+const rm=new THREE.MeshBasicMaterial({color:0xaa44ff,transparent:true,opacity:.4});
+const ring=new THREE.Mesh(new THREE.TorusGeometry(1.6,.08,8,24),rm);ring.rotation.x=Math.PI/2;ring.position.y=.15;g.add(ring);
+const amm=new THREE.MeshBasicMaterial({color:0xff0033,transparent:true,opacity:.25});
+const aura=new THREE.Mesh(new THREE.TorusGeometry(2.2,.06,8,24),amm);aura.rotation.x=Math.PI/2;aura.position.y=.15;g.add(aura);
+g.userData.ring=ring;g.userData.aura=aura;
 }else{
-const m=new THREE.MeshStandardMaterial({color:imm?0x220000:0xcc0000,emissive:imm?0x110000:0x440000,emissiveIntensity:.6,roughness:.6,metalness:.4});
-const b=new THREE.Mesh(new THREE.BoxGeometry(.8,1.6,.5),m);b.position.y=.8;g.add(b);
-const h=new THREE.Mesh(new THREE.BoxGeometry(.5,.5,.5),m);h.position.y=1.85;g.add(h);
+const bm=new THREE.MeshStandardMaterial({color:imm?0x220000:0xcc0000,roughness:.6,metalness:.4,emissive:imm?0x110000:0x440000,emissiveIntensity:.6});
+const body=new THREE.Mesh(new THREE.BoxGeometry(.8,1.6,.5),bm);body.position.y=.8;g.add(body);
+const hd=new THREE.Mesh(new THREE.BoxGeometry(.5,.5,.5),bm);hd.position.y=1.85;g.add(hd);
+const em=new THREE.MeshBasicMaterial({color:imm?0xff00ff:0xffdd00});
+const eL=new THREE.Mesh(new THREE.SphereGeometry(.06,8,8),em);eL.position.set(-.12,1.9,.26);g.add(eL);
+const eR=eL.clone();eR.position.x=.12;g.add(eR);
+const ag=new THREE.BoxGeometry(.2,1,.2);
+const aL=new THREE.Mesh(ag,bm);aL.position.set(-.55,.9,0);g.add(aL);
+const aR=aL.clone();aR.position.x=.55;g.add(aR);
 }
 return g;
 }
@@ -1176,8 +1196,8 @@ for(const es of list){
 const key=String(es.id);
 seen.add(key);
 let g=ghostEnemies[key];
-if(!g){const m=makeGhostEnemy(es.boss,es.imm);m.position.set(es.x,es.y,es.z);scene.add(m);g=ghostEnemies[key]={mesh:m,tx:es.x,ty:es.y,tz:es.z}}
-g.tx=es.x;g.ty=es.y;g.tz=es.z;
+if(!g){const m=makeGhostEnemy(es.boss,es.imm);m.position.set(es.x,es.y,es.z);m.rotation.y=es.ry||0;scene.add(m);g=ghostEnemies[key]={mesh:m,tx:es.x,ty:es.y,tz:es.z,try_:es.ry||0}}
+g.tx=es.x;g.ty=es.y;g.tz=es.z;g.try_=es.ry||0;
 }
 for(const id in ghostEnemies)if(!seen.has(id))removeGhostEnemy(id);
 }
@@ -1190,10 +1210,21 @@ const g=ghostEnemies[id],m=g.mesh;
 m.position.x+=(g.tx-m.position.x)*.3;
 m.position.y+=(g.ty-m.position.y)*.3;
 m.position.z+=(g.tz-m.position.z)*.3;
+let dy=g.try_-m.rotation.y;
+while(dy>Math.PI)dy-=Math.PI*2;
+while(dy<-Math.PI)dy+=Math.PI*2;
+m.rotation.y+=dy*.3;
+if(m.userData.ring){m.userData.ring.rotation.z+=.02;m.userData.ring.material.opacity=.3+Math.sin(performance.now()*.004)*.15}
+if(m.userData.aura){m.userData.aura.rotation.z-=.015;m.userData.aura.material.opacity=.15+Math.sin(performance.now()*.005)*.15}
 }
 }
 
-function showChat(){if(netRole!=='single')document.getElementById('chatBox').style.display='block'}
+function showChat(){
+if(netRole==='single')return;
+const cb=document.getElementById('chatBox');
+cb.style.display='block';
+if(isMobile){cb.style.bottom='';cb.style.right='';cb.style.top='90px';cb.style.left='12px';cb.style.width='220px'}
+}
 
 function addChat(who,msg,isMe){
 const el=document.getElementById('chatLog');

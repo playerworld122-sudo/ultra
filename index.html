@@ -74,36 +74,104 @@ button{background:transparent;border:2px solid #f03;color:#f03;font-family:inher
 #chatLog .me{color:#0f8}
 #chatInput{width:100%;padding:5px;background:rgba(0,0,0,.8);border:1px solid #f03;color:#fff;font-family:monospace;font-size:11px;outline:none;pointer-events:auto}
 .lobby-input{padding:12px;background:#111;border:2px solid #fa0;color:#fa0;font-family:monospace;letter-spacing:2px;outline:none;text-transform:lowercase}
+.lobby-input:focus{border-color:#fd0;box-shadow:0 0 0 2px rgba(255,170,0,.25)}
 #nameTag{position:absolute;color:#0f8;font-family:monospace;font-size:11px;text-shadow:0 0 4px #000;pointer-events:none;white-space:nowrap}
+#lobby{overflow-y:auto;padding:24px 12px}
+#lobbyTabs{display:flex;border:2px solid #f03;margin:4px 0 6px}
+#lobbyTabs .tab{padding:11px 38px;border:none;color:#7a5560;font-size:16px;letter-spacing:.2em;background:transparent}
+#lobbyTabs .tab.active{background:#f03;color:#000}
+#lobbyTabs .tab:focus-visible{outline:2px solid #fd0;outline-offset:-4px}
+#tabPlay{display:flex;flex-direction:column;align-items:center;gap:14px}
+#tabServers{display:none;flex-direction:column;gap:10px;width:min(94vw,660px)}
+#srvBar{display:flex;align-items:center;justify-content:space-between;color:#888;font-family:monospace;font-size:12px;letter-spacing:1px}
+#srvCount{color:#fd0}
+#srvRefresh{padding:7px 16px;border-color:#0f8;color:#0f8;font-size:12px}
+#serverList{display:flex;flex-direction:column;gap:6px;height:250px;overflow-y:auto;border:2px solid #3a1620;background:rgba(255,0,51,.04);padding:8px}
+#serverList::-webkit-scrollbar{width:8px}
+#serverList::-webkit-scrollbar-thumb{background:#f03}
+#serverList::-webkit-scrollbar-track{background:#1a0008}
+.srvRow{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid #f03;background:rgba(255,0,51,.07);font-family:monospace}
+.srvRow .nm{flex:1;min-width:0;color:#fff;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srvRow .meta{color:#6b6b6b;font-size:10px;letter-spacing:1px;margin-top:3px}
+.srvRow .st{font-size:10px;width:86px;text-align:center;flex:none;letter-spacing:1px}
+.srvRow .st.lobby{color:#0f8}
+.srvRow .st.live{color:#f80}
+.srvRow button{padding:7px 16px;font-size:12px;border-color:#0f8;color:#0f8;flex:none}
+.srvRow button.info{border-color:#5a7d8c;color:#7fb2c4;padding:7px 12px}
+.srvRow.mine{border-color:#fd0;background:rgba(255,221,0,.07)}
+.srvRow.mine button{border-color:#fd0;color:#fd0}
+#srvInfo{position:fixed;inset:0;z-index:320;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.88);padding:20px}
+#srvInfoCard{width:min(92vw,460px);border:3px solid #f03;background:#0a0004;padding:24px 26px}
+#srvInfoName{color:#fff;font-family:monospace;font-size:20px;word-break:break-word;margin-bottom:2px}
+#srvInfoTag{color:#f03;font-size:13px;letter-spacing:.25em;margin-bottom:18px}
+.srvField{display:flex;justify-content:space-between;gap:14px;font-family:monospace;font-size:12px;padding:8px 0;border-bottom:1px solid #2a0a12}
+.srvField .k{color:#6b6b6b;letter-spacing:1px;flex:none}
+.srvField .v{color:#fd0;text-align:right;word-break:break-all}
+#srvInfoActions{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
+#srvInfoActions button{padding:11px 18px;font-size:13px;flex:1;min-width:110px}
+#srvInfoJoin{border-color:#0f8;color:#0f8}
+#srvInfoCopy{border-color:#fa0;color:#fa0}
+#srvInfoClose{border-color:#555;color:#888}
+#srvEmpty{color:#5a5a5a;font-family:monospace;font-size:12px;text-align:center;line-height:2;padding-top:72px}
+#srvCreate{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;border-top:1px solid #3a1620;padding-top:12px}
+#srvStatus{color:#fd0;font-family:monospace;font-size:12px;min-height:18px;text-align:center}
+#roomBack{padding:9px 20px;border-color:#666;color:#888;font-size:12px}
 </style>
 </head>
 <body>
-<div id="lobby" style="position:fixed;inset:0;background:rgba(0,0,0,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:300;gap:18px;font-family:inherit">
-<div id="lobbyMain" style="display:flex;flex-direction:column;align-items:center;gap:14px">
+<div id="lobby" style="position:fixed;inset:0;background:rgba(0,0,0,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:300;gap:14px;font-family:inherit">
+<div id="lobbyMain" style="display:flex;flex-direction:column;align-items:center;gap:12px">
 <h1 style="font-size:48px">ULTRAKILL ONLINE</h1>
 <div style="display:flex;gap:8px;align-items:center">
 <span style="color:#888;font-family:monospace;font-size:12px">НИК:</span>
 <input id="nickInput" placeholder="narrator" maxlength="14" class="lobby-input" style="width:220px" value="">
 </div>
+<div id="lobbyTabs">
+<button class="tab active" data-tab="play">ИГРА</button>
+<button class="tab" data-tab="servers">СЕРВЕРЫ</button>
+</div>
+<div id="tabPlay">
 <button id="lobbySolo" style="padding:14px 44px;border-color:#f03;color:#f03;font-size:18px">ОДИНОЧНАЯ</button>
-<div style="display:flex;gap:8px;margin-top:6px;align-items:center">
+<div style="display:flex;gap:8px;margin-top:6px;align-items:center;flex-wrap:wrap;justify-content:center">
 <input id="roomInput" placeholder="код комнаты (narrator-lobby)" class="lobby-input" style="width:280px">
 <button id="lobbyHost" style="padding:12px 22px;border-color:#0f8;color:#0f8;font-size:14px">СОЗДАТЬ</button>
 <button id="lobbyJoin" style="padding:12px 22px;border-color:#fa0;color:#fa0;font-size:14px">ВОЙТИ</button>
 </div>
 <div style="color:#666;font-family:monospace;font-size:11px;margin-top:4px">Код комнаты = ваш ник + <span style="color:#fa0">-lobby</span></div>
+</div>
+<div id="tabServers">
+<div id="srvBar"><span>ОТКРЫТЫЕ СЕРВЕРЫ <span id="srvCount">(0)</span></span><button id="srvRefresh">ОБНОВИТЬ</button></div>
+<div id="serverList"></div>
+<div id="srvCreate">
+<input id="srvName" placeholder="название сервера" maxlength="24" class="lobby-input" style="width:260px;text-transform:none;letter-spacing:1px">
+<button id="srvCreateBtn" style="padding:12px 22px;border-color:#0f8;color:#0f8;font-size:14px">ОТКРЫТЬ СЕРВЕР</button>
+</div>
+<div id="srvStatus"></div>
+</div>
 <div id="lobbyStatus" style="color:#fd0;font-family:monospace;font-size:13px;min-height:20px"></div>
 </div>
-<div id="lobbyRoom" style="display:none;flex-direction:column;align-items:center;gap:16px">
+<div id="lobbyRoom" style="display:none;flex-direction:column;align-items:center;gap:14px">
 <h2 style="color:#f03;font-size:28px;letter-spacing:.2em">КОМНАТА</h2>
+<div id="roomTitle" style="color:#fff;font-family:monospace;font-size:15px"></div>
 <div style="color:#888;font-family:monospace;font-size:12px">КОД ДЛЯ ДРУЗЕЙ:</div>
 <div style="color:#fa0;font-family:monospace;font-size:22px;letter-spacing:3px;padding:10px 24px;border:2px solid #fa0" id="roomCode">----</div>
 <div style="color:#888;font-family:monospace;font-size:12px;margin-top:6px">ИГРОКИ:</div>
 <div id="playerList" style="display:flex;flex-direction:column;gap:6px;min-height:40px;min-width:200px;align-items:center"></div>
 <button id="startGameBtn" style="display:none;padding:14px 44px;border-color:#f03;color:#f03;font-size:18px;margin-top:10px">НАЧАТЬ ИГРУ</button>
 <div id="roomStatus" style="color:#fd0;font-family:monospace;font-size:13px;min-height:20px"></div>
+<button id="roomBack">ВЫЙТИ</button>
 </div>
 </div>
+<div id="srvInfo"><div id="srvInfoCard">
+<div id="srvInfoName"></div>
+<div id="srvInfoTag">СЕРВЕР</div>
+<div id="srvInfoFields"></div>
+<div id="srvInfoActions">
+<button id="srvInfoJoin">ВОЙТИ</button>
+<button id="srvInfoCopy">КОПИРОВАТЬ КОД</button>
+<button id="srvInfoClose">ЗАКРЫТЬ</button>
+</div>
+</div></div>
 <div id="game"></div>
 <div id="crosshair"><div class="h"></div><div class="v"></div></div>
 <div id="ui"><div>KILLS: <span id="kills">0</span></div><div id="styleMeter">STYLE: D</div><div id="waveLabel">WAVE 0</div></div>
@@ -128,7 +196,7 @@ button{background:transparent;border:2px solid #f03;color:#f03;font-family:inher
 <div id="victory"><h1>VICTORY</h1><div class="sub">30 ВОЛН ПРОЙДЕНО</div><p id="victoryStats" style="color:#fff;font-family:monospace;margin-bottom:30px"></p><div style="display:flex;gap:20px"><button id="restartVictoryBtn">ЗАНОВО</button><button id="endlessBtn" style="border-color:#a4f;color:#a4f">ENDLESS</button></div></div>
 <div id="gameOver"><h1>YOU DIED</h1><p id="finalScore" style="color:#fff;font-size:20px;margin-bottom:24px"></p><button id="restartBtn">RESTART</button></div>
 <div id="chatBox"><div id="chatLog"></div><input id="chatInput" placeholder="Сообщение..." maxlength="120"></div>
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 'use strict';
@@ -425,7 +493,7 @@ function beginWavePhase(){
 gamePhase='playing';gameRunning=true;waveInProgress=false;waveActive=false;currentWave=nextWaveAfterElevator-1;
 if(!isMobile){document.getElementById('clickToPlay').style.display='flex';renderer.domElement.requestPointerLock()}
 showChat();
-if(netRole==='client')return;
+if(netRole==='client'){waveActive=true;waveInProgress=true;return}
 startWave(nextWaveAfterElevator);
 }
 
@@ -537,7 +605,7 @@ document.getElementById('waveLabel').textContent='WAVE '+n+(endlessMode&&n>MAX_W
 const isBoss=n%10===0;
 showBanner(isBoss?'BOSS':'WAVE '+n,isBoss?'WAVE '+n:null,isBoss?2000:1500);
 SFX.waveStart();
-if(netRole==='host')netBroadcast({t:'wave',n:n});
+if(netRole==='host'){netBroadcast({t:'wave',n:n});dirTouch()}
 if(netRole==='client'){waveActive=true;waveInProgress=true;return}
 setTimeout(()=>{hideBanner();spawnWaveEnemies(n,isBoss);waveActive=true;waveInProgress=true},isBoss?2000:1500);
 }
@@ -1012,6 +1080,7 @@ function showRoomScreen(code,isHost){
 document.getElementById('lobbyMain').style.display='none';
 document.getElementById('lobbyRoom').style.display='flex';
 document.getElementById('roomCode').textContent=code;
+document.getElementById('roomTitle').textContent=myServer?myServer.name:'';
 document.getElementById('startGameBtn').style.display=isHost?'block':'none';
 }
 
@@ -1029,6 +1098,7 @@ function broadcastPlayers(){
 const players=[{id:peer.id,nick:myNick},...clientNicks];
 updatePlayerListUI(players);
 netBroadcast({t:'players',players:players});
+dirTouch();
 }
 
 const clientNicks=[];
@@ -1059,7 +1129,12 @@ removeRemotePlayer(conn.peer);
 broadcastPlayers();
 });
 });
-peer.on('error',e=>{roomStatus('ОШИБКА: '+e.type);lobbyStatus('ОШИБКА: '+e.type)});
+peer.on('error',e=>{
+roomStatus('ОШИБКА: '+e.type);
+if(e.type==='unavailable-id'){srvStatus('КОД ЗАНЯТ — ПОПРОБУЙ ДРУГОЕ ИМЯ');lobbyStatus('КОД ЗАНЯТ')}
+else if(e.type==='peer-unavailable'){roomStatus('СЕРВЕР НЕ ОТВЕЧАЕТ')}
+else lobbyStatus('ОШИБКА: '+e.type);
+});
 }
 
 function netBroadcast(m){for(const c of clientConns)if(c.open)c.send(m)}
@@ -1071,6 +1146,7 @@ if(msg.t==='hello'){
 const i=clientNicks.findIndex(c=>c.id===conn.peer);
 if(i>=0)clientNicks[i].nick=msg.nick;else clientNicks.push({id:conn.peer,nick:msg.nick});
 broadcastPlayers();
+if(gamePhase!=='menu'&&conn.open)conn.send({t:'go',h:mapHue});
 }else if(msg.t==='p'){
 updateRemotePlayer(conn.peer,msg);
 netBroadcastExcept(conn,Object.assign({},msg,{id:conn.peer}));
@@ -1226,11 +1302,12 @@ cb.style.display='block';
 if(isMobile){cb.style.bottom='';cb.style.right='';cb.style.top='90px';cb.style.left='12px';cb.style.width='220px'}
 }
 
+function esc(s){return String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c])}
+
 function addChat(who,msg,isMe){
 const el=document.getElementById('chatLog');
 const d=document.createElement('div');
-const safe=String(msg).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'})[c]);
-d.innerHTML='<span class="w'+(isMe?' me':'')+'">'+who+':</span> '+safe;
+d.innerHTML='<span class="w'+(isMe?' me':'')+'">'+esc(who)+':</span> '+esc(msg);
 el.appendChild(d);
 el.scrollTop=el.scrollHeight;
 while(el.children.length>30)el.removeChild(el.firstChild);
@@ -1246,6 +1323,278 @@ else netToHost({t:'chat',nick:myNick,msg:v});
 inp.value='';
 }
 
+/* ================= СПИСОК СЕРВЕРОВ =================
+   PeerJS не умеет искать комнаты сам, поэтому список держит
+   один из игроков: первый, кто открыл вкладку «СЕРВЕРЫ»,
+   занимает фиксированный peer-id DIR_ID и становится реестром.
+   Остальные подключаются к нему, публикуют свои сервера и
+   получают список. Если держатель ушёл — id освобождается и
+   его занимает следующий. Данные живут только пока идёт игра. */
+const DIR_ID='ultrakill-dir-v1';
+const DIR_STALE=20000;
+let dirPeer=null,dirConn=null,dirIsHost=false,dirConns=[],dirConnecting=false,dirTries=0;
+let dirQueue=[],dirPruneTimer=null,dirHbTimer=null,dirAutoTimer=null;
+const dirRegistry={};
+let myServer=null,srvTab='play';
+
+function srvStatus(s){const el=document.getElementById('srvStatus');if(el)el.textContent=s}
+
+function dirEnsure(cb){
+if(dirIsHost||(dirConn&&dirConn.open)){if(cb)cb();return}
+if(cb)dirQueue.push(cb);
+if(dirConnecting)return;
+dirConnecting=true;
+dirClaim();
+}
+
+function dirReady(){
+dirConnecting=false;dirTries=0;
+const q=dirQueue.slice();dirQueue.length=0;
+for(const f of q){try{f()}catch(e){}}
+}
+
+function dirFail(m){
+dirConnecting=false;dirQueue.length=0;
+srvStatus(m);
+}
+
+function dirReset(){
+try{if(dirPeer)dirPeer.destroy()}catch(e){}
+dirPeer=null;dirConn=null;dirIsHost=false;dirConns=[];
+}
+
+function dirClaim(){
+if(typeof Peer==='undefined')return dirFail('СЕТЬ НЕДОСТУПНА');
+if(dirTries++>3)return dirFail('РЕЕСТР НЕ ОТВЕЧАЕТ — ЖМИ ОБНОВИТЬ');
+let done=false;
+try{dirPeer=new Peer(DIR_ID,{debug:0})}catch(e){return dirFail('СЕТЬ НЕДОСТУПНА')}
+dirPeer.on('open',()=>{
+if(done)return;done=true;
+dirIsHost=true;
+dirPeer.on('connection',c=>{
+dirConns.push(c);
+c.on('data',m=>dirHandle(c,m));
+c.on('close',()=>{dirConns=dirConns.filter(x=>x!==c);dirDropOwner(c.peer);dirPush()});
+c.on('error',()=>{});
+});
+if(!dirPruneTimer)dirPruneTimer=setInterval(dirPrune,5000);
+dirReady();
+});
+dirPeer.on('error',e=>{
+if(e.type==='unavailable-id'){if(done)return;done=true;dirReset();dirJoin();return}
+if(e.type==='peer-unavailable'||e.type==='network')return;
+if(done)return;done=true;dirFail('РЕЕСТР НЕДОСТУПЕН: '+e.type);
+});
+dirPeer.on('close',()=>{if(dirIsHost){dirIsHost=false;dirPeer=null}});
+setTimeout(()=>{if(!done){done=true;dirReset();dirFail('НЕТ СВЯЗИ С РЕЕСТРОМ')}},9000);
+}
+
+function dirJoin(){
+let done=false;
+try{dirPeer=new Peer(undefined,{debug:0})}catch(e){return dirFail('СЕТЬ НЕДОСТУПНА')}
+dirPeer.on('open',()=>{
+dirConn=dirPeer.connect(DIR_ID,{reliable:true});
+dirConn.on('open',()=>{if(done)return;done=true;dirConn.send({t:'list'});dirReady()});
+dirConn.on('data',m=>{if(m.t==='servers')renderServers(m.list)});
+dirConn.on('close',()=>{dirConn=null});
+dirConn.on('error',()=>{});
+});
+dirPeer.on('error',e=>{
+if(e.type==='peer-unavailable'){if(done)return;done=true;dirReset();setTimeout(dirClaim,400);return}
+if(done)return;done=true;dirFail('ОШИБКА: '+e.type);
+});
+setTimeout(()=>{if(!done){done=true;dirReset();setTimeout(dirClaim,200)}},9000);
+}
+
+function dirHandle(c,m){
+if(m.t==='register'){
+dirRegistry[m.code]={code:m.code,name:m.name,nick:m.nick,wave:m.wave,started:m.started,since:m.since,ts:Date.now(),owner:c.peer};
+dirPush();
+}else if(m.t==='unregister'){delete dirRegistry[m.code];dirPush()}
+else if(m.t==='list'){if(c.open)c.send({t:'servers',list:dirList()})}
+}
+
+function dirDropOwner(pid){for(const k in dirRegistry)if(dirRegistry[k].owner===pid)delete dirRegistry[k]}
+
+function dirPrune(){
+const n=Date.now();let ch=false;
+for(const k in dirRegistry)if(n-dirRegistry[k].ts>DIR_STALE){delete dirRegistry[k];ch=true}
+if(ch)dirPush();
+}
+
+function dirList(){return Object.keys(dirRegistry).map(k=>dirRegistry[k]).sort((a,b)=>b.ts-a.ts)}
+
+function dirPush(){
+const l=dirList();
+for(const c of dirConns)if(c.open)c.send({t:'servers',list:l});
+if(dirIsHost)renderServers(l);
+}
+
+function dirPublish(){
+if(!myServer)return;
+const m={t:'register',code:myServer.code,name:myServer.name,nick:myServer.nick,wave:myServer.wave,started:myServer.started,since:myServer.since};
+if(dirIsHost){dirRegistry[m.code]=Object.assign({},m,{ts:Date.now(),owner:'local'});dirPush()}
+else if(dirConn&&dirConn.open)dirConn.send(m);
+else dirEnsure(()=>{if(myServer)dirPublish()});
+}
+
+function dirTouch(){
+if(!myServer||netRole!=='host')return;
+myServer.wave=currentWave;
+myServer.started=gamePhase!=='menu';
+dirPublish();
+}
+
+function dirStartHeartbeat(){
+if(dirHbTimer)return;
+dirHbTimer=setInterval(()=>{if(myServer&&netRole==='host')dirTouch()},5000);
+}
+
+function dirUnregister(){
+if(!myServer)return;
+const code=myServer.code;
+if(dirIsHost){delete dirRegistry[code];dirPush()}
+else if(dirConn&&dirConn.open)dirConn.send({t:'unregister',code:code});
+myServer=null;
+}
+
+let shownServers=[];
+
+function renderServers(list){
+const el=document.getElementById('serverList');
+if(!el)return;
+shownServers=(list||[]).filter(s=>s&&s.code);
+document.getElementById('srvCount').textContent='('+shownServers.length+')';
+el.innerHTML='';
+if(!shownServers.length){el.innerHTML='<div id="srvEmpty">Пока никто не играет.<br>Открой свой сервер — друзья увидят его здесь.</div>';return}
+for(const s of shownServers){
+const mine=myServer&&s.code===myServer.code;
+const row=document.createElement('div');
+row.className='srvRow'+(mine?' mine':'');
+row.innerHTML='<div class="nm">'+esc(s.name)+'<div class="meta">'+esc(s.nick)+' · '+esc(s.code)+'</div></div>'
++'<div class="st '+(s.started?'live':'lobby')+'">'+(s.started?('ВОЛНА '+(s.wave||1)):'В ЛОББИ')+'</div>';
+const info=document.createElement('button');
+info.className='info';info.textContent='О СЕРВЕРЕ';
+info.onclick=()=>showServerInfo(s.code);
+row.appendChild(info);
+const b=document.createElement('button');
+b.textContent=mine?'ВАШ':'ВОЙТИ';
+if(mine)b.disabled=true;else b.onclick=()=>joinServer(s);
+row.appendChild(b);
+el.appendChild(row);
+}
+if(infoCode)renderServerInfo();
+}
+
+let infoCode=null;
+
+function findServer(code){
+for(const s of shownServers)if(s.code===code)return s;
+return null;
+}
+
+function ago(ms){
+if(!ms)return '—';
+const s=Math.max(0,Math.round((Date.now()-ms)/1000));
+if(s<60)return s+' с';
+const m=Math.floor(s/60);
+if(m<60)return m+' мин';
+return Math.floor(m/60)+' ч '+(m%60)+' мин';
+}
+
+function showServerInfo(code){
+infoCode=code;
+document.getElementById('srvInfo').style.display='flex';
+renderServerInfo();
+}
+
+function renderServerInfo(){
+const s=findServer(infoCode);
+const box=document.getElementById('srvInfo');
+if(!s){box.style.display='none';infoCode=null;return}
+const mine=myServer&&s.code===myServer.code;
+document.getElementById('srvInfoName').textContent=s.name;
+document.getElementById('srvInfoTag').textContent=mine?'ВАШ СЕРВЕР':'СЕРВЕР';
+const rows=[
+['ХОСТ',s.nick],
+['КОД',s.code],
+['СОСТОЯНИЕ',s.started?('идёт бой, волна '+(s.wave||1)):'ждёт игроков в лобби'],
+['РЕЖИМ',s.started?'вход по ходу игры':'старт по команде хоста'],
+['СОЗДАН',ago(s.since)+' назад'],
+['НА СВЯЗИ',ago(s.ts)+' назад']
+];
+document.getElementById('srvInfoFields').innerHTML=rows.map(r=>'<div class="srvField"><span class="k">'+r[0]+'</span><span class="v">'+esc(r[1])+'</span></div>').join('');
+const join=document.getElementById('srvInfoJoin');
+join.textContent=mine?'ЭТО ВЫ':'ВОЙТИ';
+join.disabled=!!mine;
+join.style.opacity=mine?'.4':'1';
+}
+
+function hideServerInfo(){infoCode=null;document.getElementById('srvInfo').style.display='none'}
+
+function refreshServers(){
+srvStatus('Обновляем...');
+dirEnsure(()=>{
+if(dirIsHost){renderServers(dirList());srvStatus('')}
+else if(dirConn&&dirConn.open){dirConn.send({t:'list'});srvStatus('')}
+});
+}
+
+function joinServer(s){
+myNick=sanitizeNick(document.getElementById('nickInput').value);
+document.getElementById('nickInput').value=myNick;
+srvStatus('Подключаемся к '+s.name+'...');
+initNetwork('client',s.code);
+}
+
+function createServer(){
+if(myServer)return;
+myNick=sanitizeNick(document.getElementById('nickInput').value);
+document.getElementById('nickInput').value=myNick;
+let name=String(document.getElementById('srvName').value||'').trim().slice(0,24);
+if(!name)name='Сервер '+myNick;
+const slug=myNick.replace(/[^a-z0-9\-_]/g,'')||'srv';
+const code=slug+'-'+Math.random().toString(36).slice(2,6);
+myServer={code:code,name:name,nick:myNick,wave:0,started:false,since:Date.now()};
+srvStatus('Открываем сервер...');
+initNetwork('host',code);
+dirEnsure(()=>{dirPublish();dirStartHeartbeat()});
+}
+
+function showTab(t){
+srvTab=t;
+const play=t==='play';
+document.getElementById('tabPlay').style.display=play?'flex':'none';
+document.getElementById('tabServers').style.display=play?'none':'flex';
+const tabs=document.querySelectorAll('#lobbyTabs .tab');
+for(const b of tabs)b.classList.toggle('active',b.dataset.tab===t);
+if(!play){
+refreshServers();
+if(!dirAutoTimer)dirAutoTimer=setInterval(()=>{if(srvTab==='servers'&&document.getElementById('lobbyMain').style.display!=='none')refreshServers()},8000);
+}
+}
+
+document.querySelectorAll('#lobbyTabs .tab').forEach(b=>{b.onclick=()=>showTab(b.dataset.tab)});
+document.getElementById('srvRefresh').onclick=()=>{dirTries=0;refreshServers()};
+document.getElementById('srvCreateBtn').onclick=createServer;
+document.getElementById('srvInfoClose').onclick=hideServerInfo;
+document.getElementById('srvInfo').onclick=e=>{if(e.target.id==='srvInfo')hideServerInfo()};
+document.getElementById('srvInfoJoin').onclick=()=>{
+const s=findServer(infoCode);
+if(!s||(myServer&&s.code===myServer.code))return;
+hideServerInfo();joinServer(s);
+};
+document.getElementById('srvInfoCopy').onclick=()=>{
+const s=findServer(infoCode);if(!s)return;
+const btn=document.getElementById('srvInfoCopy');
+const done=()=>{btn.textContent='СКОПИРОВАНО';setTimeout(()=>btn.textContent='КОПИРОВАТЬ КОД',1400)};
+try{navigator.clipboard.writeText(s.code).then(done,()=>{document.getElementById('roomInput').value=s.code;done()})}
+catch(e){document.getElementById('roomInput').value=s.code;done()}
+};
+addEventListener('keydown',e=>{if(e.key==='Escape'&&infoCode)hideServerInfo()});
+document.getElementById('roomBack').onclick=()=>{dirUnregister();setTimeout(()=>location.reload(),150)};
+addEventListener('beforeunload',()=>{try{dirUnregister()}catch(e){}});
+
 document.getElementById('lobbySolo').onclick=()=>{
 myNick=sanitizeNick(document.getElementById('nickInput').value)||'player';
 document.getElementById('lobby').style.display='none';
@@ -1255,7 +1604,9 @@ document.getElementById('lobbyHost').onclick=()=>{
 myNick=sanitizeNick(document.getElementById('nickInput').value);
 document.getElementById('nickInput').value=myNick;
 const room=buildRoomCode(myNick);
+myServer={code:room,name:'Комната '+myNick,nick:myNick,wave:0,started:false,since:Date.now()};
 initNetwork('host',room);
+dirEnsure(()=>{dirPublish();dirStartHeartbeat()});
 };
 document.getElementById('lobbyJoin').onclick=()=>{
 myNick=sanitizeNick(document.getElementById('nickInput').value);
@@ -1269,6 +1620,7 @@ const h=Math.random();mapHue=h;
 netBroadcast({t:'go',h:h});
 document.getElementById('lobby').style.display='none';
 startGame();
+if(myServer){myServer.started=true;dirTouch()}
 };
 
 init();

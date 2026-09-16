@@ -235,7 +235,7 @@ button:disabled:hover{background:rgba(20,4,7,.55);color:inherit;box-shadow:none}
 </div>
 <div class="lobby-bottom">
 <div id="lobbyStatus"></div>
-<div class="lobby-credit">v1.4 · PEERJS · THREE.JS</div>
+<div class="lobby-credit">v1.5 · PEERJS · THREE.JS</div>
 </div>
 </div>
 <div id="lobbyRoom">
@@ -294,7 +294,7 @@ button:disabled:hover{background:rgba(20,4,7,.55);color:inherit;box-shadow:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 'use strict';
-const SFX={ctx:null,muted:false,
+  const SFX={ctx:null,muted:false,
 init(){if(!this.ctx){try{this.ctx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}},
 resume(){if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume()},
 tone(f,d,t,v,s){if(!this.ctx||this.muted)return;t=t||'sine';v=v===undefined?.15:v;const c=this.ctx.currentTime,o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type=t;o.frequency.setValueAtTime(f,c);if(s)o.frequency.exponentialRampToValueAtTime(Math.max(s,1),c+d);g.gain.setValueAtTime(v,c);g.gain.exponentialRampToValueAtTime(.0001,c+d);o.connect(g);g.connect(this.ctx.destination);o.start(c);o.stop(c+d+.02)},
@@ -795,8 +795,7 @@ weaponGroup.add(ra);weaponGroup.add(la);weaponGroup.userData={rightArm:ra,leftAr
 document.getElementById('weaponName').textContent=W.name;
 updateAmmoUI();
 }
-
-function updateAmmoUI(){
+  function updateAmmoUI(){
 const W=WP[currentWeaponIdx];
 const c=weaponAmmo[currentWeaponIdx]!==undefined?weaponAmmo[currentWeaponIdx]:W.mag;
 document.getElementById('ammoCur').textContent=c;
@@ -1372,8 +1371,7 @@ if(isMobile){['joystick','lookArea','fireBtn','dashBtn','jumpBtn','swapBtn','rel
 else setupDesktopControls();
 startElevatorIntro(1);
 }
-
-let peer=null,netRole='single',hostConn=null,clientConns=[];
+  let peer=null,netRole='single',hostConn=null,clientConns=[];
 const remotePlayers={},ghostEnemies={};
 let netIdCounter=0,netSendAcc=0;
 const clientNicks=[];
@@ -1390,6 +1388,7 @@ document.getElementById('roomCode').textContent=code;
 document.getElementById('roomTitle').textContent=myServer?myServer.name:'';
 document.getElementById('startGameBtn').style.display=isHost?'block':'none';
 }
+
 function updatePlayerListUI(players){
 const el=document.getElementById('playerList');el.innerHTML='';
 for(const p of players){
@@ -1399,6 +1398,7 @@ d.style.cssText='color:'+(p.id===peer.id?'#0f8':'#fd0')+';font-family:monospace;
 el.appendChild(d);
 }
 }
+
 function broadcastPlayers(){
 const players=[{id:peer.id,nick:myNick},...clientNicks];
 updatePlayerListUI(players);
@@ -1406,13 +1406,13 @@ netBroadcast({t:'players',players:players});
 dirTouch();
 }
 
-function initNetwork(role,roomCode,retry){
+function initNetwork(role,roomCode){
 netRole=role;
 const peerOpts={};
 if(role==='host')peerOpts.id=roomCode;
 peer=new Peer(peerOpts.id,{debug:0});
 peer.on('open',id=>{
-if(role==='host'){showRoomScreen(id,true);roomStatus('Ждём игроков...');broadcastPlayers();if(myServer)myServer.code=id}
+if(role==='host'){showRoomScreen(id,true);roomStatus('Ждём игроков...');broadcastPlayers()}
 else{
 showRoomScreen(roomCode,false);roomStatus('Подключение...');
 hostConn=peer.connect(roomCode,{reliable:true});
@@ -1434,17 +1434,9 @@ broadcastPlayers();
 });
 });
 peer.on('error',e=>{
-if(e.type==='unavailable-id'&&role==='host'&&!retry){
-const alt=roomCode+'-'+Math.random().toString(36).slice(2,5);
-if(myServer)myServer.code=alt;
-try{peer.destroy()}catch(_){}
-initNetwork('host',alt,true);
-return;
-}
-if(e.type==='peer-unavailable'&&role==='client'){roomStatus('КОМНАТА НЕ НАЙДЕНА — ПРОВЕРЬ КОД');return}
 roomStatus('ОШИБКА: '+e.type);
-if(e.type==='unavailable-id')lobbyStatus('КОД ЗАНЯТ — ПОПРОБУЙ ДРУГОЕ ИМЯ');
-else if(e.type==='peer-unavailable')lobbyStatus('СЕРВЕР НЕ ОТВЕЧАЕТ');
+if(e.type==='unavailable-id'){srvStatus('КОД ЗАНЯТ — ПОПРОБУЙ ДРУГОЕ ИМЯ');lobbyStatus('КОД ЗАНЯТ')}
+else if(e.type==='peer-unavailable'){roomStatus('СЕРВЕР НЕ ОТВЕЧАЕТ')}
 else lobbyStatus('ОШИБКА: '+e.type);
 });
 }
@@ -1508,22 +1500,8 @@ netBroadcast({t:'e',list:list});
 }
 }
 
-function makeNameTag(nick){
-const c=document.createElement('canvas');c.width=256;c.height=64;
-const x=c.getContext('2d');
-x.fillStyle='rgba(0,0,0,.6)';x.fillRect(0,0,256,64);
-x.strokeStyle='#22e0d0';x.lineWidth=3;x.strokeRect(2,2,252,60);
-x.font='bold 30px monospace';x.textAlign='center';x.textBaseline='middle';
-x.fillStyle='#22e0d0';x.fillText(String(nick||'?').slice(0,14),128,34);
-const t=new THREE.CanvasTexture(c);
-if('encoding' in t)t.encoding=THREE.sRGBEncoding;
-const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthTest:false,depthWrite:false}));
-s.scale.set(1.8,.45,1);s.position.y=3.15;
-return s;
-}
 function makeGhostMesh(nick){
 const g=new THREE.Group();
-g.add(makeNameTag(nick));
 const bm=new THREE.MeshStandardMaterial({color:0xdddddd,roughness:.5,metalness:.6});
 const dm=new THREE.MeshStandardMaterial({color:0x222222,roughness:.6,metalness:.8});
 const vm=new THREE.MeshStandardMaterial({color:0x00ff88,emissive:0x00ff88,emissiveIntensity:2});
@@ -1539,6 +1517,7 @@ const lR=lL.clone();lR.position.x=.25;g.add(lR);
 const lt=new THREE.PointLight(0x00ff88,1.2,6);lt.position.y=2.5;g.add(lt);
 return g;
 }
+
 function updateRemotePlayer(id,msg,nick){
 let rp=remotePlayers[id];
 if(!rp){
@@ -1550,7 +1529,9 @@ g.rotation.y=(msg.yaw||0)+Math.PI;
 rp.tx=msg.x;rp.ty=msg.y;rp.tz=msg.z;rp.tyaw=(msg.yaw||0)+Math.PI;rp.yaw=msg.yaw||0;
 if(nick)rp.nick=nick;
 }
+
 function removeRemotePlayer(id){const rp=remotePlayers[id];if(!rp)return;scene.remove(rp.group);delete remotePlayers[id]}
+
 function interpRemotePlayers(){
 for(const id in remotePlayers){
 const rp=remotePlayers[id],g=rp.group;
@@ -1563,6 +1544,7 @@ while(dy<-Math.PI)dy+=Math.PI*2;
 g.rotation.y+=dy*.25;
 }
 }
+
 function makeGhostEnemy(boss,imm){
 const g=new THREE.Group();
 if(boss){
@@ -1596,6 +1578,7 @@ const aR=aL.clone();aR.position.x=.55;g.add(aR);
 }
 return g;
 }
+
 function applyEnemyState(list){
 const seen=new Set();
 for(const es of list){
@@ -1607,7 +1590,9 @@ g.tx=es.x;g.ty=es.y;g.tz=es.z;g.try_=es.ry||0;
 }
 for(const id in ghostEnemies)if(!seen.has(id))removeGhostEnemy(id);
 }
+
 function removeGhostEnemy(id){const g=ghostEnemies[id];if(!g)return;scene.remove(g.mesh);delete ghostEnemies[id]}
+
 function interpGhostEnemies(){
 for(const id in ghostEnemies){
 const g=ghostEnemies[id],m=g.mesh;
@@ -1622,13 +1607,16 @@ if(m.userData.ring){m.userData.ring.rotation.z+=.02;m.userData.ring.material.opa
 if(m.userData.aura){m.userData.aura.rotation.z-=.015;m.userData.aura.material.opacity=.15+Math.sin(performance.now()*.005)*.15}
 }
 }
+
 function showChat(){
 if(netRole==='single')return;
 const cb=document.getElementById('chatBox');
 cb.style.display='block';
 if(isMobile){cb.style.bottom='';cb.style.right='';cb.style.top='90px';cb.style.left='12px';cb.style.width='220px'}
 }
+
 function esc(s){return String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c])}
+
 function addChat(who,msg,isMe){
 const el=document.getElementById('chatLog');
 const d=document.createElement('div');
@@ -1637,6 +1625,7 @@ el.appendChild(d);
 el.scrollTop=el.scrollHeight;
 while(el.children.length>30)el.removeChild(el.firstChild);
 }
+
 function sendChat(){
 const inp=document.getElementById('chatInput');
 const v=inp.value.trim();
@@ -1647,122 +1636,83 @@ else netToHost({t:'chat',nick:myNick,msg:v});
 inp.value='';
 }
 
-const DIR_IDS=['uk3d-srv-a1','uk3d-srv-b2','uk3d-srv-c3','uk3d-srv-d4','uk3d-srv-e5'];
+const DIR_ID='ultrakill-dir-v1';
 const DIR_STALE=20000;
-let dirPeer=null,dirConn=null,dirIsHost=false,dirConns=[],dirConnecting=false;
-let dirPruneTimer=null,dirHbTimer=null,dirAutoTimer=null;
-let dirRegId=null;
+let dirPeer=null,dirConn=null,dirIsHost=false,dirConns=[],dirConnecting=false,dirTries=0;
+let dirQueue=[],dirPruneTimer=null,dirHbTimer=null,dirAutoTimer=null;
 const dirRegistry={};
 let myServer=null,srvTab='play';
-let dirQueue=[];
+
 function srvStatus(s){const el=document.getElementById('srvStatus');if(el)el.textContent=s}
+
 function dirEnsure(cb){
 if(dirIsHost||(dirConn&&dirConn.open)){if(cb)cb();return}
 if(cb)dirQueue.push(cb);
 if(dirConnecting)return;
 dirConnecting=true;
-dirFindAlive(0);
+dirClaim();
 }
-function dirFinish(){
-dirConnecting=false;
+
+function dirReady(){
+dirConnecting=false;dirTries=0;
 const q=dirQueue.slice();dirQueue.length=0;
 for(const f of q){try{f()}catch(e){}}
 }
-function dirFindAlive(i){
-if(i>=DIR_IDS.length){
-srvStatus('СЕРВЕРНЫЙ СПИСОК НЕДОСТУПЕН — ИГРАЙ ПО КОДУ КОМНАТЫ');
-dirFinish();
-return;
+
+function dirFail(m){
+dirConnecting=false;dirQueue.length=0;
+srvStatus(m);
 }
+
+function dirReset(){
+try{if(dirPeer)dirPeer.destroy()}catch(e){}
+dirPeer=null;dirConn=null;dirIsHost=false;dirConns=[];
+}
+
+function dirClaim(){
+if(typeof Peer==='undefined')return dirFail('СЕТЬ НЕДОСТУПНА');
+if(dirTries++>3)return dirFail('РЕЕСТР НЕ ОТВЕЧАЕТ — ЖМИ ОБНОВИТЬ');
 let done=false;
-let p;
-try{p=new Peer(DIR_IDS[i],{debug:0})}catch(e){return dirFindAlive(i+1)}
-p.on('open',()=>{
+try{dirPeer=new Peer(DIR_ID,{debug:0})}catch(e){return dirFail('СЕТЬ НЕДОСТУПНА')}
+dirPeer.on('open',()=>{
 if(done)return;done=true;
-dirRegId=DIR_IDS[i];
-dirPeer=p;dirIsHost=true;
-p.on('connection',c=>{
+dirIsHost=true;
+dirPeer.on('connection',c=>{
 dirConns.push(c);
 c.on('data',m=>dirHandle(c,m));
 c.on('close',()=>{dirConns=dirConns.filter(x=>x!==c);dirDropOwner(c.peer);dirPush()});
 c.on('error',()=>{});
 });
 if(!dirPruneTimer)dirPruneTimer=setInterval(dirPrune,5000);
-srvStatus('');
+dirReady();
 if(myServer)dirPublish();
-dirPush();
-dirFinish();
 });
-p.on('error',e=>{
-if(done)return;done=true;
-try{p.destroy()}catch(_){}
-if(e.type==='unavailable-id'){dirConnectAsClient(i);return}
-dirFindAlive(i+1);
+dirPeer.on('error',e=>{
+if(e.type==='unavailable-id'){if(done)return;done=true;dirReset();dirJoin();return}
+if(e.type==='peer-unavailable'||e.type==='network')return;
+if(done)return;done=true;dirFail('РЕЕСТР НЕДОСТУПЕН: '+e.type);
 });
-p.on('disconnected',()=>{
-if(done)return;done=true;
-try{p.destroy()}catch(_){}
-dirPeer=null;dirIsHost=false;
-dirFindAlive(i+1);
-});
-setTimeout(()=>{
-if(done)return;done=true;
-try{p.destroy()}catch(_){}
-dirFindAlive(i+1);
-},4000);
+dirPeer.on('close',()=>{if(dirIsHost){dirIsHost=false;dirPeer=null}});
+setTimeout(()=>{if(!done){done=true;dirReset();dirFail('НЕТ СВЯЗИ С РЕЕСТРОМ')}},9000);
 }
-function dirConnectAsClient(i){
+
+function dirJoin(){
 let done=false;
-let p;
-try{p=new Peer(undefined,{debug:0})}catch(e){return dirFindAlive(i+1)}
-p.on('open',()=>{
-const c=p.connect(DIR_IDS[i],{reliable:true});
-let answered=false;
-c.on('open',()=>{answered=true});
-c.on('data',m=>{
-if(done)return;
-if(m.t==='servers'){
-done=true;
-dirPeer=p;dirConn=c;dirIsHost=false;
-dirRegId=DIR_IDS[i];
-c.on('data',mm=>{if(mm.t==='servers')renderServers(mm.list)});
-c.on('close',()=>{
-dirConn=null;
-if(!dirIsHost){try{p.destroy()}catch(_){};dirPeer=null;dirRegId=null}
+try{dirPeer=new Peer(undefined,{debug:0})}catch(e){return dirFail('СЕТЬ НЕДОСТУПНА')}
+dirPeer.on('open',()=>{
+dirConn=dirPeer.connect(DIR_ID,{reliable:true});
+dirConn.on('open',()=>{if(done)return;done=true;dirConn.send({t:'list'});dirReady()});
+dirConn.on('data',m=>{if(m.t==='servers')renderServers(m.list)});
+dirConn.on('close',()=>{dirConn=null});
+dirConn.on('error',()=>{});
 });
-c.on('error',()=>{});
-renderServers(m.list);
-srvStatus('');
-if(myServer)dirPublish();
-dirFinish();
+dirPeer.on('error',e=>{
+if(e.type==='peer-unavailable'){if(done)return;done=true;dirReset();setTimeout(dirClaim,400);return}
+if(done)return;done=true;dirFail('ОШИБКА: '+e.type);
+});
+setTimeout(()=>{if(!done){done=true;dirReset();setTimeout(dirClaim,200)}},9000);
 }
-});
-c.on('error',()=>{});
-setTimeout(()=>{
-if(done)return;
-if(!answered){
-done=true;
-try{p.destroy()}catch(_){}
-dirFindAlive(i+1);
-}
-},1500);
-});
-p.on('error',()=>{
-if(done)return;done=true;
-try{p.destroy()}catch(_){}
-dirFindAlive(i+1);
-});
-p.on('disconnected',()=>{
-if(done)return;done=true;
-try{p.destroy()}catch(_){}
-dirFindAlive(i+1);
-});
-setTimeout(()=>{
-if(done)return;done=true;
-try{p.destroy()}catch(_){}
-dirFindAlive(i+1);
-},4000);
-}
+
 function dirHandle(c,m){
 if(m.t==='register'){
 dirRegistry[m.code]={code:m.code,name:m.name,nick:m.nick,wave:m.wave,started:m.started,since:m.since,ts:Date.now(),owner:c.peer};
@@ -1770,32 +1720,43 @@ dirPush();
 }else if(m.t==='unregister'){delete dirRegistry[m.code];dirPush()}
 else if(m.t==='list'){if(c.open)c.send({t:'servers',list:dirList()})}
 }
+
 function dirDropOwner(pid){for(const k in dirRegistry)if(dirRegistry[k].owner===pid)delete dirRegistry[k]}
+
 function dirPrune(){
 const n=Date.now();let ch=false;
 for(const k in dirRegistry)if(n-dirRegistry[k].ts>DIR_STALE){delete dirRegistry[k];ch=true}
 if(ch)dirPush();
 }
+
 function dirList(){return Object.keys(dirRegistry).map(k=>dirRegistry[k]).sort((a,b)=>b.ts-a.ts)}
-function dirPush(){const l=dirList();for(const c of dirConns)if(c.open)c.send({t:'servers',list:l});if(dirIsHost)renderServers(l)}
+
+function dirPush(){
+const l=dirList();
+for(const c of dirConns)if(c.open)c.send({t:'servers',list:l});
+if(dirIsHost)renderServers(l);
+}
+
 function dirPublish(){
 if(!myServer)return;
 const m={t:'register',code:myServer.code,name:myServer.name,nick:myServer.nick,wave:myServer.wave,started:myServer.started,since:myServer.since};
-if(dirIsHost){dirRegistry[m.code]=Object.assign({},m,{ts:Date.now(),owner:'local'});dirPush();return}
-if(dirConn&&dirConn.open){dirConn.send(m);return}
-dirEnsure(()=>{
-if(!myServer)return;
-if(dirIsHost){dirRegistry[myServer.code]=Object.assign({},m,{ts:Date.now(),owner:'local'});dirPush()}
+if(dirIsHost){dirRegistry[m.code]=Object.assign({},m,{ts:Date.now(),owner:'local'});dirPush()}
 else if(dirConn&&dirConn.open)dirConn.send(m);
-});
+else dirEnsure(()=>{if(myServer)dirPublish()});
 }
+
 function dirTouch(){
 if(!myServer||netRole!=='host')return;
 myServer.wave=currentWave;
 myServer.started=gamePhase!=='menu';
 dirPublish();
 }
-function dirStartHeartbeat(){if(dirHbTimer)return;dirHbTimer=setInterval(()=>{if(myServer&&netRole==='host')dirTouch()},5000)}
+
+function dirStartHeartbeat(){
+if(dirHbTimer)return;
+dirHbTimer=setInterval(()=>{if(myServer&&netRole==='host')dirTouch()},5000);
+}
+
 function dirUnregister(){
 if(!myServer)return;
 const code=myServer.code;
@@ -1803,23 +1764,22 @@ if(dirIsHost){delete dirRegistry[code];dirPush()}
 else if(dirConn&&dirConn.open)dirConn.send({t:'unregister',code:code});
 myServer=null;
 }
+
 let shownServers=[];
+
 function renderServers(list){
 const el=document.getElementById('serverList');
 if(!el)return;
 shownServers=(list||[]).filter(s=>s&&s.code);
 document.getElementById('srvCount').textContent='('+shownServers.length+')';
 el.innerHTML='';
-if(!shownServers.length){
-el.innerHTML='<div id="srvEmpty">Пока никто не играет.<br>Открой свой сервер — друзья увидят его здесь.</div>';
-if(infoCode)renderServerInfo();
-return;
-}
+if(!shownServers.length){el.innerHTML='<div id="srvEmpty">Пока никто не играет.<br>Открой свой сервер — друзья увидят его здесь.</div>';return}
 for(const s of shownServers){
 const mine=myServer&&s.code===myServer.code;
 const row=document.createElement('div');
 row.className='srvRow'+(mine?' mine':'');
-row.innerHTML='<div class="nm">'+esc(s.name)+'<div class="meta">'+esc(s.nick)+' · '+esc(s.code)+'</div></div>'+'<div class="st '+(s.started?'live':'lobby')+'">'+(s.started?('ВОЛНА '+(s.wave||1)):'В ЛОББИ')+'</div>';
+row.innerHTML='<div class="nm">'+esc(s.name)+'<div class="meta">'+esc(s.nick)+' · '+esc(s.code)+'</div></div>'
++'<div class="st '+(s.started?'live':'lobby')+'">'+(s.started?('ВОЛНА '+(s.wave||1)):'В ЛОББИ')+'</div>';
 const info=document.createElement('button');
 info.className='info';info.textContent='О СЕРВЕРЕ';
 info.onclick=()=>showServerInfo(s.code);
@@ -1832,8 +1792,14 @@ el.appendChild(row);
 }
 if(infoCode)renderServerInfo();
 }
+
 let infoCode=null;
-function findServer(code){for(const s of shownServers)if(s.code===code)return s;return null}
+
+function findServer(code){
+for(const s of shownServers)if(s.code===code)return s;
+return null;
+}
+
 function ago(ms){
 if(!ms)return '—';
 const s=Math.max(0,Math.round((Date.now()-ms)/1000));
@@ -1842,7 +1808,13 @@ const m=Math.floor(s/60);
 if(m<60)return m+' мин';
 return Math.floor(m/60)+' ч '+(m%60)+' мин';
 }
-function showServerInfo(code){infoCode=code;document.getElementById('srvInfo').style.display='flex';renderServerInfo()}
+
+function showServerInfo(code){
+infoCode=code;
+document.getElementById('srvInfo').style.display='flex';
+renderServerInfo();
+}
+
 function renderServerInfo(){
 const s=findServer(infoCode);
 const box=document.getElementById('srvInfo');
@@ -1854,7 +1826,7 @@ const rows=[
 ['ХОСТ',s.nick],
 ['КОД',s.code],
 ['СОСТОЯНИЕ',s.started?('идёт бой, волна '+(s.wave||1)):'ждёт игроков в лобби'],
-['АРЕНА',getArenaForWave(s.wave||1).name],
+['РЕЖИМ',s.started?'вход по ходу игры':'старт по команде хоста'],
 ['СОЗДАН',ago(s.since)+' назад'],
 ['НА СВЯЗИ',ago(s.ts)+' назад']
 ];
@@ -1864,23 +1836,24 @@ join.textContent=mine?'ЭТО ВЫ':'ВОЙТИ';
 join.disabled=!!mine;
 join.style.opacity=mine?'.4':'1';
 }
+
 function hideServerInfo(){infoCode=null;document.getElementById('srvInfo').style.display='none'}
+
 function refreshServers(){
-if(dirConnecting){srvStatus('Уже ищем...');return}
 srvStatus('Обновляем...');
-if(dirIsHost){renderServers(dirList());srvStatus('');return}
-if(dirConn&&dirConn.open){dirConn.send({t:'list'});srvStatus('');return}
 dirEnsure(()=>{
 if(dirIsHost){renderServers(dirList());srvStatus('')}
 else if(dirConn&&dirConn.open){dirConn.send({t:'list'});srvStatus('')}
 });
 }
+
 function joinServer(s){
 myNick=sanitizeNick(document.getElementById('nickInput').value);
 document.getElementById('nickInput').value=myNick;
 srvStatus('Подключаемся к '+s.name+'...');
 initNetwork('client',s.code);
 }
+
 function createServer(){
 if(myServer)return;
 myNick=sanitizeNick(document.getElementById('nickInput').value);
@@ -1892,9 +1865,9 @@ const code=slug+'-'+Math.random().toString(36).slice(2,6);
 myServer={code:code,name:name,nick:myNick,wave:0,started:false,since:Date.now()};
 srvStatus('Открываем сервер...');
 initNetwork('host',code);
-dirStartHeartbeat();
-dirEnsure(()=>{dirPublish()});
+dirEnsure(()=>{dirPublish();dirStartHeartbeat()});
 }
+
 function showTab(t){
 srvTab=t;
 const play=t==='play';
@@ -1909,7 +1882,7 @@ if(!dirAutoTimer)dirAutoTimer=setInterval(()=>{if(srvTab==='servers'&&document.g
 }
 
 document.querySelectorAll('#lobbyTabs .tab').forEach(b=>{b.onclick=()=>showTab(b.dataset.tab)});
-document.getElementById('srvRefresh').onclick=()=>{refreshServers()};
+document.getElementById('srvRefresh').onclick=()=>{dirTries=0;refreshServers()};
 document.getElementById('srvCreateBtn').onclick=createServer;
 document.getElementById('srvInfoClose').onclick=hideServerInfo;
 document.getElementById('srvInfo').onclick=e=>{if(e.target.id==='srvInfo')hideServerInfo()};
@@ -1940,8 +1913,7 @@ document.getElementById('nickInput').value=myNick;
 const room=buildRoomCode(myNick);
 myServer={code:room,name:'Комната '+myNick,nick:myNick,wave:0,started:false,since:Date.now()};
 initNetwork('host',room);
-dirStartHeartbeat();
-dirEnsure(()=>{dirPublish()});
+dirEnsure(()=>{dirPublish();dirStartHeartbeat()});
 };
 document.getElementById('lobbyJoin').onclick=()=>{
 myNick=sanitizeNick(document.getElementById('nickInput').value);

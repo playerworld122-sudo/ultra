@@ -235,7 +235,7 @@ button:disabled:hover{background:rgba(20,4,7,.55);color:inherit;box-shadow:none}
 </div>
 <div class="lobby-bottom">
 <div id="lobbyStatus"></div>
-<div class="lobby-credit">v1.5 · PEERJS · THREE.JS</div>
+<div class="lobby-credit">v1.6 · PEERJS · THREE.JS</div>
 </div>
 </div>
 <div id="lobbyRoom">
@@ -294,6 +294,7 @@ button:disabled:hover{background:rgba(20,4,7,.55);color:inherit;box-shadow:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 'use strict';
+const _ICE=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},{urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},{urls:'turn:openrelay.metered.ca:443?transport=tcp',username:'openrelayproject',credential:'openrelayproject'}];
   const SFX={ctx:null,muted:false,
 init(){if(!this.ctx){try{this.ctx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}},
 resume(){if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume()},
@@ -1410,7 +1411,7 @@ function initNetwork(role,roomCode){
 netRole=role;
 const peerOpts={};
 if(role==='host')peerOpts.id=roomCode;
-peer=new Peer(peerOpts.id,{debug:0});
+peer=new Peer(peerOpts.id,{debug:0,config:{iceServers:_ICE}});
 peer.on('open',id=>{
 if(role==='host'){showRoomScreen(id,true);roomStatus('Ждём игроков...');broadcastPlayers()}
 else{
@@ -1673,7 +1674,7 @@ function dirClaim(){
 if(typeof Peer==='undefined')return dirFail('СЕТЬ НЕДОСТУПНА');
 if(dirTries++>3)return dirFail('РЕЕСТР НЕ ОТВЕЧАЕТ — ЖМИ ОБНОВИТЬ');
 let done=false;
-try{dirPeer=new Peer(DIR_ID,{debug:0})}catch(e){return dirFail('СЕТЬ НЕДОСТУПНА')}
+try{dirPeer=new Peer(DIR_ID,{debug:0,config:{iceServers:_ICE}})}catch(e){return dirFail('СЕТЬ НЕДОСТУПНА')}
 dirPeer.on('open',()=>{
 if(done)return;done=true;
 dirIsHost=true;
@@ -1698,7 +1699,7 @@ setTimeout(()=>{if(!done){done=true;dirReset();dirFail('НЕТ СВЯЗИ С Р�
 
 function dirJoin(){
 let done=false;
-try{dirPeer=new Peer(undefined,{debug:0})}catch(e){return dirFail('СЕТЬ НЕДОСТУПНА')}
+try{dirPeer=new Peer(undefined,{debug:0,config:{iceServers:_ICE}})}catch(e){return dirFail('СЕТЬ НЕДОСТУПНА')}
 dirPeer.on('open',()=>{
 dirConn=dirPeer.connect(DIR_ID,{reliable:true});
 dirConn.on('open',()=>{if(done)return;done=true;dirConn.send({t:'list'});dirReady()});

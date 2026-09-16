@@ -4,126 +4,180 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>ULTRAKILL 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+:root{
+--red:#ff1744;--red-dim:#7a0f22;--red-glow:rgba(255,23,68,.55);
+--gold:#ffcc33;--cyan:#22e0d0;--violet:#a24bff;
+--ink:#050103;--panel:rgba(18,4,8,.72);--panel-line:rgba(255,23,68,.35);
+--disp:'Oswald',sans-serif;--mono:'JetBrains Mono',monospace;
+}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Impact','Arial Black',sans-serif;touch-action:none;user-select:none}
-#game{position:fixed;inset:0}canvas{display:block}
-#crosshair{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:24px;height:24px;pointer-events:none;z-index:5}
-#crosshair .h,#crosshair .v{position:absolute;background:#f03;box-shadow:0 0 6px #f03}
-#crosshair .h{left:0;top:50%;width:100%;height:2px;transform:translateY(-50%)}
-#crosshair .v{top:0;left:50%;height:100%;width:2px;transform:translateX(-50%)}
-#ui{position:fixed;top:12px;left:12px;color:#fff;font-size:14px;letter-spacing:.1em;text-shadow:0 0 8px #f03;z-index:10;pointer-events:none}
-#styleMeter{color:#fd0;font-size:20px;margin-top:4px}
-#waveLabel{color:#f6a;font-size:16px;margin-top:4px}
-#weaponUI{position:fixed;bottom:70px;right:20px;z-index:10;pointer-events:none;text-align:right}
-#weaponName{color:#f03;font-size:22px;letter-spacing:.15em;text-shadow:0 0 15px #f03}
-#weaponAmmo{color:#fff;font-size:22px;margin-top:2px;font-family:monospace}
-#weaponAmmo .cur{color:#fd0}#weaponAmmo .max{color:#888}
-#weaponAmmo.empty{color:#f03;animation:bk .6s infinite}
-@keyframes bk{50%{opacity:.3}}
-#reloadHint{color:#fa0;font-size:14px;font-family:monospace;margin-top:2px;display:none}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-family:var(--disp);touch-action:none;user-select:none}
+#game{position:fixed;inset:0}
+canvas{display:block;filter:contrast(1.07) saturate(1.14) brightness(1.02)}
+#vignette{position:fixed;inset:0;pointer-events:none;z-index:6;background:radial-gradient(ellipse at center,transparent 48%,rgba(0,0,0,.18) 78%,rgba(0,0,0,.62) 100%);mix-blend-mode:multiply}
+#scanlines{position:fixed;inset:0;pointer-events:none;z-index:7;opacity:.05;background:repeating-linear-gradient(0deg,#000 0px,#000 1px,transparent 1px,transparent 3px)}
+#crosshair{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:26px;height:26px;pointer-events:none;z-index:9}
+#crosshair i{position:absolute;display:block;background:var(--red);box-shadow:0 0 6px var(--red-glow)}
+#crosshair .h{top:50%;height:2px;width:9px;transform:translateY(-50%)}
+#crosshair .h.l{left:0}#crosshair .h.r{right:0}
+#crosshair .v{left:50%;width:2px;height:9px;transform:translateX(-50%)}
+#crosshair .v.t{top:0}#crosshair .v.b{bottom:0}
+#crosshair .dot{left:50%;top:50%;width:2px;height:2px;transform:translate(-50%,-50%);opacity:.85}
+.hud-panel{background:var(--panel);border:1px solid var(--panel-line);backdrop-filter:blur(1px);position:relative}
+.hud-panel::before{content:'';position:absolute;top:-1px;left:-1px;width:9px;height:9px;border-top:2px solid var(--red);border-left:2px solid var(--red)}
+.hud-panel::after{content:'';position:absolute;bottom:-1px;right:-1px;width:9px;height:9px;border-bottom:2px solid var(--red);border-right:2px solid var(--red)}
+#ui{position:fixed;top:14px;left:14px;color:#eee;font-size:13px;letter-spacing:.14em;z-index:10;pointer-events:none;padding:10px 18px 12px;clip-path:polygon(0 0,100% 0,100% 78%,88% 100%,0 100%)}
+#ui .lbl{color:#8a8a8a;font-family:var(--mono);font-size:9px;letter-spacing:.2em;margin-bottom:2px}
+#kills{color:#fff;font-family:var(--mono);font-weight:700;font-size:15px}
+#styleMeter{color:var(--gold);font-size:24px;margin-top:7px;font-weight:600;text-shadow:0 0 12px rgba(255,204,51,.5);letter-spacing:.08em}
+#waveLabel{color:var(--red);font-size:14px;margin-top:6px;font-weight:600;letter-spacing:.18em}
+#weaponUI{position:fixed;bottom:76px;right:14px;z-index:10;pointer-events:none;text-align:right;padding:10px 20px 12px 34px;clip-path:polygon(12% 0,100% 0,100% 100%,0 100%,0 22%)}
+#weaponName{color:var(--red);font-size:21px;letter-spacing:.16em;font-weight:600;text-shadow:0 0 14px var(--red-glow)}
+#weaponAmmo{color:#fff;font-size:24px;margin-top:3px;font-family:var(--mono);font-weight:700}
+#weaponAmmo .cur{color:var(--gold)}#weaponAmmo .max{color:#666}
+#weaponAmmo.empty{color:var(--red);animation:bk .55s infinite}
+@keyframes bk{50%{opacity:.28}}
+#reloadHint{color:var(--gold);font-size:12px;font-family:var(--mono);margin-top:4px;display:none;letter-spacing:.14em}
 #reloadHint.show{display:block;animation:bk .8s infinite}
-#reloadBar{position:fixed;bottom:110px;right:20px;width:180px;height:6px;background:rgba(0,0,0,.6);border:1px solid #fa0;display:none;z-index:10}
-#reloadBar.show{display:block}#reloadFill{height:100%;width:0;background:#fa0}
-#hpBar{position:fixed;bottom:20px;left:20px;width:200px;height:16px;border:2px solid #f03;background:#1a0000;z-index:10}
-#hpFill{height:100%;width:100%;background:linear-gradient(90deg,#f03,#f50)}
-#bossBar{position:fixed;top:50px;left:50%;transform:translateX(-50%);width:60%;max-width:600px;height:22px;border:3px solid #f03;background:#1a0000;display:none;z-index:15}
-#bossFill{height:100%;width:100%;background:linear-gradient(90deg,#f03,#f80)}
-#bossName{position:fixed;top:22px;left:50%;transform:translateX(-50%);color:#f03;font-size:18px;letter-spacing:.3em;display:none;z-index:15}
-#joystick{position:fixed;bottom:25px;left:25px;width:140px;height:140px;border-radius:50%;background:rgba(255,0,51,.08);border:2px solid rgba(255,0,51,.5);z-index:30;touch-action:none;display:none}
-#joystickKnob{position:absolute;left:50%;top:50%;width:60px;height:60px;border-radius:50%;background:rgba(255,0,51,.6);border:2px solid #f03;transform:translate(-50%,-50%);pointer-events:none}
+#reloadBar{position:fixed;bottom:122px;right:14px;width:190px;height:5px;background:rgba(0,0,0,.6);border:1px solid var(--gold);display:none;z-index:10}
+#reloadBar.show{display:block}#reloadFill{height:100%;width:0;background:linear-gradient(90deg,#a66,var(--gold));box-shadow:0 0 8px rgba(255,204,51,.6)}
+#hpBar{position:fixed;bottom:22px;left:22px;width:220px;height:20px;border:1px solid var(--panel-line);background:rgba(10,0,2,.7);z-index:10;clip-path:polygon(8px 0,100% 0,100% 100%,0 100%,0 8px);padding:2px}
+#hpFill{height:100%;background:linear-gradient(90deg,#9c0f1f,var(--red) 60%,#ff5a4d);background-size:220px 100%;box-shadow:0 0 10px var(--red-glow);transition:width .18s ease-out;background-image:linear-gradient(90deg,#9c0f1f,var(--red) 60%,#ff5a4d),repeating-linear-gradient(90deg,rgba(0,0,0,0) 0,rgba(0,0,0,0) 17px,rgba(0,0,0,.4) 17px,rgba(0,0,0,.4) 19px);background-blend-mode:normal,normal}
+#hpBar.low{animation:hplow .7s infinite}
+@keyframes hplow{50%{border-color:var(--red);box-shadow:0 0 16px var(--red-glow)}}
+#hpLabel{position:absolute;left:24px;bottom:44px;color:#7a7a7a;font-family:var(--mono);font-size:9px;letter-spacing:.25em;z-index:10}
+#bossBar{position:fixed;top:56px;left:50%;transform:translateX(-50%);width:min(60%,600px);height:20px;border:1px solid var(--panel-line);background:rgba(10,0,2,.75);display:none;z-index:15;clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 100%,0 100%);padding:2px}
+#bossFill{height:100%;background:linear-gradient(90deg,#7a1a00,var(--red) 55%,var(--gold));box-shadow:0 0 12px var(--red-glow);transition:width .18s ease-out}
+#bossName{position:fixed;top:26px;left:50%;transform:translateX(-50%);color:var(--red);font-size:16px;letter-spacing:.4em;display:none;z-index:15;font-weight:600;text-shadow:0 0 14px var(--red-glow)}
+#joystick{position:fixed;bottom:25px;left:25px;width:140px;height:140px;border-radius:50%;background:rgba(255,23,68,.08);border:2px solid rgba(255,23,68,.5);z-index:30;touch-action:none;display:none}
+#joystickKnob{position:absolute;left:50%;top:50%;width:60px;height:60px;border-radius:50%;background:rgba(255,23,68,.6);border:2px solid var(--red);transform:translate(-50%,-50%);pointer-events:none}
 #lookArea{position:fixed;right:0;top:0;width:55%;height:100%;z-index:20;touch-action:none;display:none}
-.btn{position:fixed;border-radius:50%;display:none;align-items:center;justify-content:center;font-weight:bold;z-index:40;touch-action:none;font-family:inherit;user-select:none}
-#fireBtn{right:25px;bottom:25px;width:100px;height:100px;background:rgba(255,0,51,.28);border:3px solid #f03;color:#f03;font-size:15px}
-#dashBtn{right:145px;bottom:100px;width:70px;height:70px;background:rgba(0,255,200,.15);border:3px solid #0fc;color:#0fc;font-size:12px}
-#jumpBtn{right:25px;bottom:145px;width:70px;height:70px;background:rgba(255,200,0,.15);border:3px solid #fc0;color:#fc0;font-size:12px}
-#swapBtn{right:145px;bottom:180px;width:70px;height:70px;background:rgba(150,0,255,.15);border:3px solid #a4f;color:#a4f;font-size:11px}
+.btn{position:fixed;border-radius:50%;display:none;align-items:center;justify-content:center;font-weight:600;z-index:40;touch-action:none;font-family:var(--disp);user-select:none;letter-spacing:.08em}
+#fireBtn{right:25px;bottom:25px;width:100px;height:100px;background:rgba(255,23,68,.28);border:3px solid var(--red);color:var(--red);font-size:15px}
+#dashBtn{right:145px;bottom:100px;width:70px;height:70px;background:rgba(34,224,208,.15);border:3px solid var(--cyan);color:var(--cyan);font-size:12px}
+#jumpBtn{right:25px;bottom:145px;width:70px;height:70px;background:rgba(255,204,51,.15);border:3px solid var(--gold);color:var(--gold);font-size:12px}
+#swapBtn{right:145px;bottom:180px;width:70px;height:70px;background:rgba(162,75,255,.15);border:3px solid var(--violet);color:var(--violet);font-size:11px}
 #reloadBtn{right:225px;bottom:100px;width:70px;height:70px;background:rgba(255,150,0,.15);border:3px solid #f90;color:#f90;font-size:11px}
-#damage{position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle,transparent 40%,#f03 140%);opacity:0;z-index:8;transition:opacity .15s}
+#damage{position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle,transparent 40%,var(--red) 140%);opacity:0;z-index:8;transition:opacity .15s}
 #gameOver,#victory,#shop,#introShop,#startScreen,#clickToPlay{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:100;padding:20px}
-#gameOver{background:rgba(0,0,0,.9)}#victory{background:radial-gradient(circle,rgba(50,0,20,.95),rgba(0,0,0,.98));z-index:120;text-align:center}
-#shop{background:rgba(0,0,0,.94);z-index:150}#introShop{background:rgba(0,0,0,.75);z-index:90}
-#startScreen{background:rgba(0,0,0,.95);z-index:200}#clickToPlay{background:rgba(0,0,0,.6);z-index:50;cursor:pointer}
-h1{color:#f03;font-size:48px;text-shadow:0 0 30px #f03;margin-bottom:10px;letter-spacing:.15em}
-#victory h1{color:#fd0;font-size:64px;text-shadow:0 0 60px #fd0}#startScreen h1{font-size:56px}
-button{background:transparent;border:2px solid #f03;color:#f03;font-family:inherit;cursor:pointer;letter-spacing:.2em}
-#gameOver button,#victory button{padding:14px 44px;font-size:20px}
-#victory button{border-color:#fd0;color:#fd0}#startScreen button{padding:16px 60px;font-size:22px;border-width:3px}
-#waveBanner{position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);color:#f03;font-size:64px;letter-spacing:.15em;text-shadow:0 0 40px #f03;opacity:0;transition:opacity .4s;pointer-events:none;z-index:60;text-align:center}
-#waveBanner.show{opacity:1}#waveBanner .sub{font-size:22px;color:#fd0;letter-spacing:.3em;margin-top:8px}
-#hint{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);color:#888;font-size:11px;font-family:monospace;z-index:10;pointer-events:none;text-align:center;width:100%}
+#gameOver{background:radial-gradient(circle at 50% 40%,rgba(40,0,4,.92),rgba(0,0,0,.97))}#victory{background:radial-gradient(circle,rgba(46,32,0,.94),rgba(0,0,0,.98));z-index:120;text-align:center}
+#shop{background:rgba(4,0,1,.94)}#introShop{background:rgba(4,0,1,.78)}
+#startScreen{background:radial-gradient(circle at 50% 35%,#170006,#000 72%);z-index:200}#clickToPlay{background:rgba(0,0,0,.6);z-index:50;cursor:pointer}
+h1{color:var(--red);font-size:48px;text-shadow:0 0 30px var(--red-glow);margin-bottom:10px;letter-spacing:.1em;font-weight:700;text-transform:uppercase}
+#victory h1{color:var(--gold);font-size:64px;text-shadow:0 0 60px rgba(255,204,51,.55)}#startScreen h1{font-size:58px}
+button{background:rgba(20,4,7,.55);border:1px solid var(--red);color:var(--red);font-family:var(--disp);font-weight:500;cursor:pointer;letter-spacing:.16em;clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px);transition:background .15s,color .15s,box-shadow .15s}
+button:hover{background:var(--red);color:#0a0002;box-shadow:0 0 18px var(--red-glow)}
+button:active{filter:brightness(.85)}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+button:disabled{opacity:.35;cursor:not-allowed;filter:none}
+button:disabled:hover{background:rgba(20,4,7,.55);color:inherit;box-shadow:none}
+#gameOver button,#victory button{padding:15px 46px;font-size:19px}
+#victory button{border-color:var(--gold);color:var(--gold)}#victory button:hover{background:var(--gold);color:#1a1400}
+#startScreen button{padding:17px 62px;font-size:21px;border-width:2px}
+#waveBanner{position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);color:var(--red);font-size:60px;letter-spacing:.1em;text-shadow:0 0 40px var(--red-glow);opacity:0;transition:opacity .4s;pointer-events:none;z-index:60;text-align:center;font-weight:700;text-transform:uppercase}
+#waveBanner.show{opacity:1}#waveBanner .sub{font-size:20px;color:var(--gold);letter-spacing:.35em;margin-top:10px;font-weight:500}
+#hint{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);color:#777;font-size:11px;font-family:var(--mono);z-index:10;pointer-events:none;text-align:center;width:100%;letter-spacing:.05em}
 #shopItems,#introItems{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;max-width:1000px}
-.shopItem,.introItem{width:240px;background:rgba(255,0,51,.06);border:3px solid #f03;padding:22px 18px;cursor:pointer;text-align:center;font-family:inherit}
-.shopItem .name,.introItem .name{color:#f03;font-size:22px;letter-spacing:.15em;margin-bottom:10px}
-.shopItem .stat,.introItem .stat{color:#fff;font-size:12px;font-family:monospace;margin:4px 0}
-.shopItem .stat span,.introItem .stat span{color:#fd0}
+.shopItem,.introItem{width:240px;background:linear-gradient(160deg,rgba(255,23,68,.1),rgba(255,23,68,.02));border:1px solid var(--panel-line);padding:24px 20px;cursor:pointer;text-align:center;font-family:var(--disp);clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);transition:border-color .15s,transform .15s,background .15s}
+.shopItem:hover,.introItem:hover{border-color:var(--red);transform:translateY(-3px);background:linear-gradient(160deg,rgba(255,23,68,.18),rgba(255,23,68,.03))}
+.shopItem .name,.introItem .name{color:var(--red);font-size:22px;letter-spacing:.12em;margin-bottom:12px;font-weight:600}
+.shopItem .stat,.introItem .stat{color:#ccc;font-size:12px;font-family:var(--mono);margin:5px 0}
+.shopItem .stat span,.introItem .stat span{color:var(--gold);font-weight:700}
 #elevatorUI{position:fixed;inset:0;display:none;pointer-events:none;z-index:80}
-#floorCounter{position:absolute;top:80px;left:50%;transform:translateX(-50%);color:#f03;font-size:72px;text-shadow:0 0 40px #f03}
-#elevatorStatus{position:absolute;bottom:120px;left:50%;transform:translateX(-50%);color:#fd0;font-size:16px;font-family:monospace}
-#dialogueBox{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:90%;max-width:700px;background:rgba(0,0,0,.88);border:2px solid #f03;padding:18px 22px;z-index:95;display:none;cursor:pointer}
-#dialogueBox .speaker{color:#f03;font-size:16px;letter-spacing:.2em;margin-bottom:8px}
-#dialogueBox .text{color:#fff;font-size:14px;font-family:monospace;line-height:1.5}
-#dialogueBox .continue{color:#888;font-size:11px;font-family:monospace;margin-top:10px;text-align:right}
-#muteBtn{position:fixed;top:12px;right:12px;width:44px;height:44px;background:rgba(0,0,0,.6);border:2px solid #f03;color:#f03;font-size:18px;cursor:pointer;z-index:50;display:flex;align-items:center;justify-content:center}
-#muteBtn.muted{color:#666;border-color:#666}
-.sub{color:#888;font-size:14px;font-family:monospace;margin-bottom:20px;letter-spacing:3px}
-.owned{color:#fd0;font-family:monospace;font-size:12px;margin-bottom:20px}
-#chatBox{position:fixed;bottom:12px;right:12px;width:280px;z-index:170;font-family:monospace;display:none;pointer-events:none}
-#chatLog{max-height:120px;overflow-y:auto;background:rgba(0,0,0,.75);border:1px solid #f03;padding:5px;font-size:11px;color:#fff;margin-bottom:4px;pointer-events:auto}
-#chatLog .w{color:#fd0;font-weight:bold}
-#chatLog .me{color:#0f8}
-#chatInput{width:100%;padding:5px;background:rgba(0,0,0,.8);border:1px solid #f03;color:#fff;font-family:monospace;font-size:11px;outline:none;pointer-events:auto}
-.lobby-input{padding:12px;background:#111;border:2px solid #fa0;color:#fa0;font-family:monospace;letter-spacing:2px;outline:none;text-transform:lowercase}
-.lobby-input:focus{border-color:#fd0;box-shadow:0 0 0 2px rgba(255,170,0,.25)}
-#nameTag{position:absolute;color:#0f8;font-family:monospace;font-size:11px;text-shadow:0 0 4px #000;pointer-events:none;white-space:nowrap}
-#lobby{overflow-y:auto;padding:24px 12px}
-#lobbyTabs{display:flex;border:2px solid #f03;margin:4px 0 6px}
-#lobbyTabs .tab{padding:11px 38px;border:none;color:#7a5560;font-size:16px;letter-spacing:.2em;background:transparent}
-#lobbyTabs .tab.active{background:#f03;color:#000}
-#lobbyTabs .tab:focus-visible{outline:2px solid #fd0;outline-offset:-4px}
-#tabPlay{display:flex;flex-direction:column;align-items:center;gap:14px}
-#tabServers{display:none;flex-direction:column;gap:10px;width:min(94vw,660px)}
-#srvBar{display:flex;align-items:center;justify-content:space-between;color:#888;font-family:monospace;font-size:12px;letter-spacing:1px}
-#srvCount{color:#fd0}
-#srvRefresh{padding:7px 16px;border-color:#0f8;color:#0f8;font-size:12px}
-#serverList{display:flex;flex-direction:column;gap:6px;height:250px;overflow-y:auto;border:2px solid #3a1620;background:rgba(255,0,51,.04);padding:8px}
+#floorCounter{position:absolute;top:80px;left:50%;transform:translateX(-50%);color:var(--red);font-size:72px;text-shadow:0 0 40px var(--red-glow);font-weight:700}
+#elevatorStatus{position:absolute;bottom:120px;left:50%;transform:translateX(-50%);color:var(--gold);font-size:15px;font-family:var(--mono);letter-spacing:.1em}
+#dialogueBox{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:90%;max-width:700px;background:rgba(6,1,2,.9);border:1px solid var(--panel-line);padding:18px 24px;z-index:95;display:none;cursor:pointer;clip-path:polygon(16px 0,100% 0,100% 100%,0 100%,0 16px)}
+#dialogueBox .speaker{color:var(--red);font-size:15px;letter-spacing:.2em;margin-bottom:9px;font-weight:600}
+#dialogueBox .text{color:#eee;font-size:14px;font-family:var(--mono);line-height:1.6}
+#dialogueBox .continue{color:#777;font-size:11px;font-family:var(--mono);margin-top:11px;text-align:right}
+#muteBtn{position:fixed;top:12px;right:12px;width:42px;height:42px;background:rgba(6,1,2,.6);border:1px solid var(--panel-line);color:var(--red);font-size:17px;cursor:pointer;z-index:50;display:flex;align-items:center;justify-content:center;clip-path:polygon(8px 0,100% 0,100% 100%,0 100%,0 8px)}
+#muteBtn.muted{color:#555;border-color:#333}
+.sub{color:#888;font-size:13px;font-family:var(--mono);margin-bottom:20px;letter-spacing:.2em}
+.owned{color:var(--gold);font-family:var(--mono);font-size:12px;margin-bottom:20px}
+#chatBox{position:fixed;bottom:12px;right:12px;width:280px;z-index:170;font-family:var(--mono);display:none;pointer-events:none}
+#chatLog{max-height:120px;overflow-y:auto;background:rgba(4,0,1,.78);border:1px solid var(--panel-line);padding:6px;font-size:11px;color:#eee;margin-bottom:4px;pointer-events:auto}
+#chatLog .w{color:var(--gold);font-weight:700}
+#chatLog .me{color:var(--cyan)}
+#chatInput{width:100%;padding:6px;background:rgba(4,0,1,.85);border:1px solid var(--panel-line);color:#fff;font-family:var(--mono);font-size:11px;outline:none;pointer-events:auto}
+.lobby-input{padding:12px;background:#0e0508;border:1px solid var(--gold);color:var(--gold);font-family:var(--mono);letter-spacing:2px;outline:none;text-transform:lowercase}
+.lobby-input:focus{border-color:#fff2b0;box-shadow:0 0 0 2px rgba(255,204,51,.2)}
+.lobby-input::placeholder{color:#6b5a2a}
+#nameTag{position:absolute;color:var(--cyan);font-family:var(--mono);font-size:11px;text-shadow:0 0 4px #000;pointer-events:none;white-space:nowrap}
+#lobby{overflow-y:auto;padding:32px 14px;background:
+radial-gradient(ellipse at 50% -10%,rgba(255,23,68,.12),transparent 55%),
+repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0,rgba(255,255,255,.012) 1px,transparent 1px,transparent 3px),
+#050103}
+#lobbyEyebrow{color:var(--red);font-family:var(--mono);font-size:11px;letter-spacing:.5em;margin-bottom:6px}
+#lobby h1{font-size:44px;margin-bottom:2px}
+#lobbySub{color:#6b6b6b;font-family:var(--mono);font-size:11px;letter-spacing:.28em;margin-bottom:22px}
+.nickRow{display:flex;gap:10px;align-items:center;margin-bottom:4px}
+.nickRow span{color:#777;font-family:var(--mono);font-size:11px;letter-spacing:.2em}
+#lobbyTabs{display:flex;border:1px solid var(--panel-line);margin:6px 0 8px;background:rgba(0,0,0,.3)}
+#lobbyTabs .tab{padding:12px 40px;border:none;color:#6b5560;font-size:14px;font-family:var(--disp);font-weight:500;letter-spacing:.22em;background:transparent;clip-path:none;transition:color .15s,background .15s}
+#lobbyTabs .tab:hover{color:#c99}
+#lobbyTabs .tab.active{background:var(--red);color:#0a0002}
+#lobbyTabs .tab.active:hover{color:#0a0002}
+#lobbyTabs .tab:focus-visible{outline:2px solid var(--gold);outline-offset:-4px}
+#tabPlay{display:flex;flex-direction:column;align-items:center;gap:16px}
+#tabPlayHint{color:#5c5c5c;font-family:var(--mono);font-size:11px;margin-top:2px;letter-spacing:.05em}
+#tabPlayHint b{color:var(--gold);font-weight:500}
+#tabServers{display:none;flex-direction:column;gap:11px;width:min(94vw,680px)}
+#srvBar{display:flex;align-items:center;justify-content:space-between;color:#888;font-family:var(--mono);font-size:12px;letter-spacing:.15em}
+#srvCount{color:var(--gold)}
+#srvRefresh{padding:8px 18px;border-color:var(--cyan);color:var(--cyan);font-size:12px}
+#srvRefresh:hover{background:var(--cyan);color:#012}
+#serverList{display:flex;flex-direction:column;gap:7px;height:260px;overflow-y:auto;border:1px solid var(--panel-line);background:rgba(255,23,68,.03);padding:10px}
 #serverList::-webkit-scrollbar{width:8px}
-#serverList::-webkit-scrollbar-thumb{background:#f03}
+#serverList::-webkit-scrollbar-thumb{background:var(--red)}
 #serverList::-webkit-scrollbar-track{background:#1a0008}
-.srvRow{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid #f03;background:rgba(255,0,51,.07);font-family:monospace}
-.srvRow .nm{flex:1;min-width:0;color:#fff;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.srvRow .meta{color:#6b6b6b;font-size:10px;letter-spacing:1px;margin-top:3px}
-.srvRow .st{font-size:10px;width:86px;text-align:center;flex:none;letter-spacing:1px}
-.srvRow .st.lobby{color:#0f8}
-.srvRow .st.live{color:#f80}
-.srvRow button{padding:7px 16px;font-size:12px;border-color:#0f8;color:#0f8;flex:none}
-.srvRow button.info{border-color:#5a7d8c;color:#7fb2c4;padding:7px 12px}
-.srvRow.mine{border-color:#fd0;background:rgba(255,221,0,.07)}
-.srvRow.mine button{border-color:#fd0;color:#fd0}
+.srvRow{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid var(--panel-line);background:rgba(255,23,68,.05);font-family:var(--mono);clip-path:polygon(10px 0,100% 0,100% 100%,0 100%,0 10px);transition:border-color .15s,background .15s}
+.srvRow:hover{border-color:var(--red);background:rgba(255,23,68,.09)}
+.srvRow .nm{flex:1;min-width:0;color:#fff;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.srvRow .meta{color:#6b6b6b;font-size:10px;letter-spacing:.1em;margin-top:4px}
+.srvRow .st{font-size:10px;width:88px;text-align:center;flex:none;letter-spacing:.1em;padding:4px 0;border:1px solid transparent}
+.srvRow .st.lobby{color:var(--cyan);border-color:rgba(34,224,208,.35)}
+.srvRow .st.live{color:var(--gold);border-color:rgba(255,204,51,.35)}
+.srvRow button{padding:8px 18px;font-size:11px;border-color:var(--cyan);color:var(--cyan);flex:none}
+.srvRow button:hover{background:var(--cyan);color:#012}
+.srvRow button.info{border-color:#4a6672;color:#8fb8c4;padding:8px 14px}
+.srvRow button.info:hover{background:#4a6672;color:#eaf6f9}
+.srvRow.mine{border-color:var(--gold);background:rgba(255,204,51,.06)}
+.srvRow.mine button{border-color:var(--gold);color:var(--gold)}
+.srvRow.mine button:hover{background:var(--gold);color:#1a1400}
 #srvInfo{position:fixed;inset:0;z-index:320;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.88);padding:20px}
-#srvInfoCard{width:min(92vw,460px);border:3px solid #f03;background:#0a0004;padding:24px 26px}
-#srvInfoName{color:#fff;font-family:monospace;font-size:20px;word-break:break-word;margin-bottom:2px}
-#srvInfoTag{color:#f03;font-size:13px;letter-spacing:.25em;margin-bottom:18px}
-.srvField{display:flex;justify-content:space-between;gap:14px;font-family:monospace;font-size:12px;padding:8px 0;border-bottom:1px solid #2a0a12}
-.srvField .k{color:#6b6b6b;letter-spacing:1px;flex:none}
-.srvField .v{color:#fd0;text-align:right;word-break:break-all}
-#srvInfoActions{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
-#srvInfoActions button{padding:11px 18px;font-size:13px;flex:1;min-width:110px}
-#srvInfoJoin{border-color:#0f8;color:#0f8}
-#srvInfoCopy{border-color:#fa0;color:#fa0}
-#srvInfoClose{border-color:#555;color:#888}
-#srvEmpty{color:#5a5a5a;font-family:monospace;font-size:12px;text-align:center;line-height:2;padding-top:72px}
-#srvCreate{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;border-top:1px solid #3a1620;padding-top:12px}
-#srvStatus{color:#fd0;font-family:monospace;font-size:12px;min-height:18px;text-align:center}
-#roomBack{padding:9px 20px;border-color:#666;color:#888;font-size:12px}
+#srvInfoCard{width:min(92vw,460px);border:1px solid var(--red);background:#0a0004;padding:26px 28px;clip-path:polygon(18px 0,100% 0,100% calc(100% - 18px),calc(100% - 18px) 100%,0 100%,0 18px)}
+#srvInfoName{color:#fff;font-family:var(--disp);font-weight:600;font-size:21px;word-break:break-word;margin-bottom:3px}
+#srvInfoTag{color:var(--red);font-size:12px;letter-spacing:.3em;margin-bottom:20px}
+.srvField{display:flex;justify-content:space-between;gap:14px;font-family:var(--mono);font-size:12px;padding:9px 0;border-bottom:1px solid #2a0a12}
+.srvField .k{color:#6b6b6b;letter-spacing:.1em;flex:none}
+.srvField .v{color:var(--gold);text-align:right;word-break:break-all}
+#srvInfoActions{display:flex;gap:8px;margin-top:22px;flex-wrap:wrap}
+#srvInfoActions button{padding:12px 18px;font-size:12px;flex:1;min-width:110px}
+#srvInfoJoin{border-color:var(--cyan);color:var(--cyan)}
+#srvInfoJoin:hover{background:var(--cyan);color:#012}
+#srvInfoCopy{border-color:var(--gold);color:var(--gold)}
+#srvInfoCopy:hover{background:var(--gold);color:#1a1400}
+#srvInfoClose{border-color:#444;color:#888}
+#srvInfoClose:hover{background:#444;color:#eee}
+#srvEmpty{color:#555;font-family:var(--mono);font-size:12px;text-align:center;line-height:2;padding-top:74px;letter-spacing:.05em}
+#srvCreate{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;border-top:1px solid var(--panel-line);padding-top:14px}
+#srvStatus{color:var(--gold);font-family:var(--mono);font-size:12px;min-height:18px;text-align:center}
+#roomBack{padding:9px 22px;border-color:#555;color:#888;font-size:11px}
+#roomBack:hover{background:#555;color:#eee}
 </style>
 </head>
 <body>
 <div id="lobby" style="position:fixed;inset:0;background:rgba(0,0,0,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:300;gap:14px;font-family:inherit">
-<div id="lobbyMain" style="display:flex;flex-direction:column;align-items:center;gap:12px">
-<h1 style="font-size:48px">ULTRAKILL ONLINE</h1>
-<div style="display:flex;gap:8px;align-items:center">
-<span style="color:#888;font-family:monospace;font-size:12px">НИК:</span>
+<div id="lobbyMain" style="display:flex;flex-direction:column;align-items:center">
+<div id="lobbyEyebrow">V1 // ПРОТОКОЛ ДОСТУПА</div>
+<h1>ULTRAKILL ONLINE</h1>
+<div id="lobbySub">30 ВОЛН · 3 БОССА · КООПЕРАТИВ</div>
+<div class="nickRow">
+<span>НИК:</span>
 <input id="nickInput" placeholder="narrator" maxlength="14" class="lobby-input" style="width:220px" value="">
 </div>
 <div id="lobbyTabs">
@@ -137,7 +191,7 @@ button{background:transparent;border:2px solid #f03;color:#f03;font-family:inher
 <button id="lobbyHost" style="padding:12px 22px;border-color:#0f8;color:#0f8;font-size:14px">СОЗДАТЬ</button>
 <button id="lobbyJoin" style="padding:12px 22px;border-color:#fa0;color:#fa0;font-size:14px">ВОЙТИ</button>
 </div>
-<div style="color:#666;font-family:monospace;font-size:11px;margin-top:4px">Код комнаты = ваш ник + <span style="color:#fa0">-lobby</span></div>
+<div id="tabPlayHint">Код комнаты = ваш ник + <b>-lobby</b></div>
 </div>
 <div id="tabServers">
 <div id="srvBar"><span>ОТКРЫТЫЕ СЕРВЕРЫ <span id="srvCount">(0)</span></span><button id="srvRefresh">ОБНОВИТЬ</button></div>
@@ -173,12 +227,14 @@ button{background:transparent;border:2px solid #f03;color:#f03;font-family:inher
 </div>
 </div></div>
 <div id="game"></div>
-<div id="crosshair"><div class="h"></div><div class="v"></div></div>
-<div id="ui"><div>KILLS: <span id="kills">0</span></div><div id="styleMeter">STYLE: D</div><div id="waveLabel">WAVE 0</div></div>
+<div id="vignette"></div><div id="scanlines"></div>
+<div id="crosshair"><i class="h l"></i><i class="h r"></i><i class="v t"></i><i class="v b"></i><i class="dot"></i></div>
+<div id="ui" class="hud-panel"><div class="lbl">СТАТИСТИКА</div><div>KILLS <span id="kills">0</span></div><div id="styleMeter">STYLE: D</div><div id="waveLabel">WAVE 0</div></div>
+<div id="hpLabel">HP</div>
 <div id="hpBar"><div id="hpFill"></div></div>
 <div id="bossBar"><div id="bossFill"></div></div>
 <div id="bossName">BOSS</div>
-<div id="weaponUI"><div id="weaponName">PISTOL</div><div id="weaponAmmo"><span class="cur" id="ammoCur">12</span> / <span class="max" id="ammoMax">12</span></div><div id="reloadHint">R — ПЕРЕЗАРЯДКА</div></div>
+<div id="weaponUI" class="hud-panel"><div id="weaponName">PISTOL</div><div id="weaponAmmo"><span class="cur" id="ammoCur">12</span> / <span class="max" id="ammoMax">12</span></div><div id="reloadHint">R — ПЕРЕЗАРЯДКА</div></div>
 <div id="reloadBar"><div id="reloadFill"></div></div>
 <div id="waveBanner"></div>
 <div id="damage"></div>
@@ -260,10 +316,22 @@ camera.rotation.order='YXZ';
 renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+if('outputEncoding' in renderer)renderer.outputEncoding=THREE.sRGBEncoding;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.15;
 document.getElementById('game').appendChild(renderer.domElement);
-scene.add(new THREE.AmbientLight(0x556677,.85));
-const dl=new THREE.DirectionalLight(0xff8899,.85);dl.position.set(20,40,20);scene.add(dl);
-const rl=new THREE.PointLight(0xff0033,1,90);rl.position.set(0,12,0);scene.add(rl);
+scene.add(new THREE.AmbientLight(0x445566,.55));
+const hemi=new THREE.HemisphereLight(0x8899ff,0x1a0006,.45);scene.add(hemi);
+const dl=new THREE.DirectionalLight(0xffaa99,1.1);dl.position.set(24,42,18);
+dl.castShadow=true;
+dl.shadow.mapSize.set(2048,2048);
+dl.shadow.camera.left=-55;dl.shadow.camera.right=55;dl.shadow.camera.top=55;dl.shadow.camera.bottom=-55;
+dl.shadow.camera.near=5;dl.shadow.camera.far=120;
+dl.shadow.bias=-.0018;dl.shadow.normalBias=.02;
+scene.add(dl);scene.add(dl.target);
+const rl=new THREE.PointLight(0xff0033,1.4,95);rl.position.set(0,14,0);scene.add(rl);
 genMap();
 weaponGroup=new THREE.Group();camera.add(weaponGroup);scene.add(camera);buildWeapon(0);
 addEventListener('resize',onResize);
@@ -294,23 +362,91 @@ endlessMode=false;gameRunning=true;gamePhase='playing';waveActive=false;waveInPr
 startWave(MAX_WAVES);
 }
 
+const texCache={};
+function makeFloorTexture(h){
+const key='floor'+h.toFixed(2);if(texCache[key])return texCache[key];
+const c=document.createElement('canvas');c.width=512;c.height=512;const x=c.getContext('2d');
+const base=new THREE.Color().setHSL(h,.28,.135);
+x.fillStyle='#'+base.getHexString();x.fillRect(0,0,512,512);
+const tile=64;
+for(let gy=0;gy<512;gy+=tile)for(let gx=0;gx<512;gx+=tile){
+const shade=(Math.floor(gx/tile)+Math.floor(gy/tile))%2===0?.05:-.035;
+const c2=base.clone().offsetHSL(0,0,shade);
+x.fillStyle='#'+c2.getHexString();x.fillRect(gx,gy,tile,tile);
+}
+x.strokeStyle='rgba(0,0,0,.55)';x.lineWidth=2;
+for(let gx=0;gx<=512;gx+=tile){x.beginPath();x.moveTo(gx,0);x.lineTo(gx,512);x.stroke()}
+for(let gy=0;gy<=512;gy+=tile){x.beginPath();x.moveTo(0,gy);x.lineTo(512,gy);x.stroke()}
+for(let i=0;i<900;i++){
+x.fillStyle='rgba(0,0,0,'+(Math.random()*.08).toFixed(3)+')';
+x.fillRect(Math.random()*512,Math.random()*512,Math.random()*3+1,Math.random()*3+1);
+}
+const t=new THREE.CanvasTexture(c);
+t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(ARENA/4,ARENA/4);
+if('encoding' in t)t.encoding=THREE.sRGBEncoding;
+texCache[key]=t;return t;
+}
+function makePanelTexture(h,accentHex){
+const key='panel'+h.toFixed(2);if(texCache[key])return texCache[key];
+const c=document.createElement('canvas');c.width=256;c.height=256;const x=c.getContext('2d');
+const base=new THREE.Color().setHSL(h,.4,.09);
+x.fillStyle='#'+base.getHexString();x.fillRect(0,0,256,256);
+x.strokeStyle='rgba(0,0,0,.6)';x.lineWidth=4;
+x.strokeRect(6,6,244,244);x.strokeRect(20,20,216,216);
+const ac='#'+new THREE.Color(accentHex).getHexString();
+x.fillStyle=ac;
+for(const p of[[14,14],[242,14],[14,242],[242,242]])x.fillRect(p[0]-3,p[1]-3,6,6);
+x.globalAlpha=.5;
+for(let i=0;i<10;i++){x.fillStyle='rgba(0,0,0,'+(Math.random()*.3).toFixed(2)+')';const w=10+Math.random()*40;x.fillRect(Math.random()*256,Math.random()*256,w,3)}
+x.globalAlpha=1;
+const t=new THREE.CanvasTexture(c);
+t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(2,3);
+if('encoding' in t)t.encoding=THREE.sRGBEncoding;
+texCache[key]=t;return t;
+}
+function makeGlowTexture(){
+if(texCache.glow)return texCache.glow;
+const c=document.createElement('canvas');c.width=128;c.height=128;const x=c.getContext('2d');
+const g=x.createRadialGradient(64,64,0,64,64,64);
+g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.35,'rgba(255,255,255,.7)');g.addColorStop(1,'rgba(255,255,255,0)');
+x.fillStyle=g;x.fillRect(0,0,128,128);
+const t=new THREE.CanvasTexture(c);
+texCache.glow=t;return t;
+}
+function makeGlowSprite(color,size){
+const m=new THREE.SpriteMaterial({map:makeGlowTexture(),color:color,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
+const s=new THREE.Sprite(m);s.scale.set(size,size,1);return s;
+}
 function genMap(){
 if(mapGroup){mapGroup.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){if(Array.isArray(o.material))o.material.forEach(m=>m.dispose());else o.material.dispose()}});scene.remove(mapGroup)}
 mapGroup=new THREE.Group();scene.add(mapGroup);
 const h=mapHue;
-const bg=new THREE.Color().setHSL(h,.5,.05),fc=new THREE.Color().setHSL(h,.25,.13),wc=new THREE.Color().setHSL(h,.55,.08);
-const pc=new THREE.Color().setHSL(h,.5,.15),ec=new THREE.Color().setHSL(h,1,.35),gc=new THREE.Color().setHSL(h,1,.55),gsc=new THREE.Color().setHSL(h,.8,.18);
-scene.background=bg;scene.fog=new THREE.Fog(bg.getHex(),25,80);
-const fl=new THREE.Mesh(new THREE.PlaneGeometry(ARENA*2,ARENA*2),new THREE.MeshStandardMaterial({color:fc.getHex(),roughness:.9,metalness:.3}));
-fl.rotation.x=-Math.PI/2;mapGroup.add(fl);
-const gr=new THREE.GridHelper(ARENA*2,45,gc.getHex(),gsc.getHex());gr.position.y=.01;mapGroup.add(gr);
-const wm=new THREE.MeshStandardMaterial({color:wc.getHex(),roughness:.8,metalness:.4});
+const bg=new THREE.Color().setHSL(h,.55,.045),fc=new THREE.Color().setHSL(h,.25,.13),wc=new THREE.Color().setHSL(h,.55,.08);
+const pc=new THREE.Color().setHSL(h,.5,.15),ec=new THREE.Color().setHSL(h,1,.4),gc=new THREE.Color().setHSL(h,1,.55),gsc=new THREE.Color().setHSL(h,.8,.18);
+scene.background=bg;scene.fog=new THREE.Fog(bg.getHex(),22,78);
+const floorTex=makeFloorTexture(h);
+const fl=new THREE.Mesh(new THREE.PlaneGeometry(ARENA*2,ARENA*2),new THREE.MeshStandardMaterial({color:fc.getHex(),map:floorTex,roughness:.92,metalness:.25}));
+fl.rotation.x=-Math.PI/2;fl.receiveShadow=true;mapGroup.add(fl);
+const gr=new THREE.GridHelper(ARENA*2,45,gc.getHex(),gsc.getHex());gr.position.y=.015;gr.material.transparent=true;gr.material.opacity=.35;mapGroup.add(gr);
+const panelTex=makePanelTexture(h,ec.getHex());
+const wm=new THREE.MeshStandardMaterial({color:wc.getHex(),map:panelTex,roughness:.75,metalness:.5});
 [[0,4,-ARENA,0,0,0],[0,4,ARENA,0,Math.PI,0],[-ARENA,4,0,0,Math.PI/2,0],[ARENA,4,0,0,-Math.PI/2,0]].forEach(w=>{
-const wall=new THREE.Mesh(new THREE.BoxGeometry(ARENA*2,8,1),wm);wall.position.set(w[0],w[1],w[2]);wall.rotation.set(w[3],w[4],w[5]);mapGroup.add(wall)});
+const wall=new THREE.Mesh(new THREE.BoxGeometry(ARENA*2,8,1),wm);wall.position.set(w[0],w[1],w[2]);wall.rotation.set(w[3],w[4],w[5]);wall.receiveShadow=true;mapGroup.add(wall)});
 const pn=4+Math.floor(Math.random()*8);
-const pm=new THREE.MeshStandardMaterial({color:pc.getHex(),roughness:.7,metalness:.5,emissive:ec.getHex(),emissiveIntensity:.4});
+const pm=new THREE.MeshStandardMaterial({color:pc.getHex(),map:panelTex,roughness:.65,metalness:.55,emissive:ec.getHex(),emissiveIntensity:.4});
 for(let i=0;i<pn;i++){const a=(i/pn)*Math.PI*2+Math.random()*.5,r=15+Math.random()*15,s=1.8+Math.random()*2;
-const p=new THREE.Mesh(new THREE.BoxGeometry(s,8,s),pm);p.position.set(Math.cos(a)*r,4,Math.sin(a)*r);p.rotation.y=Math.random()*Math.PI;mapGroup.add(p)}
+const p=new THREE.Mesh(new THREE.BoxGeometry(s,8,s),pm);p.position.set(Math.cos(a)*r,4,Math.sin(a)*r);p.rotation.y=Math.random()*Math.PI;p.castShadow=true;p.receiveShadow=true;mapGroup.add(p);
+const cap=new THREE.PointLight(ec.getHex(),.8,7);cap.position.set(p.position.x,8.1,p.position.z);mapGroup.add(cap);
+const capGlow=makeGlowSprite(ec.getHex(),1.1);capGlow.position.copy(cap.position);mapGroup.add(capGlow);
+}
+const emberCount=60;
+const emberGeo=new THREE.BufferGeometry();
+const emberPos=new Float32Array(emberCount*3);
+for(let i=0;i<emberCount;i++){emberPos[i*3]=(Math.random()*2-1)*ARENA;emberPos[i*3+1]=Math.random()*10+.5;emberPos[i*3+2]=(Math.random()*2-1)*ARENA}
+emberGeo.setAttribute('position',new THREE.BufferAttribute(emberPos,3));
+const emberMat=new THREE.PointsMaterial({color:ec.getHex(),size:.16,transparent:true,opacity:.55,depthWrite:false,blending:THREE.AdditiveBlending,map:makeGlowTexture(),sizeAttenuation:true});
+const embers=new THREE.Points(emberGeo,emberMat);
+mapGroup.add(embers);mapGroup.userData.embers=embers;
 }
 
 function createElevator(){
@@ -514,21 +650,21 @@ const g=new THREE.Mesh(new THREE.BoxGeometry(.11,.14,.42),gm);g.position.set(0,.
 const b=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.28,12),dm);b.rotation.x=Math.PI/2;b.position.set(0,.06,-.57);ra.add(b);
 const ac=new THREE.Mesh(new THREE.BoxGeometry(.12,.018,.32),am);ac.position.set(0,.135,-.25);ra.add(ac);
 const mg=new THREE.Mesh(new THREE.BoxGeometry(.075,.18,.09),dm);mg.position.set(0,-.1,-.1);ra.add(mg);
-muzzleFlash=new THREE.Mesh(new THREE.SphereGeometry(.14,8,8),new THREE.MeshBasicMaterial({color:0xffdd00,transparent:true,opacity:0}));muzzleFlash.position.set(0,.06,-.72);
+muzzleFlash=new THREE.Sprite(new THREE.SpriteMaterial({map:makeGlowTexture(),color:0xffdd00,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}));muzzleFlash.scale.set(.5,.5,1);muzzleFlash.position.set(0,.06,-.72);
 }else if(W.model==='smg'){
 const g=new THREE.Mesh(new THREE.BoxGeometry(.1,.14,.55),gm);g.position.set(0,.06,-.3);ra.add(g);
 const b=new THREE.Mesh(new THREE.CylinderGeometry(.032,.032,.32,12),dm);b.rotation.x=Math.PI/2;b.position.set(0,.06,-.72);ra.add(b);
 const st=new THREE.Mesh(new THREE.BoxGeometry(.07,.1,.2),dm);st.position.set(0,.05,.15);ra.add(st);
 const ac=new THREE.Mesh(new THREE.BoxGeometry(.105,.016,.4),am);ac.position.set(0,.135,-.35);ra.add(ac);
 const mg=new THREE.Mesh(new THREE.BoxGeometry(.07,.22,.09),dm);mg.position.set(0,-.14,-.28);ra.add(mg);
-muzzleFlash=new THREE.Mesh(new THREE.SphereGeometry(.13,8,8),new THREE.MeshBasicMaterial({color:W.accent,transparent:true,opacity:0}));muzzleFlash.position.set(0,.06,-.9);
+muzzleFlash=new THREE.Sprite(new THREE.SpriteMaterial({map:makeGlowTexture(),color:W.accent,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}));muzzleFlash.scale.set(.46,.46,1);muzzleFlash.position.set(0,.06,-.9);
 }else if(W.model==='shotgun'){
 const g=new THREE.Mesh(new THREE.BoxGeometry(.14,.15,.7),gm);g.position.set(0,.06,-.35);ra.add(g);
 const b=new THREE.Mesh(new THREE.CylinderGeometry(.055,.055,.55,14),dm);b.rotation.x=Math.PI/2;b.position.set(0,.06,-.95);ra.add(b);
 const b2=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,.52,14),dm);b2.rotation.x=Math.PI/2;b2.position.set(0,-.04,-.94);ra.add(b2);
 const ac=new THREE.Mesh(new THREE.BoxGeometry(.15,.02,.5),am);ac.position.set(0,.14,-.4);ra.add(ac);
 const st=new THREE.Mesh(new THREE.BoxGeometry(.1,.13,.25),gm);st.position.set(0,.04,.15);ra.add(st);
-muzzleFlash=new THREE.Mesh(new THREE.SphereGeometry(.28,10,10),new THREE.MeshBasicMaterial({color:0xff5500,transparent:true,opacity:0}));muzzleFlash.position.set(0,.06,-1.25);
+muzzleFlash=new THREE.Sprite(new THREE.SpriteMaterial({map:makeGlowTexture(),color:0xff5500,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}));muzzleFlash.scale.set(.95,.95,1);muzzleFlash.position.set(0,.06,-1.25);
 }else{
 const g=new THREE.Mesh(new THREE.BoxGeometry(.1,.13,.75),gm);g.position.set(0,.06,-.4);ra.add(g);
 const b=new THREE.Mesh(new THREE.CylinderGeometry(.028,.028,.55,12),dm);b.rotation.x=Math.PI/2;b.position.set(0,.06,-1);ra.add(b);
@@ -536,7 +672,7 @@ const sc=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,.28,12),dm);sc.rotati
 const st=new THREE.Mesh(new THREE.BoxGeometry(.08,.14,.3),gm);st.position.set(0,.04,.2);ra.add(st);
 const ac=new THREE.Mesh(new THREE.BoxGeometry(.105,.018,.55),am);ac.position.set(0,-.005,-.4);ra.add(ac);
 const mg=new THREE.Mesh(new THREE.BoxGeometry(.065,.2,.09),dm);mg.position.set(0,-.13,-.3);ra.add(mg);
-muzzleFlash=new THREE.Mesh(new THREE.SphereGeometry(.16,8,8),new THREE.MeshBasicMaterial({color:W.accent,transparent:true,opacity:0}));muzzleFlash.position.set(0,.06,-1.28);
+muzzleFlash=new THREE.Sprite(new THREE.SpriteMaterial({map:makeGlowTexture(),color:W.accent,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}));muzzleFlash.scale.set(.55,.55,1);muzzleFlash.position.set(0,.06,-1.28);
 }
 ra.add(muzzleFlash);
 muzzleLight=new THREE.PointLight(0xffdd00,0,10);muzzleLight.position.copy(muzzleFlash.position);ra.add(muzzleLight);
@@ -632,13 +768,14 @@ const ss=1+Math.min(w,MAX_WAVES)*.025;
 const hp=getEnemyHP(w);const im=w>MAX_WAVES;
 const g=new THREE.Group();
 const bm=new THREE.MeshStandardMaterial({color:im?0x220000:0xcc0000,roughness:.6,metalness:.4,emissive:im?0x110000:0x440000,emissiveIntensity:.6});
-const body=new THREE.Mesh(new THREE.BoxGeometry(.8,1.6,.5),bm);body.position.y=.8;g.add(body);
-const hd=new THREE.Mesh(new THREE.BoxGeometry(.5,.5,.5),bm);hd.position.y=1.85;g.add(hd);
+const body=new THREE.Mesh(new THREE.BoxGeometry(.8,1.6,.5),bm);body.position.y=.8;body.castShadow=true;g.add(body);
+const hd=new THREE.Mesh(new THREE.BoxGeometry(.5,.5,.5),bm);hd.position.y=1.85;hd.castShadow=true;g.add(hd);
 const em=new THREE.MeshBasicMaterial({color:im?0xff00ff:0xffdd00});
 const eL=new THREE.Mesh(new THREE.SphereGeometry(.06,8,8),em);eL.position.set(-.12,1.9,.26);g.add(eL);
 const eR=eL.clone();eR.position.x=.12;g.add(eR);
+const eyeGlow=makeGlowSprite(im?0xff00ff:0xffdd00,.5);eyeGlow.position.set(0,1.9,.28);g.add(eyeGlow);
 const ag=new THREE.BoxGeometry(.2,1,.2);
-const aL=new THREE.Mesh(ag,bm);aL.position.set(-.55,.9,0);g.add(aL);
+const aL=new THREE.Mesh(ag,bm);aL.position.set(-.55,.9,0);aL.castShadow=true;g.add(aL);
 const aR=aL.clone();aR.position.x=.55;g.add(aR);
 g.position.set(x,0,z);scene.add(g);
 enemies.push({netId:++netIdCounter,mesh:g,hp:hp,maxHp:hp,speed:(.03+Math.random()*.025)*ss,hitFlash:0,bodyMat:bm,originalEmissive:im?0x110000:0x440000,isBoss:false,touchDamage:.3,immortal:im});
@@ -649,13 +786,14 @@ const a=(i/Math.max(tot,1))*Math.PI*2,r=24,x=Math.cos(a)*r,z=Math.sin(a)*r;
 const hp=getBossHP(w);const im=w>MAX_WAVES;
 const g=new THREE.Group();
 const bm=new THREE.MeshStandardMaterial({color:im?0xff00ff:0x8800ff,roughness:.5,metalness:.7,emissive:im?0xff00aa:0x440088,emissiveIntensity:1});
-const body=new THREE.Mesh(new THREE.BoxGeometry(2.2,4.2,1.6),bm);body.position.y=2.1;g.add(body);
-const hd=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.4,1.4),bm);hd.position.y=5;g.add(hd);
+const body=new THREE.Mesh(new THREE.BoxGeometry(2.2,4.2,1.6),bm);body.position.y=2.1;body.castShadow=true;g.add(body);
+const hd=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.4,1.4),bm);hd.position.y=5;hd.castShadow=true;g.add(hd);
 const em=new THREE.MeshBasicMaterial({color:0xff0033});
 const eL=new THREE.Mesh(new THREE.SphereGeometry(.2,10,10),em);eL.position.set(-.35,5.1,.75);g.add(eL);
 const eR=eL.clone();eR.position.x=.35;g.add(eR);
+const bossEyeGlow=makeGlowSprite(0xff0033,1.3);bossEyeGlow.position.set(0,5.1,.8);g.add(bossEyeGlow);
 const ag=new THREE.BoxGeometry(.55,2.6,.55);
-const aL=new THREE.Mesh(ag,bm);aL.position.set(-1.5,2.4,0);g.add(aL);
+const aL=new THREE.Mesh(ag,bm);aL.position.set(-1.5,2.4,0);aL.castShadow=true;g.add(aL);
 const aR=aL.clone();aR.position.x=1.5;g.add(aR);
 const hm=new THREE.MeshStandardMaterial({color:0xff0033,emissive:0xff0033,emissiveIntensity:2});
 const hL=new THREE.Mesh(new THREE.ConeGeometry(.2,.8,6),hm);hL.position.set(-.5,5.9,0);hL.rotation.z=.3;g.add(hL);
@@ -875,18 +1013,20 @@ if(netRole==='host'&&e.netId)netBroadcast({t:'kill',eid:e.netId});
 
 function spawnBloodAt(p,c){
 for(let i=0;i<c;i++){
-const m=new THREE.Mesh(new THREE.SphereGeometry(.05+Math.random()*.06,5,5),new THREE.MeshBasicMaterial({color:0xaa0000}));
+const m=new THREE.Sprite(new THREE.SpriteMaterial({map:makeGlowTexture(),color:0xcc1122,transparent:true,opacity:.9,depthWrite:false}));
+const sc=.16+Math.random()*.14;m.scale.set(sc,sc,1);
 m.position.copy(p);m.position.y+=.5;m.position.x+=(Math.random()-.5)*.5;m.position.z+=(Math.random()-.5)*.5;
 scene.add(m);
-bloodParticles.push({mesh:m,vx:(Math.random()-.5)*.2,vy:.06+Math.random()*.16,vz:(Math.random()-.5)*.2,life:40+Math.random()*30,gravity:.009});
+bloodParticles.push({mesh:m,vx:(Math.random()-.5)*.2,vy:.06+Math.random()*.16,vz:(Math.random()-.5)*.2,life:40+Math.random()*30,gravity:.009,baseOp:.9});
 }
 }
 
 function spawnSparksAt(p,c){
 for(let i=0;i<c;i++){
-const m=new THREE.Mesh(new THREE.SphereGeometry(.04,4,4),new THREE.MeshBasicMaterial({color:0xffdd00}));
+const m=new THREE.Sprite(new THREE.SpriteMaterial({map:makeGlowTexture(),color:0xffcc33,transparent:true,opacity:1,depthWrite:false,blending:THREE.AdditiveBlending}));
+const sc=.12+Math.random()*.08;m.scale.set(sc,sc,1);
 m.position.copy(p);scene.add(m);
-bloodParticles.push({mesh:m,vx:(Math.random()-.5)*.15,vy:Math.random()*.14,vz:(Math.random()-.5)*.15,life:15+Math.random()*10,gravity:.01});
+bloodParticles.push({mesh:m,vx:(Math.random()-.5)*.15,vy:Math.random()*.14,vz:(Math.random()-.5)*.15,life:15+Math.random()*10,gravity:.01,baseOp:1});
 }
 }
 
@@ -909,6 +1049,7 @@ if(styleTimer>0)styleTimer--;else stylePoints=Math.max(0,stylePoints-1);
 document.getElementById('styleMeter').textContent='STYLE: '+getStyleRank();
 document.getElementById('kills').textContent=kills;
 document.getElementById('hpFill').style.width=(player.hp/player.maxHp*100)+'%';
+document.getElementById('hpBar').classList.toggle('low',player.hp/player.maxHp<.3);
 const ab=enemies.find(e=>e.isBoss);
 if(ab&&ab.hp>0)document.getElementById('bossFill').style.width=(ab.hp/ab.maxHp*100)+'%';
 camera.rotation.y=yaw;camera.rotation.x=pitch;
@@ -1011,7 +1152,14 @@ for(let i=bloodParticles.length-1;i>=0;i--){
 const p=bloodParticles[i];
 p.vy-=p.gravity;p.mesh.position.x+=p.vx;p.mesh.position.y+=p.vy;p.mesh.position.z+=p.vz;p.life--;
 if(p.mesh.position.y<.05){p.mesh.position.y=.05;p.vx*=.7;p.vz*=.7;p.vy=0}
-if(p.life<=0){scene.remove(p.mesh);p.mesh.geometry.dispose();p.mesh.material.dispose();bloodParticles.splice(i,1)}
+if(p.life<8)p.mesh.material.opacity=Math.max(0,p.life/8)*(p.baseOp!==undefined?p.baseOp:1);
+if(p.life<=0){scene.remove(p.mesh);if(p.mesh.geometry)p.mesh.geometry.dispose();p.mesh.material.dispose();bloodParticles.splice(i,1)}
+}
+const _em=mapGroup&&mapGroup.userData.embers;
+if(_em){
+const pa=_em.geometry.attributes.position.array;
+for(let i=0;i<pa.length;i+=3){pa[i+1]+=.006;if(pa[i+1]>11)pa[i+1]=.3}
+_em.geometry.attributes.position.needsUpdate=true;
 }
 
 if(damageTimer>0){damageTimer--;document.getElementById('damage').style.opacity=Math.min(1,damageTimer/8)*.6}

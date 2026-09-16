@@ -68,28 +68,36 @@ button{background:transparent;border:2px solid #f03;color:#f03;font-family:inher
 #muteBtn.muted{color:#666;border-color:#666}
 .sub{color:#888;font-size:14px;font-family:monospace;margin-bottom:20px;letter-spacing:3px}
 .owned{color:#fd0;font-family:monospace;font-size:12px;margin-bottom:20px}
-#chatBox{position:fixed;bottom:12px;right:12px;width:260px;z-index:170;font-family:monospace;display:none}
-#chatLog{max-height:110px;overflow-y:auto;background:rgba(0,0,0,.75);border:1px solid #f03;padding:5px;font-size:11px;color:#fff;margin-bottom:4px}
-#chatLog .w{color:#fd0}
+#chatBox{position:fixed;bottom:12px;right:12px;width:280px;z-index:170;font-family:monospace;display:none}
+#chatLog{max-height:120px;overflow-y:auto;background:rgba(0,0,0,.75);border:1px solid #f03;padding:5px;font-size:11px;color:#fff;margin-bottom:4px}
+#chatLog .w{color:#fd0;font-weight:bold}
+#chatLog .me{color:#0f8}
 #chatInput{width:100%;padding:5px;background:rgba(0,0,0,.8);border:1px solid #f03;color:#fff;font-family:monospace;font-size:11px;outline:none}
+.lobby-input{padding:12px;background:#111;border:2px solid #fa0;color:#fa0;font-family:monospace;letter-spacing:2px;outline:none;text-transform:lowercase}
+#nameTag{position:absolute;color:#0f8;font-family:monospace;font-size:11px;text-shadow:0 0 4px #000;pointer-events:none;white-space:nowrap}
 </style>
 </head>
 <body>
 <div id="lobby" style="position:fixed;inset:0;background:rgba(0,0,0,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:300;gap:18px;font-family:inherit">
-<div id="lobbyMain" style="display:flex;flex-direction:column;align-items:center;gap:18px">
+<div id="lobbyMain" style="display:flex;flex-direction:column;align-items:center;gap:14px">
 <h1 style="font-size:48px">ULTRAKILL ONLINE</h1>
+<div style="display:flex;gap:8px;align-items:center">
+<span style="color:#888;font-family:monospace;font-size:12px">НИК:</span>
+<input id="nickInput" placeholder="narrator" maxlength="14" class="lobby-input" style="width:220px" value="">
+</div>
 <button id="lobbySolo" style="padding:14px 44px;border-color:#f03;color:#f03;font-size:18px">ОДИНОЧНАЯ</button>
-<button id="lobbyHost" style="padding:14px 44px;border-color:#0f8;color:#0f8;font-size:18px">СОЗДАТЬ КОМНАТУ</button>
-<div style="display:flex;gap:8px">
-<input id="lobbyJoinId" placeholder="КОД КОМНАТЫ" style="padding:12px;background:#111;border:2px solid #fa0;color:#fa0;font-family:monospace;outline:none">
+<div style="display:flex;gap:8px;margin-top:6px;align-items:center">
+<input id="roomInput" placeholder="код комнаты (narrator-lobby)" class="lobby-input" style="width:280px">
+<button id="lobbyHost" style="padding:12px 22px;border-color:#0f8;color:#0f8;font-size:14px">СОЗДАТЬ</button>
 <button id="lobbyJoin" style="padding:12px 22px;border-color:#fa0;color:#fa0;font-size:14px">ВОЙТИ</button>
 </div>
+<div style="color:#666;font-family:monospace;font-size:11px;margin-top:4px">Код комнаты = ваш ник + <span style="color:#fa0">-lobby</span></div>
 <div id="lobbyStatus" style="color:#fd0;font-family:monospace;font-size:13px;min-height:20px"></div>
 </div>
 <div id="lobbyRoom" style="display:none;flex-direction:column;align-items:center;gap:16px">
 <h2 style="color:#f03;font-size:28px;letter-spacing:.2em">КОМНАТА</h2>
 <div style="color:#888;font-family:monospace;font-size:12px">КОД ДЛЯ ДРУЗЕЙ:</div>
-<div style="color:#fa0;font-family:monospace;font-size:20px;letter-spacing:3px;padding:10px 24px;border:2px solid #fa0" id="roomCode">----</div>
+<div style="color:#fa0;font-family:monospace;font-size:22px;letter-spacing:3px;padding:10px 24px;border:2px solid #fa0" id="roomCode">----</div>
 <div style="color:#888;font-family:monospace;font-size:12px;margin-top:6px">ИГРОКИ:</div>
 <div id="playerList" style="display:flex;flex-direction:column;gap:6px;min-height:40px;min-width:200px;align-items:center"></div>
 <button id="startGameBtn" style="display:none;padding:14px 44px;border-color:#f03;color:#f03;font-size:18px;margin-top:10px">НАЧАТЬ ИГРУ</button>
@@ -114,7 +122,7 @@ button{background:transparent;border:2px solid #f03;color:#f03;font-family:inher
 <div id="elevatorUI"><div id="floorCounter">-12</div><div id="elevatorStatus">ПОДЪЁМ...</div></div>
 <div id="dialogueBox"><div class="speaker">V1-TRADER</div><div class="text" id="dialogueText"></div><div class="continue">▼ КЛИК / ПРОБЕЛ</div></div>
 <div id="introShop"><h1>ARSENAL</h1><div class="sub" id="introSub"></div><div class="owned" id="introOwned"></div><div id="introItems"></div></div>
-<div id="clickToPlay"><h2 style="color:#f03;font-size:32px">КЛИКНИ ЧТОБЫ ИГРАТЬ</h2><p style="color:#888;margin-top:12px;font-family:monospace">WASD · МЫШЬ · ЛКМ · R · Q · SHIFT · ПРОБЕЛ</p></div>
+<div id="clickToPlay"><h2 style="color:#f03;font-size:32px">КЛИКНИ ЧТОБЫ ИГРАТЬ</h2><p style="color:#888;margin-top:12px;font-family:monospace">WASD · МЫШЬ · ЛКМ · R · Q · SHIFT · ПРОБЕЛ · ENTER — ЧАТ</p></div>
 <div id="startScreen"><h1>ULTRAKILL</h1><div class="sub">30 WAVES · 3 BOSSES</div><button id="startBtn">START</button></div>
 <div id="shop"><h1>ARSENAL</h1><div class="sub" id="shopSub"></div><div class="owned" id="shopOwned"></div><div id="shopItems"></div></div>
 <div id="victory"><h1>VICTORY</h1><div class="sub">30 ВОЛН ПРОЙДЕНО</div><p id="victoryStats" style="color:#fff;font-family:monospace;margin-bottom:30px"></p><div style="display:flex;gap:20px"><button id="restartVictoryBtn">ЗАНОВО</button><button id="endlessBtn" style="border-color:#a4f;color:#a4f">ENDLESS</button></div></div>
@@ -130,8 +138,7 @@ resume(){if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume()},
 tone(f,d,t,v,s){if(!this.ctx||this.muted)return;t=t||'sine';v=v===undefined?.15:v;const c=this.ctx.currentTime,o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type=t;o.frequency.setValueAtTime(f,c);if(s)o.frequency.exponentialRampToValueAtTime(Math.max(s,1),c+d);g.gain.setValueAtTime(v,c);g.gain.exponentialRampToValueAtTime(.0001,c+d);o.connect(g);g.connect(this.ctx.destination);o.start(c);o.stop(c+d+.02)},
 noise(d,v,f){if(!this.ctx||this.muted)return;v=v===undefined?.15:v;f=f||1200;const c=this.ctx.currentTime,bs=Math.max(1,Math.floor(this.ctx.sampleRate*d)),b=this.ctx.createBuffer(1,bs,this.ctx.sampleRate),dt=b.getChannelData(0);for(let i=0;i<bs;i++)dt[i]=Math.random()*2-1;const s=this.ctx.createBufferSource();s.buffer=b;const fl=this.ctx.createBiquadFilter();fl.type='lowpass';fl.frequency.value=f;const g=this.ctx.createGain();g.gain.setValueAtTime(v,c);g.gain.exponentialRampToValueAtTime(.0001,c+d);s.connect(fl);fl.connect(g);g.connect(this.ctx.destination);s.start(c);s.stop(c+d+.02)},
 shoot(i){const m=[[900,.07,'square',.12,200],[650,.04,'square',.09,200],[180,.2,'sawtooth',.22,50],[500,.11,'square',.16,100],[720,.03,'square',.07,250],[140,.28,'sawtooth',.26,35],[1300,.18,'sine',.18,200],[420,.1,'sine',.14,950]];const x=m[i]||m[0];this.tone(x[0],x[1],x[2],x[3],x[4]);this.noise(.05,.15,2000)},
-reloadStart(){this.tone(280,.06,'square',.1)},
-reloadEnd(){this.tone(500,.06,'square',.12);setTimeout(()=>this.tone(700,.07,'square',.12),70)},
+reloadStart(){this.tone(280,.06,'square',.1)},reloadEnd(){this.tone(500,.06,'square',.12);setTimeout(()=>this.tone(700,.07,'square',.12),70)},
 jump(){this.tone(220,.14,'sine',.13,520)},dash(){this.tone(680,.16,'sawtooth',.15,1600)},
 hit(){this.tone(240,.04,'square',.11)},kill(){this.tone(420,.15,'square',.14,90)},
 bossHit(){this.tone(180,.06,'square',.14,90)},playerDamage(){this.noise(.18,.24,500);this.tone(140,.2,'sawtooth',.12,60)},
@@ -175,6 +182,7 @@ const WP=[
 {name:'PLASMA',damage:25,fireRate:200,spread:.02,recoil:.6,auto:true,color:0x1a2a2a,accent:0x00ffff,model:'smg',desc:'Энергия.',mag:20,reloadTime:1.6}];
 let ownedWeapons=[],currentWeaponIdx=0,weaponAmmo={};
 let mapHue=.55;
+let myNick='player';
 
 function init(){
 isMobile=('ontouchstart' in window)&&navigator.maxTouchPoints>0;
@@ -968,6 +976,14 @@ let peer=null,netRole='single',hostConn=null,clientConns=[];
 const remotePlayers={},ghostEnemies={};
 let netIdCounter=0,netSendAcc=0;
 
+function sanitizeNick(s){
+let n=String(s||'').toLowerCase().replace(/[^a-z0-9а-яё\-_]/gi,'').trim();
+if(!n)n='player';
+return n.slice(0,14);
+}
+
+function buildRoomCode(nick){return nick+'-lobby'}
+
 function lobbyStatus(s){document.getElementById('lobbyStatus').textContent=s}
 function roomStatus(s){document.getElementById('roomStatus').textContent=s}
 
@@ -978,34 +994,49 @@ document.getElementById('roomCode').textContent=code;
 document.getElementById('startGameBtn').style.display=isHost?'block':'none';
 }
 
-function updatePlayerListUI(ids){
+function updatePlayerListUI(players){
 const el=document.getElementById('playerList');el.innerHTML='';
-for(const id of ids){const d=document.createElement('div');d.textContent='● '+id.slice(0,6);d.style.cssText='color:#00ff88;font-family:monospace;font-size:14px;';el.appendChild(d)}
+for(const p of players){
+const d=document.createElement('div');
+d.textContent='● '+p.nick+(p.id===peer.id?' (ВЫ)':'');
+d.style.cssText='color:'+(p.id===peer.id?'#0f8':'#fd0')+';font-family:monospace;font-size:14px;';
+el.appendChild(d);
+}
 }
 
 function broadcastPlayers(){
-const ids=[peer.id,...clientConns.map(c=>c.peer)];
-updatePlayerListUI(ids);
-netBroadcast({t:'players',ids:ids});
+const players=[{id:peer.id,nick:myNick},...clientNicks];
+updatePlayerListUI(players);
+netBroadcast({t:'players',players:players});
 }
 
-function initNetwork(role,roomId){
-netRole=role;peer=new Peer();
+const clientNicks=[];
+
+function initNetwork(role,roomCode){
+netRole=role;
+const peerOpts={};
+if(role==='host')peerOpts.id=roomCode;
+peer=new Peer(peerOpts.id,{debug:0});
 peer.on('open',id=>{
 if(role==='host'){showRoomScreen(id,true);roomStatus('Ждём игроков...');broadcastPlayers()}
 else{
-showRoomScreen(roomId,false);roomStatus('Подключение...');
-hostConn=peer.connect(roomId,{reliable:false});
-hostConn.on('open',()=>roomStatus('Ждём хоста...'));
+showRoomScreen(roomCode,false);roomStatus('Подключение...');
+hostConn=peer.connect(roomCode,{reliable:true});
+hostConn.on('open',()=>{roomStatus('Ждём хоста...');hostConn.send({t:'hello',nick:myNick})});
 hostConn.on('data',onHostMsg);
 hostConn.on('close',()=>roomStatus('Хост отключился'));
 }
 });
 peer.on('connection',conn=>{
 if(netRole!=='host')return;
-clientConns.push(conn);broadcastPlayers();
+clientConns.push(conn);
 conn.on('data',msg=>onClientMsg(conn,msg));
-conn.on('close',()=>{clientConns=clientConns.filter(c=>c!==conn);removeRemotePlayer(conn.peer);broadcastPlayers()});
+conn.on('close',()=>{
+clientConns=clientConns.filter(c=>c!==conn);
+const i=clientNicks.findIndex(c=>c.id===conn.peer);if(i>=0)clientNicks.splice(i,1);
+removeRemotePlayer(conn.peer);
+broadcastPlayers();
+});
 });
 peer.on('error',e=>{roomStatus('ОШИБКА: '+e.type);lobbyStatus('ОШИБКА: '+e.type)});
 }
@@ -1015,21 +1046,27 @@ function netBroadcastExcept(sk,m){for(const c of clientConns)if(c!==sk&&c.open)c
 function netToHost(m){if(hostConn&&hostConn.open)hostConn.send(m)}
 
 function onClientMsg(conn,msg){
-if(msg.t==='p'){updateRemotePlayer(conn.peer,msg);netBroadcastExcept(conn,Object.assign({},msg,{id:conn.peer}))}
-else if(msg.t==='shoot')hostHandleClientShot(conn.peer,msg);
-else if(msg.t==='chat'){addChat('ГОСТЬ',msg.msg);netBroadcastExcept(conn,msg)}
+if(msg.t==='hello'){
+const i=clientNicks.findIndex(c=>c.id===conn.peer);
+if(i>=0)clientNicks[i].nick=msg.nick;else clientNicks.push({id:conn.peer,nick:msg.nick});
+broadcastPlayers();
+}else if(msg.t==='p'){
+updateRemotePlayer(conn.peer,msg);
+netBroadcastExcept(conn,Object.assign({},msg,{id:conn.peer}));
+}else if(msg.t==='shoot')hostHandleClientShot(conn.peer,msg);
+else if(msg.t==='chat'){addChat(msg.nick,msg.msg,false);netBroadcastExcept(conn,msg)}
 }
 
 function onHostMsg(msg){
-if(msg.t==='players')updatePlayerListUI(msg.ids);
+if(msg.t==='players')updatePlayerListUI(msg.players);
 else if(msg.t==='go'){mapHue=msg.h!==undefined?msg.h:.55;document.getElementById('lobby').style.display='none';startGame()}
-else if(msg.t==='p')updateRemotePlayer(msg.id,msg);
+else if(msg.t==='p')updateRemotePlayer(msg.id,msg,msg.nick);
 else if(msg.t==='e')applyEnemyState(msg.list);
 else if(msg.t==='kill')removeGhostEnemy(msg.eid);
 else if(msg.t==='dmg'){player.hp-=msg.amount;damageTimer=8;SFX.playerDamage();if(player.hp<=0){player.hp=0;gameOver()}}
 else if(msg.t==='wp'){if(gamePhase==='introShop')pickIntroWeapon(msg.w)}
 else if(msg.t==='wave'){if(gamePhase==='playing'||gamePhase==='shop')startWave(msg.n)}
-else if(msg.t==='chat')addChat(msg.who,msg.msg);
+else if(msg.t==='chat')addChat(msg.nick,msg.msg,false);
 }
 
 function hostHandleClientShot(cid,msg){
@@ -1046,7 +1083,7 @@ if(netRole==='single')return;
 netSendAcc+=dt;
 if(netSendAcc<.04)return;
 netSendAcc=0;
-const posMsg={t:'p',x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:yaw,pitch:pitch};
+const posMsg={t:'p',nick:myNick,x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:yaw,pitch:pitch};
 if(netRole==='host')netBroadcast(posMsg);else netToHost(posMsg);
 if(netRole==='host'){
 const list=enemies.map(e=>({id:e.netId,x:e.mesh.position.x,y:e.mesh.position.y,z:e.mesh.position.z,boss:e.isBoss,imm:e.immortal}));
@@ -1054,7 +1091,7 @@ netBroadcast({t:'e',list:list});
 }
 }
 
-function makeGhostMesh(){
+function makeGhostMesh(nick){
 const g=new THREE.Group();
 const bm=new THREE.MeshStandardMaterial({color:0xdddddd,roughness:.5,metalness:.6});
 const dm=new THREE.MeshStandardMaterial({color:0x222222,roughness:.6,metalness:.8});
@@ -1072,10 +1109,15 @@ const lt=new THREE.PointLight(0x00ff88,1.2,6);lt.position.y=2.5;g.add(lt);
 return g;
 }
 
-function updateRemotePlayer(id,msg){
+function updateRemotePlayer(id,msg,nick){
 let rp=remotePlayers[id];
-if(!rp){const g=makeGhostMesh();scene.add(g);rp=remotePlayers[id]={group:g,tx:msg.x,ty:msg.y,tz:msg.z,tyaw:msg.yaw||0};g.position.set(msg.x,msg.y,msg.z)}
+if(!rp){
+const g=makeGhostMesh(nick);scene.add(g);
+rp=remotePlayers[id]={group:g,tx:msg.x,ty:msg.y,tz:msg.z,tyaw:msg.yaw||0,nick:nick||msg.nick||'?'};
+g.position.set(msg.x,msg.y-PLAYER_HEIGHT,msg.z);
+}
 rp.tx=msg.x;rp.ty=msg.y;rp.tz=msg.z;rp.tyaw=msg.yaw||0;
+if(nick)rp.nick=nick;
 }
 
 function removeRemotePlayer(id){const rp=remotePlayers[id];if(!rp)return;scene.remove(rp.group);delete remotePlayers[id]}
@@ -1084,7 +1126,7 @@ function interpRemotePlayers(){
 for(const id in remotePlayers){
 const rp=remotePlayers[id],g=rp.group;
 g.position.x+=(rp.tx-g.position.x)*.25;
-g.position.y+=(rp.ty-g.position.y)*.25;
+g.position.y+=((rp.ty-PLAYER_HEIGHT)-g.position.y)*.25;
 g.position.z+=(rp.tz-g.position.z)*.25;
 let dy=rp.tyaw-g.rotation.y;
 while(dy>Math.PI)dy-=Math.PI*2;
@@ -1131,29 +1173,44 @@ m.position.z+=(g.tz-m.position.z)*.3;
 
 function showChat(){if(netRole!=='single')document.getElementById('chatBox').style.display='block'}
 
-function addChat(who,msg){
+function addChat(who,msg,isMe){
 const el=document.getElementById('chatLog');
 const d=document.createElement('div');
-d.innerHTML='<span class="w">'+who+':</span> '+String(msg).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'})[c]);
+const safe=String(msg).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'})[c]);
+d.innerHTML='<span class="w'+(isMe?' me':'')+'">'+who+':</span> '+safe;
 el.appendChild(d);
 el.scrollTop=el.scrollHeight;
-while(el.children.length>25)el.removeChild(el.firstChild);
+while(el.children.length>30)el.removeChild(el.firstChild);
 }
 
 function sendChat(){
 const inp=document.getElementById('chatInput');
 const v=inp.value.trim();
 if(!v)return;
-const who=netRole==='host'?'ХОСТ':'ГОСТЬ';
-addChat('Я',v);
-if(netRole==='host')netBroadcast({t:'chat',who:'ХОСТ',msg:v});
-else netToHost({t:'chat',who:'ГОСТЬ',msg:v});
+addChat(myNick,v,true);
+if(netRole==='host')netBroadcast({t:'chat',nick:myNick,msg:v});
+else netToHost({t:'chat',nick:myNick,msg:v});
 inp.value='';
 }
 
-document.getElementById('lobbySolo').onclick=()=>{document.getElementById('lobby').style.display='none';startGame()};
-document.getElementById('lobbyHost').onclick=()=>initNetwork('host');
-document.getElementById('lobbyJoin').onclick=()=>{const id=document.getElementById('lobbyJoinId').value.trim();if(id)initNetwork('client',id)};
+document.getElementById('lobbySolo').onclick=()=>{
+myNick=sanitizeNick(document.getElementById('nickInput').value)||'player';
+document.getElementById('lobby').style.display='none';
+startGame();
+};
+document.getElementById('lobbyHost').onclick=()=>{
+myNick=sanitizeNick(document.getElementById('nickInput').value);
+document.getElementById('nickInput').value=myNick;
+const room=buildRoomCode(myNick);
+initNetwork('host',room);
+};
+document.getElementById('lobbyJoin').onclick=()=>{
+myNick=sanitizeNick(document.getElementById('nickInput').value);
+document.getElementById('nickInput').value=myNick;
+let room=String(document.getElementById('roomInput').value||'').trim().toLowerCase();
+if(!room)return lobbyStatus('Введите код комнаты');
+initNetwork('client',room);
+};
 document.getElementById('startGameBtn').onclick=()=>{
 const h=Math.random();mapHue=h;
 netBroadcast({t:'go',h:h});

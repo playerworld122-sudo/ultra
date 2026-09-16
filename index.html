@@ -136,8 +136,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .menu-hint{color:#555;font-family:var(--mono);font-size:10px;letter-spacing:.08em;position:relative;z-index:1}
 .menu-hint span{color:var(--gold)}
 #lobbyStatus{color:var(--gold);font-family:var(--mono);font-size:12px;min-height:18px;text-align:center;letter-spacing:.05em;position:relative;z-index:1}
-.lobby-hr{width:100%;height:1px;background:var(--panel-line);margin:8px 0}
-#serverPanel{display:none;flex-direction:column;align-items:center;gap:12px;width:min(96vw,620px);padding:28px;background:rgba(8,2,4,.94);border:1px solid var(--panel-line);box-shadow:0 0 80px rgba(0,252,200,.15);position:relative}
+#serverPanel{display:none;flex-direction:column;align-items:center;gap:12px;width:min(96vw,620px);padding:28px;background:rgba(8,2,4,.94);border:1px solid var(--panel-line);box-shadow:0 0 80px rgba(0,252,200,.15);position:relative;z-index:1}
 #serverPanel::before,#serverPanel::after{content:'';position:absolute;width:20px;height:20px}
 #serverPanel::before{top:-1px;left:-1px;border-top:3px solid var(--cyan);border-left:3px solid var(--cyan)}
 #serverPanel::after{bottom:-1px;right:-1px;border-bottom:3px solid var(--cyan);border-right:3px solid var(--cyan)}
@@ -162,10 +161,9 @@ button:disabled{opacity:.35;cursor:not-allowed}
 #lobbyRoom::after{bottom:-1px;right:-1px;border-bottom:3px solid var(--red);border-right:3px solid var(--red)}
 .room-header{display:flex;align-items:center;gap:14px;width:100%;justify-content:center}
 .room-header .rt{color:var(--red);font-size:24px;letter-spacing:.24em}
-.room-header .rt-name{color:#aaa;font-family:var(--mono);font-size:11px;letter-spacing:.12em}
 #roomTitle{color:#ccc;font-family:var(--mono);font-size:13px;text-align:center;letter-spacing:.05em}
-#roomCode{color:var(--gold);font-family:var(--mono);font-size:22px;letter-spacing:.15em;padding:12px 26px;border:1px solid var(--gold);background:rgba(255,204,51,.06);text-shadow:0 0 12px rgba(255,204,51,.5)}
-.room-code-row{display:flex;gap:10px;align-items:center}
+#roomCode{color:var(--gold);font-family:var(--mono);font-size:20px;letter-spacing:.15em;padding:12px 26px;border:1px solid var(--gold);background:rgba(255,204,51,.06);text-shadow:0 0 12px rgba(255,204,51,.5);word-break:break-all;max-width:100%;text-align:center}
+.room-code-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
 .room-code-row button{padding:10px 16px;font-size:11px;border-color:var(--gold);color:var(--gold)}
 .room-code-row button:hover{background:var(--gold);color:#2a1e00}
 .room-label{color:#888;font-family:var(--mono);font-size:10px;letter-spacing:.28em;margin-top:4px}
@@ -183,12 +181,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .playerRow .playerStatus{font-size:10px;letter-spacing:.14em;padding:5px 11px;border:1px solid;flex:none;font-weight:600}
 .playerRow .playerStatus.ready{color:var(--green);border-color:rgba(0,255,136,.55);background:rgba(0,255,136,.08);text-shadow:0 0 8px rgba(0,255,136,.6)}
 .playerRow .playerStatus.wait{color:#888;border-color:rgba(120,120,120,.4);background:rgba(120,120,120,.05)}
-.kickBtn{width:28px;height:28px;padding:0;font-size:12px;line-height:1;border-color:rgba(255,23,68,.5);color:var(--red);flex:none;display:flex;align-items:center;justify-content:center;border-radius:0}
-.kickBtn:hover{background:var(--red);color:#0a0002;box-shadow:0 0 12px var(--red)}
 .room-actions{display:flex;gap:10px;width:100%;margin-top:6px;flex-wrap:wrap;justify-content:center}
-#readyBtn{padding:14px 40px;font-size:14px;letter-spacing:.22em;border-color:var(--green);color:var(--green);flex:1;min-width:160px;border-width:2px}
-#readyBtn:hover{background:var(--green);color:#002a17;box-shadow:0 0 20px var(--green)}
-#readyBtn.isReady{background:rgba(0,255,136,.18);border-color:var(--green);color:var(--green);box-shadow:0 0 20px rgba(0,255,136,.4) inset}
 #startGameBtn{padding:14px 40px;font-size:14px;letter-spacing:.22em;flex:1;min-width:180px;border-width:2px}
 #roomStatus{color:var(--gold);font-family:var(--mono);font-size:12px;min-height:18px;text-align:center;letter-spacing:.05em}
 #roomBack{padding:10px 26px;font-size:11px;border-color:#555;color:#888;margin-top:6px}
@@ -223,13 +216,15 @@ h1{font-size:36px}
 <button id="lobbyServers" class="btn-servers">СЕРВЕРЫ</button>
 </div>
 <div class="menu-hr"></div>
-<div class="menu-quick-label">БЫСТРАЯ ИГРА</div>
+<div class="menu-quick-label">КООПЕРАТИВ</div>
 <div class="menu-quick-row">
-<input id="roomInput" placeholder="код комнаты" class="lobby-input">
-<button id="lobbyHost" class="btn-create">СОЗДАТЬ</button>
+<button id="lobbyHost" class="btn-create">СОЗДАТЬ КОМНАТУ</button>
+</div>
+<div class="menu-quick-row">
+<input id="lobbyJoinId" placeholder="КОД КОМНАТЫ" class="lobby-input">
 <button id="lobbyJoin" class="btn-join">ВОЙТИ</button>
 </div>
-<div class="menu-hint">код = ваш ник + <span>-lobby</span></div>
+<div class="menu-hint">создай комнату → отправь код друзьям → они вводят его в поле и жмут ВОЙТИ</div>
 <div id="lobbyStatus"></div>
 </div>
 <div id="serverPanel">
@@ -244,10 +239,8 @@ h1{font-size:36px}
 <button id="srvBack" style="padding:8px 26px;border-color:#555;color:#888;font-size:11px">НАЗАД</button>
 </div>
 <div id="lobbyRoom">
-<div class="room-header">
-<div class="rt">ПАТИ</div>
-</div>
-<div id="roomTitle"></div>
+<div class="room-header"><div class="rt">ПАТИ</div></div>
+<div id="roomTitle">ОЖИДАНИЕ ХОСТА</div>
 <div class="room-label">КОД ДЛЯ ДРУЗЕЙ</div>
 <div class="room-code-row">
 <div id="roomCode">----</div>
@@ -256,8 +249,7 @@ h1{font-size:36px}
 <div class="room-label">ИГРОКИ <span id="playerCount">(0)</span></div>
 <div id="playerList"></div>
 <div class="room-actions">
-<button id="readyBtn">ГОТОВ</button>
-<button id="startGameBtn">НАЧАТЬ ИГРУ</button>
+<button id="startGameBtn" style="display:none">НАЧАТЬ ИГРУ</button>
 </div>
 <div id="roomStatus"></div>
 <button id="roomBack">ВЫЙТИ</button>
@@ -719,7 +711,7 @@ weaponGroup.add(ra);weaponGroup.add(la);weaponGroup.userData={rightArm:ra,leftAr
 document.getElementById('weaponName').textContent=W.name;
 updateAmmoUI();
 }
-  function updateAmmoUI(){
+function updateAmmoUI(){
 const W=WP[currentWeaponIdx];
 const c=weaponAmmo[currentWeaponIdx]!==undefined?weaponAmmo[currentWeaponIdx]:W.mag;
 document.getElementById('ammoCur').textContent=c;
@@ -769,7 +761,7 @@ document.getElementById('waveLabel').textContent='WAVE '+n+(endlessMode&&n>MAX_W
 const isBoss=n%10===0;
 showBanner(isBoss?'BOSS':'WAVE '+n,isBoss?'WAVE '+n:null,isBoss?2000:1500);
 SFX.waveStart();
-if(netRole==='host'){netBroadcast({t:'wave',n:n});if(typeof myServer!=='undefined'&&myServer)dirPublish()}
+if(netRole==='host')netBroadcast({t:'wave',n:n});
 if(netRole==='client'){waveActive=true;waveInProgress=true;return}
 setTimeout(()=>{hideBanner();spawnWaveEnemies(n,isBoss);waveActive=true;waveInProgress=true},isBoss?2000:1500);
 }
@@ -1274,37 +1266,34 @@ if(isMobile){['joystick','lookArea','fireBtn','dashBtn','jumpBtn','swapBtn','rel
 else setupDesktopControls();
 startElevatorIntro(1);
 }
-  let peer=null,netRole='single',hostConn=null,clientConns=[];
+
+let peer=null,netRole='single',hostConn=null,clientConns=[];
 const remotePlayers={},ghostEnemies={};
 let netIdCounter=0,netSendAcc=0;
 const clientNicks=[];
-const SIGNAL_HOST='uk3d-server.onrender.com';
-const SIGNAL_PATH='/uk3d';
-const WS_URL='wss://uk3d-server.onrender.com';
-let ws=null,wsReady=false,wsTries=0,wsTimer=null,hbTimer=null;
-let myServer=null,shownServers=[];
-let myReady=false;
+let myPeerId=null;
 
 function sanitizeNick(s){let n=String(s||'').toLowerCase().replace(/[^a-z0-9а-яё\-_]/gi,'').trim();if(!n)n='player';return n.slice(0,14)}
-function buildRoomCode(nick){return nick+'-lobby'}
 function lobbyStatus(s){const el=document.getElementById('lobbyStatus');if(el)el.textContent=s}
 function roomStatus(s){const el=document.getElementById('roomStatus');if(el)el.textContent=s}
-function srvStatus(s){const el=document.getElementById('srvStatus');if(el)el.textContent=s}
 
 function showRoomScreen(code,isHost){
-const a=document.getElementById('lobbyMain');
-const b=document.getElementById('serverPanel');
-const c=document.getElementById('lobbyRoom');
-if(a)a.style.display='none';
-if(b)b.style.display='none';
-if(c)c.style.display='flex';
-const rc=document.getElementById('roomCode');
-if(rc)rc.textContent=code;
-const rt=document.getElementById('roomTitle');
-if(rt)rt.textContent=myServer&&myServer.name?myServer.name:'ПРИГЛАШЕНИЕ';
+document.getElementById('lobbyMain').style.display='none';
+document.getElementById('serverPanel').style.display='none';
+document.getElementById('lobbyRoom').style.display='flex';
+document.getElementById('roomCode').textContent=code;
+document.getElementById('startGameBtn').style.display=isHost?'block':'none';
+document.getElementById('roomTitle').textContent=isHost?'ВЫ ХОСТ':'ВЫ ПОДКЛЮЧИЛИСЬ';
 }
 
-function makePlayerRow(p,myId,isHostOfRoom){
+function updatePlayerListUI(players){
+const el=document.getElementById('playerList');
+if(!el)return;
+el.innerHTML='';
+const myId=myPeerId;
+const cnt=document.getElementById('playerCount');
+if(cnt)cnt.textContent='('+players.length+')';
+for(const p of players){
 const d=document.createElement('div');
 d.className='playerRow'+(p.id===myId?' me':'')+(p.host?' host':'');
 const initial=String(p.nick||'?').slice(0,2);
@@ -1313,144 +1302,93 @@ html+='<div class="playerNick">'+esc(p.nick||'?');
 if(p.host)html+='<span class="crown">♛</span>';
 if(p.id===myId)html+='<span class="youTag">ВЫ</span>';
 html+='</div>';
-html+='<div class="playerStatus '+(p.ready?'ready':'wait')+'">'+(p.ready?'ГОТОВ':'ОЖИДАНИЕ')+'</div>';
+html+='<div class="playerStatus ready">В ИГРЕ</div>';
 d.innerHTML=html;
-if(isHostOfRoom&&p.id!==myId){
-const kick=document.createElement('button');
-kick.className='kickBtn';
-kick.textContent='✕';
-kick.title='Кикнуть';
-kick.onclick=()=>kickPlayer(p.id);
-d.appendChild(kick);
-}
-return d;
-}
-
-function updatePlayerListUI(players){
-const el=document.getElementById('playerList');
-if(!el)return;
-const myId=peer?peer.id:null;
-const me=players.find(p=>p.id===myId);
-const isHostOfRoom=!!(me&&me.host);
-el.innerHTML='';
-for(const p of players)el.appendChild(makePlayerRow(p,myId,isHostOfRoom));
-const cnt=document.getElementById('playerCount');
-if(cnt)cnt.textContent='('+players.length+')';
-const rb=document.getElementById('readyBtn');
-const sb=document.getElementById('startGameBtn');
-if(rb){
-if(isHostOfRoom){rb.style.display='none'}
-else{
-rb.style.display='block';
-rb.textContent=me&&me.ready?'ОТМЕНИТЬ ГОТОВНОСТЬ':'ГОТОВ';
-rb.classList.toggle('isReady',!!(me&&me.ready));
-}
-}
-if(sb){
-if(isHostOfRoom){
-sb.style.display='block';
-const clients=players.filter(p=>!p.host);
-const readyCount=clients.filter(p=>p.ready).length;
-const allReady=clients.length===0||readyCount===clients.length;
-sb.disabled=!allReady;
-sb.textContent=allReady?'НАЧАТЬ ИГРУ':('ЖДЁМ ГОТОВНОСТИ '+readyCount+'/'+clients.length);
-}else{
-sb.style.display='none';
-}
+el.appendChild(d);
 }
 }
 
 function broadcastPlayers(){
 if(!peer)return;
-const players=[{id:peer.id,nick:myNick,ready:true,host:true}];
-for(const c of clientNicks)players.push({id:c.id,nick:c.nick,ready:!!c.ready,host:false});
+const players=[{id:myPeerId,nick:myNick,host:true}];
+for(const c of clientNicks)players.push({id:c.id,nick:c.nick,host:false});
 updatePlayerListUI(players);
 netBroadcast({t:'players',players:players});
-if(myServer)dirPublish();
 }
 
-function initNetwork(role,roomCode){
+function initNetwork(role,roomId){
 netRole=role;
-myReady=false;
-const cfg={debug:0,config:{iceServers:_ICE},host:SIGNAL_HOST,port:443,path:SIGNAL_PATH,secure:true};
-const opts=role==='host'?{id:roomCode}:{};
-try{peer=new Peer(opts.id,cfg)}catch(e){roomStatus('ОШИБКА ЗАПУСКА');return}
-peer.on('open',id=>onPeerOpen(id,role,roomCode));
-peer.on('connection',onIncoming);
-peer.on('error',e=>onPeerError(e,role,roomCode));
-}
+myPeerId=null;
+const cfg={debug:0,config:{iceServers:_ICE}};
+try{
+if(role==='host')peer=new Peer(undefined,cfg);
+else peer=new Peer(undefined,cfg);
+}catch(e){roomStatus('ОШИБКА ЗАПУСКА: '+e.message);return}
 
-function onPeerOpen(id,role,roomCode){
+peer.on('open',id=>{
+myPeerId=id;
 if(role==='host'){
 showRoomScreen(id,true);
 roomStatus('Ждём игроков...');
-if(myServer)myServer.code=id;
 broadcastPlayers();
-return;
-}
-showRoomScreen(roomCode,false);
+}else{
+showRoomScreen(roomId,false);
 roomStatus('Подключение...');
-hostConn=peer.connect(roomCode,{reliable:true});
-hostConn.on('open',()=>{roomStatus('Ожидание хоста...');hostConn.send({t:'hello',nick:myNick})});
+hostConn=peer.connect(roomId,{reliable:false});
+hostConn.on('open',()=>{
+roomStatus('Ожидание хоста...');
+hostConn.send({t:'hello',nick:myNick});
+});
 hostConn.on('data',onHostMsg);
-hostConn.on('close',()=>roomStatus('Хост отключился'));
+hostConn.on('close',()=>{roomStatus('Хост отключился')});
+hostConn.on('error',e=>{roomStatus('ОШИБКА: '+e.type)});
 }
+});
 
-function onIncoming(conn){
+peer.on('connection',conn=>{
 if(netRole!=='host')return;
 clientConns.push(conn);
 conn.on('data',msg=>onClientMsg(conn,msg));
-conn.on('close',()=>onClientClose(conn));
-}
-
-function onClientClose(conn){
+conn.on('close',()=>{
 clientConns=clientConns.filter(c=>c!==conn);
 const i=clientNicks.findIndex(c=>c.id===conn.peer);
 if(i>=0)clientNicks.splice(i,1);
 removeRemotePlayer(conn.peer);
 deadPeers.delete(conn.peer);
 broadcastPlayers();
-}
+});
+});
 
-function onPeerError(e,role,roomCode){
-if(e.type==='unavailable-id'&&role==='host'){
-const alt=roomCode+'-'+Math.random().toString(36).slice(2,5);
-if(myServer)myServer.code=alt;
-try{peer.destroy()}catch(_){}
-setTimeout(()=>initNetwork('host',alt),120);
+peer.on('error',e=>{
+if(e.type==='peer-unavailable'){
+roomStatus('КОМНАТА НЕ НАЙДЕНА');
+lobbyStatus('КОМНАТА НЕ НАЙДЕНА — проверьте код');
+setTimeout(()=>{
+document.getElementById('lobbyRoom').style.display='none';
+document.getElementById('lobbyMain').style.display='flex';
+},1800);
 return;
 }
-if(e.type==='peer-unavailable'){roomStatus('КОМНАТА НЕ НАЙДЕНА');return}
 roomStatus('ОШИБКА: '+e.type);
+});
 }
 
 function netBroadcast(m){for(const c of clientConns)if(c.open)c.send(m)}
 function netBroadcastExcept(sk,m){for(const c of clientConns)if(c!==sk&&c.open)c.send(m)}
 function netToHost(m){if(hostConn&&hostConn.open)hostConn.send(m)}
 
-function kickPlayer(id){
-if(netRole!=='host')return;
-const c=clientConns.find(c=>c.peer===id);
-if(c){try{c.send({t:'kick'})}catch(e){}setTimeout(()=>{try{c.close()}catch(e){}},80)}
-}
-
 function onClientMsg(conn,msg){
 if(msg.t==='hello'){
 const i=clientNicks.findIndex(c=>c.id===conn.peer);
 if(i>=0)clientNicks[i].nick=msg.nick;
-else clientNicks.push({id:conn.peer,nick:msg.nick,ready:false});
+else clientNicks.push({id:conn.peer,nick:msg.nick});
 broadcastPlayers();
 if(gamePhase!=='menu'&&conn.open)conn.send({t:'go',h:mapHue});
 return;
 }
-if(msg.t==='ready'){
-const c=clientNicks.find(c=>c.id===conn.peer);
-if(c){c.ready=!!msg.ready;broadcastPlayers()}
-return;
-}
 if(msg.t==='p'){
 if(deadPeers.has(conn.peer))return;
-updateRemotePlayer(conn.peer,msg);
+updateRemotePlayer(conn.peer,msg,msg.nick);
 netBroadcastExcept(conn,Object.assign({},msg,{id:conn.peer}));
 return;
 }
@@ -1475,7 +1413,6 @@ netBroadcastExcept(conn,msg);
 function onHostMsg(msg){
 if(msg.t==='players'){updatePlayerListUI(msg.players);return}
 if(msg.t==='go'){mapHue=msg.h!==undefined?msg.h:.55;document.getElementById('lobby').style.display='none';startGame();return}
-if(msg.t==='kick'){roomStatus('ВЫ ИСКЛЮЧЕНЫ ИЗ КОМНАТЫ');setTimeout(()=>location.reload(),1200);return}
 if(msg.t==='p'){updateRemotePlayer(msg.id,msg,msg.nick);return}
 if(msg.t==='e'){applyEnemyState(msg.list);return}
 if(msg.t==='kill'){removeGhostEnemy(msg.eid);return}
@@ -1688,157 +1625,37 @@ else netToHost({t:'chat',nick:myNick,msg:v});
 inp.value='';
 }
 
-function dirConnect(cb){
-if(wsReady){if(cb)cb();return}
-if(ws&&ws.readyState===0)return;
-try{if(ws)ws.close()}catch(e){}
-ws=null;wsReady=false;
-try{ws=new WebSocket(WS_URL)}catch(e){srvStatus('ОШИБКА ПОДКЛЮЧЕНИЯ');return}
-ws.onopen=()=>{
-wsReady=true;
-wsTries=0;
-srvStatus('');
-try{ws.send(JSON.stringify({t:'list'}))}catch(e){}
-if(myServer)dirPublish();
-if(cb)cb();
-};
-ws.onmessage=e=>{
-let m;
-try{m=JSON.parse(e.data)}catch{return}
-if(m.t==='list')renderServers(m.list);
-};
-ws.onerror=()=>{};
-ws.onclose=()=>{
-wsReady=false;
-ws=null;
-if(wsTries++>=5){srvStatus('РЕЕСТР НЕДОСТУПЕН');return}
-if(wsTimer)return;
-wsTimer=setTimeout(()=>{wsTimer=null;dirConnect()},Math.min(2000*wsTries,10000));
-};
-}
-
-function dirPublish(){
-if(!myServer)return;
-if(!wsReady){dirConnect(()=>{if(myServer)dirPublish()});return}
-myServer.wave=currentWave;
-myServer.started=gamePhase!=='menu';
-try{ws.send(JSON.stringify({t:'register',code:myServer.code,name:myServer.name,nick:myServer.nick,wave:myServer.wave,started:myServer.started,since:myServer.since}))}catch(e){}
-}
-
-function dirUnregister(){
-if(!myServer)return;
-if(wsReady&&ws)try{ws.send(JSON.stringify({t:'unregister',code:myServer.code}))}catch(e){}
-myServer=null;
-}
-
-function renderServers(list){
-const el=document.getElementById('serverList');
-if(!el)return;
-shownServers=(list||[]).filter(s=>s&&s.code);
-const cnt=document.getElementById('srvCount');
-if(cnt)cnt.textContent='('+shownServers.length+')';
-el.innerHTML='';
-if(!shownServers.length){
-el.innerHTML='<div id="srvEmpty">Пока никто не играет.<br>Открой свой сервер — друзья увидят его здесь.</div>';
-return;
-}
-for(const s of shownServers){
-const mine=myServer&&s.code===myServer.code;
-const row=document.createElement('div');
-row.className='srvRow'+(mine?' mine':'');
-row.innerHTML='<div class="nm">'+esc(s.name||'Сервер')+'<div class="meta">'+esc(s.nick||'?')+' · '+esc(s.code)+'</div></div><div class="st '+(s.started?'live':'lobby')+'">'+(s.started?('ВОЛНА '+(s.wave||1)):'В ЛОББИ')+'</div>';
-const b=document.createElement('button');
-b.textContent=mine?'ВАШ':'ВОЙТИ';
-if(mine)b.disabled=true;
-else b.onclick=()=>joinServerFromList(s);
-row.appendChild(b);
-el.appendChild(row);
-}
-}
-
-function joinServerFromList(s){
-myNick=sanitizeNick(document.getElementById('nickInput').value);
-document.getElementById('nickInput').value=myNick;
-document.getElementById('roomInput').value=s.code;
-document.getElementById('serverPanel').style.display='none';
-document.getElementById('lobbyMain').style.display='flex';
-initNetwork('client',s.code);
-}
-
-function showServers(){
-document.getElementById('lobbyMain').style.display='none';
-document.getElementById('lobbyRoom').style.display='none';
-document.getElementById('serverPanel').style.display='flex';
-srvStatus('Подключение...');
-let sec=0;
-const t=setInterval(()=>{
-if(wsReady){clearInterval(t);srvStatus('');return}
-sec++;
-srvStatus('Подключение... '+sec+' сек');
-},1000);
-dirConnect(()=>{clearInterval(t);if(wsReady)srvStatus('')});
-}
-
-function hideServers(){
-document.getElementById('serverPanel').style.display='none';
-document.getElementById('lobbyMain').style.display='flex';
-}
-
-document.getElementById('lobbyServers').onclick=showServers;
-document.getElementById('srvBack').onclick=hideServers;
-document.getElementById('srvRefresh').onclick=()=>{
-wsTries=0;
-if(wsReady&&ws)try{ws.send(JSON.stringify({t:'list'}))}catch(e){}
-else dirConnect();
-};
-document.getElementById('srvCreateBtn').onclick=()=>{
-myNick=sanitizeNick(document.getElementById('nickInput').value);
-document.getElementById('nickInput').value=myNick;
-let name=String(document.getElementById('srvName').value||'').trim().slice(0,24);
-if(!name)name='Сервер '+myNick;
-const slug=myNick.replace(/[^a-z0-9\-_]/g,'')||'srv';
-const code=slug+'-'+Math.random().toString(36).slice(2,6);
-myServer={code:code,name:name,nick:myNick,wave:0,started:false,since:Date.now()};
-document.getElementById('serverPanel').style.display='none';
-document.getElementById('lobbyMain').style.display='flex';
-initNetwork('host',code);
-dirConnect(()=>dirPublish());
-if(!hbTimer)hbTimer=setInterval(()=>{if(myServer)dirPublish()},5000);
-};
 document.getElementById('lobbySolo').onclick=()=>{
 myNick=sanitizeNick(document.getElementById('nickInput').value)||'player';
+document.getElementById('nickInput').value=myNick;
 document.getElementById('lobby').style.display='none';
 startGame();
 };
+
 document.getElementById('lobbyHost').onclick=()=>{
 myNick=sanitizeNick(document.getElementById('nickInput').value);
 document.getElementById('nickInput').value=myNick;
-const room=buildRoomCode(myNick);
-myServer={code:room,name:'Комната '+myNick,nick:myNick,wave:0,started:false,since:Date.now()};
-initNetwork('host',room);
-dirConnect(()=>dirPublish());
-if(!hbTimer)hbTimer=setInterval(()=>{if(myServer)dirPublish()},5000);
+lobbyStatus('Создание комнаты...');
+initNetwork('host');
 };
+
 document.getElementById('lobbyJoin').onclick=()=>{
 myNick=sanitizeNick(document.getElementById('nickInput').value);
 document.getElementById('nickInput').value=myNick;
-const room=String(document.getElementById('roomInput').value||'').trim().toLowerCase();
-if(!room){lobbyStatus('Введите код комнаты');return}
+const room=String(document.getElementById('lobbyJoinId').value||'').trim();
+if(!room){lobbyStatus('ВВЕДИТЕ КОД КОМНАТЫ');return}
+lobbyStatus('Подключение к '+room+'...');
 initNetwork('client',room);
 };
+
 document.getElementById('startGameBtn').onclick=()=>{
 if(netRole!=='host')return;
 const h=Math.random();mapHue=h;
 netBroadcast({t:'go',h:h});
 document.getElementById('lobby').style.display='none';
 startGame();
-if(myServer){myServer.started=true;dirPublish()}
 };
-document.getElementById('readyBtn').onclick=()=>{
-if(netRole!=='client')return;
-myReady=!myReady;
-netToHost({t:'ready',ready:myReady});
-};
+
 document.getElementById('copyCodeBtn').onclick=()=>{
 const code=document.getElementById('roomCode').textContent;
 if(!code||code==='----')return;
@@ -1848,11 +1665,14 @@ const old=b.textContent;
 b.textContent='СКОПИРОВАНО';
 setTimeout(()=>b.textContent=old,1200);
 };
+
 document.getElementById('roomBack').onclick=()=>{
-try{dirUnregister()}catch(e){}
 setTimeout(()=>location.reload(),150);
 };
-addEventListener('beforeunload',()=>{try{dirUnregister()}catch(e){}});
+
+addEventListener('beforeunload',()=>{
+try{if(peer)peer.destroy()}catch(e){}
+});
 
 init();
 document.getElementById('startScreen').style.display='none';

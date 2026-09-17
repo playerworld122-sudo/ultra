@@ -105,6 +105,20 @@ button:disabled{opacity:.35;cursor:not-allowed}
 #chatLog .me{color:var(--cyan)}
 #chatLog .dead{color:#888;font-style:italic}
 #chatInput{width:100%;padding:8px;background:rgba(4,0,1,.9);border:1px solid var(--panel-line);color:#fff;font-family:var(--mono);font-size:11px;outline:none;pointer-events:auto}
+#chatToggleBtn{position:fixed;top:14px;right:66px;width:46px;height:46px;background:rgba(6,1,2,.7);border:2px solid var(--panel-line);color:var(--gold);font-size:18px;cursor:pointer;z-index:50;display:none;align-items:center;justify-content:center;clip-path:polygon(0 6px,6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px))}
+#chatModal{position:fixed;inset:0;z-index:400;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.85);backdrop-filter:blur(8px)}
+#chatModalInner{width:min(92vw,500px);background:rgba(8,2,4,.98);border:2px solid var(--panel-line);padding:20px;clip-path:polygon(0 12px,12px 0,calc(100% - 12px) 0,100% 12px,100% calc(100% - 12px),calc(100% - 12px) 100%,12px 100%,0 calc(100% - 12px));box-shadow:0 0 60px rgba(255,23,68,.4)}
+#chatModalTitle{color:var(--gold);font-family:var(--mono);font-size:12px;letter-spacing:.28em;text-align:center;margin-bottom:14px}
+#chatModalLog{max-height:40vh;overflow-y:auto;background:rgba(4,0,1,.85);border:1px solid var(--panel-line);padding:10px;font-size:12px;color:#eee;font-family:var(--mono);margin-bottom:12px;min-height:80px}
+#chatModalLog .w{color:var(--gold);font-weight:700}
+#chatModalLog .me{color:var(--cyan)}
+#chatModalLog .dead{color:#888;font-style:italic}
+#chatModalInput{width:100%;padding:12px;background:rgba(4,0,1,.95);border:2px solid var(--gold);color:#fff;font-family:var(--mono);font-size:14px;outline:none;margin-bottom:10px;clip-path:polygon(0 4px,4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px))}
+#chatModalBtns{display:flex;gap:10px}
+#chatModalSend{flex:1;padding:12px;font-size:13px;border-color:var(--green);color:var(--green);letter-spacing:.2em;font-weight:600}
+#chatModalSend:active{background:var(--green);color:#002a17}
+#chatModalClose{flex:1;padding:12px;font-size:13px;border-color:#555;color:#888;letter-spacing:.2em;font-weight:600}
+#chatModalClose:active{background:#333;color:#fff}
 .lobby-input{padding:13px 16px;background:#0e0508;border:1px solid var(--gold);color:var(--gold);font-family:var(--mono);letter-spacing:1px;outline:none;font-size:13px;transition:all .2s;clip-path:polygon(0 4px,4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px))}
 .lobby-input:focus{border-color:#fff2b0;box-shadow:0 0 0 2px rgba(255,204,51,.25),0 0 20px rgba(255,204,51,.3)}
 .lobby-input::placeholder{color:#6b5a2a}
@@ -223,6 +237,8 @@ h1{font-size:36px}
 #kills{font-size:15px}
 .menu-quick-row input{width:180px;min-width:auto}
 .menu-nick-row input{width:180px}
+#chatBox{display:none !important}
+#chatInput{display:none !important}
 }
 </style>
 </head>
@@ -235,7 +251,7 @@ h1{font-size:36px}
 <div class="menu-header">
 <div class="menu-tag">V1 // MACHINE PROTOCOL</div>
 <h1 class="menu-title">ULTRAKILL</h1>
-<div class="menu-version">3D REBUILD · v2.4</div>
+<div class="menu-version">3D REBUILD · v2.6</div>
 </div>
 <div class="menu-sub">30 WAVES · 4 ZONES · CO-OP</div>
 <div class="menu-divider"></div>
@@ -305,6 +321,7 @@ h1{font-size:36px}
 <div class="btn" id="fireBtn">FIRE</div><div class="btn" id="dashBtn">DASH</div><div class="btn" id="jumpBtn">JUMP</div><div class="btn" id="swapBtn">SWAP</div><div class="btn" id="reloadBtn">RELOAD</div>
 <div id="hint"></div>
 <button id="muteBtn">🔊</button>
+<button id="chatToggleBtn">💬</button>
 <div id="elevatorUI"><div id="floorCounter">-12</div><div id="elevatorStatus">ПОДЪЁМ...</div></div>
 <div id="dialogueBox"><div class="speaker">V1-TRADER</div><div class="text" id="dialogueText"></div><div class="continue">▼ КЛИК / ПРОБЕЛ</div></div>
 <div id="introShop"><h1>ARSENAL</h1><div class="sub" id="introSub"></div><div class="owned" id="introOwned"></div><div id="introItems"></div></div>
@@ -313,7 +330,18 @@ h1{font-size:36px}
 <div id="shop"><h1>ARSENAL</h1><div class="sub" id="shopSub"></div><div class="owned" id="shopOwned"></div><div id="shopItems"></div></div>
 <div id="victory"><h1>VICTORY</h1><div class="sub">30 ВОЛН ПРОЙДЕНО</div><p id="victoryStats" style="color:#fff;font-family:monospace;margin-bottom:30px"></p><div style="display:flex;gap:20px"><button id="restartVictoryBtn">ЗАНОВО</button><button id="endlessBtn" style="border-color:var(--violet);color:var(--violet)">ENDLESS</button></div></div>
 <div id="gameOver"><h1>YOU DIED</h1><p id="finalScore" style="color:#fff;font-size:20px;margin-bottom:24px"></p><button id="restartBtn">RESTART</button></div>
-<div id="chatBox"><div id="chatLog"></div><input id="chatInput" placeholder="Сообщение..." maxlength="120"></div>
+<div id="chatBox"><div id="chatLog"></div></div>
+<div id="chatModal">
+<div id="chatModalInner">
+<div id="chatModalTitle">// ЧАТ</div>
+<div id="chatModalLog"></div>
+<input id="chatModalInput" type="text" placeholder="Сообщение..." maxlength="120" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+<div id="chatModalBtns">
+<button id="chatModalSend">ОТПРАВИТЬ</button>
+<button id="chatModalClose">ЗАКРЫТЬ</button>
+</div>
+</div>
+</div>
 <div id="spectatorHud">ВЫ МЕРТВЫ<span id="spectatorTarget"></span></div>
 <div id="spectatorMobile">
 <button id="specNextBtn">СЛЕДУЮЩИЙ ИГРОК</button>
@@ -387,10 +415,27 @@ let playerDead=false;
 let spectateTarget=null;
 let spectateFreeCamera=false;
 let freeCamVel=new THREE.Vector3();
+let chatModalOpen=false;
 const deadPeers=new Set();
 
 function esc(s){return String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c])}
 function sanitizeNick(s){let n=String(s||'').toLowerCase().replace(/[^a-z0-9а-яё\-_]/gi,'').trim();if(!n)n='player';return n.slice(0,14)}
+function blurActive(){try{const a=document.activeElement;if(a&&a.blur)a.blur()}catch(e){}}
+function closeChatModal(){chatModalOpen=false;const m=document.getElementById('chatModal');if(m)m.style.display='none';const i=document.getElementById('chatModalInput');if(i){i.blur();i.value=''}}
+function openChatModal(){if(netRole==='single')return;chatModalOpen=true;const m=document.getElementById('chatModal');if(m)m.style.display='flex';const i=document.getElementById('chatModalInput');if(i)setTimeout(()=>i.focus(),80);syncChatModalLog()}
+function syncChatModalLog(){const src=document.getElementById('chatLog');const dst=document.getElementById('chatModalLog');if(src&&dst)dst.innerHTML=src.innerHTML}
+
+document.addEventListener('focusin',e=>{
+if(e.target&&e.target.id==='chatModalInput'){if(!chatModalOpen)e.target.blur();return}
+if(e.target&&(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')){
+if(e.target.closest&&!e.target.closest('#lobby')&&!e.target.closest('#chatModal')){e.target.blur()}
+}
+},true);
+
+document.addEventListener('touchstart',e=>{
+const t=e.target;
+if(t&&t.tagName==='BUTTON'&&!t.closest('#chatModal')&&!t.closest('#lobby')){blurActive()}
+},true);
 
 function init(){
 isMobile=('ontouchstart' in window)&&navigator.maxTouchPoints>0;
@@ -415,12 +460,19 @@ genMap(0);
 weaponGroup=new THREE.Group();camera.add(weaponGroup);scene.add(camera);buildWeapon(0);
 addEventListener('resize',onResize);
 addEventListener('keydown',e=>{if(e.code==='Insert'){e.preventDefault();jumpToWave30()}});
-document.getElementById('muteBtn').onclick=e=>{e.stopPropagation();SFX.init();SFX.resume();SFX.muted=!SFX.muted;e.target.textContent=SFX.muted?'🔇':'🔊';e.target.classList.toggle('muted',SFX.muted)};
+document.getElementById('muteBtn').onclick=e=>{e.stopPropagation();blurActive();SFX.init();SFX.resume();SFX.muted=!SFX.muted;e.target.textContent=SFX.muted?'🔇':'🔊';e.target.classList.toggle('muted',SFX.muted)};
+const ctb=document.getElementById('chatToggleBtn');
+if(ctb)ctb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();blurActive();if(chatModalOpen)closeChatModal();else openChatModal()});
+const cms=document.getElementById('chatModalSend');
+if(cms)cms.addEventListener('click',e=>{e.stopPropagation();sendChat();closeChatModal()});
+const cmc=document.getElementById('chatModalClose');
+if(cmc)cmc.addEventListener('click',e=>{e.stopPropagation();closeChatModal()});
+const cmi=document.getElementById('chatModalInput');
+if(cmi)cmi.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();sendChat();closeChatModal()}});
 document.getElementById('startBtn').onclick=startGame;
 document.getElementById('restartBtn').onclick=restart;
 document.getElementById('restartVictoryBtn').onclick=restart;
 document.getElementById('endlessBtn').onclick=()=>{endlessMode=true;document.getElementById('victory').style.display='none';gameRunning=true;startWave(MAX_WAVES+1)};
-document.getElementById('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();sendChat()}});
 addEventListener('pointerdown',e=>{if(playerDead&&e.target&&e.target.tagName!=='INPUT'&&e.target.tagName!=='BUTTON')pickSpectateTarget()});
 initLobbyParticles();
 animate();
@@ -701,7 +753,7 @@ document.addEventListener('touchstart',dialogueAdvanceHandler,{passive:true});
 
 function dialogueAdvanceHandler(e){
 if(gamePhase!=='dialogue')return;
-if(e.target&&e.target.closest){if(e.target.closest('.introItem')||e.target.closest('.shopItem')||e.target.closest('#startScreen')||e.target.closest('#gameOver')||e.target.closest('#victory')||e.target.closest('#muteBtn')||e.target.closest('#chatBox'))return}
+if(e.target&&e.target.closest){if(e.target.closest('.introItem')||e.target.closest('.shopItem')||e.target.closest('#startScreen')||e.target.closest('#gameOver')||e.target.closest('#victory')||e.target.closest('#muteBtn')||e.target.closest('#chatModal'))return}
 if(e.type==='keydown'){if(e.code!=='Space'&&e.code!=='Enter')return;e.preventDefault()}
 dialogueState.lineIdx++;
 if(dialogueState.lineIdx<dialogueState.lines.length){document.getElementById('dialogueText').textContent=dialogueState.lines[dialogueState.lineIdx];SFX.dialogueBlip()}
@@ -1055,12 +1107,13 @@ function setupDesktopControls(){
 if(desktopControlsReady)return;desktopControlsReady=true;
 document.getElementById('hint').textContent='WASD · МЫШЬ · ЛКМ · R · Q · SHIFT · ПРОБЕЛ · F — СПЕКТАТОР';
 addEventListener('keydown',e=>{
-if(e.target&&e.target.id==='chatInput')return;
+if(e.target&&e.target.id==='chatModalInput')return;
 if(playerDead&&e.code==='Space'){e.preventDefault();pickSpectateTarget();return}
 if(playerDead&&e.code==='KeyF'){e.preventDefault();spectateFreeCamera=!spectateFreeCamera;const el=document.getElementById('specFreeBtn');if(el)el.textContent=spectateFreeCamera?'СЛЕДИТЬ ЗА ИГРОКОМ':'СВОБОДНАЯ КАМЕРА';return}
 keys[e.code]=true;if(e.code==='Space')e.preventDefault();
 if(e.code==='KeyQ'&&gamePhase==='playing'&&!playerDead)swapWeapon();
 if(e.code==='KeyR'&&gamePhase==='playing'&&!playerDead)startReload();
+if(e.code==='Enter'&&gamePhase==='playing'&&netRole!=='single'){e.preventDefault();openChatModal()}
 });
 addEventListener('keyup',e=>keys[e.code]=false);
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false});
@@ -1069,7 +1122,7 @@ renderer.domElement.addEventListener('click',()=>{if(gamePhase==='playing'&&!poi
 ctp.addEventListener('click',()=>{if(gamePhase==='playing'&&!pointerLocked&&!playerDead)renderer.domElement.requestPointerLock()});
 document.addEventListener('pointerlockchange',()=>{pointerLocked=document.pointerLockElement===renderer.domElement;ctp.style.display=(gamePhase==='playing'&&!pointerLocked&&!playerDead)?'flex':'none'});
 document.addEventListener('mousemove',e=>{if(pointerLocked){yaw-=e.movementX*.0022;pitch-=e.movementY*.0022;pitch=Math.max(-Math.PI/2+.05,Math.min(Math.PI/2-.05,pitch))}});
-document.addEventListener('mousedown',e=>{if(e.target&&e.target.id==='chatInput')return;if(e.button===0&&pointerLocked&&!playerDead)mouseDown=true;if(e.button===2&&pointerLocked&&!playerDead)startReload()});
+document.addEventListener('mousedown',e=>{if(e.target&&(e.target.id==='chatModalInput'||e.target.closest&&e.target.closest('#chatModal')))return;if(e.button===0&&pointerLocked&&!playerDead)mouseDown=true;if(e.button===2&&pointerLocked&&!playerDead)startReload()});
 document.addEventListener('mouseup',e=>{if(e.button===0)mouseDown=false});
 document.addEventListener('contextmenu',e=>{if(pointerLocked)e.preventDefault()});
 }
@@ -1080,26 +1133,26 @@ document.getElementById('hint').textContent='ДЖОЙСТИК · ПРАВО — 
 const joy=document.getElementById('joystick'),knob=document.getElementById('joystickKnob'),look=document.getElementById('lookArea');
 const fb=document.getElementById('fireBtn'),db=document.getElementById('dashBtn'),jb=document.getElementById('jumpBtn'),sb=document.getElementById('swapBtn'),rb=document.getElementById('reloadBtn');
 const JR=50;let jp=null,jc={x:0,y:0};
-joy.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();jp=e.pointerId;try{joy.setPointerCapture(e.pointerId)}catch(_){}const r=joy.getBoundingClientRect();jc={x:r.left+r.width/2,y:r.top+r.height/2};uj(e.clientX,e.clientY)});
+joy.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();blurActive();jp=e.pointerId;try{joy.setPointerCapture(e.pointerId)}catch(_){}const r=joy.getBoundingClientRect();jc={x:r.left+r.width/2,y:r.top+r.height/2};uj(e.clientX,e.clientY)});
 joy.addEventListener('pointermove',e=>{if(e.pointerId!==jp)return;e.preventDefault();uj(e.clientX,e.clientY)});
 function ej(e){if(e.pointerId!==jp)return;jp=null;joyInput.x=0;joyInput.y=0;knob.style.transform='translate(-50%,-50%)'}
 joy.addEventListener('pointerup',ej);joy.addEventListener('pointercancel',ej);
 function uj(cx,cy){let dx=cx-jc.x,dy=cy-jc.y;const d=Math.hypot(dx,dy);if(d>JR){dx=dx/d*JR;dy=dy/d*JR}knob.style.transform=`translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;joyInput.x=dx/JR;joyInput.y=dy/JR}
 let lp=null,ll={x:0,y:0};
-look.addEventListener('pointerdown',e=>{e.preventDefault();if(lp!==null)return;lp=e.pointerId;try{look.setPointerCapture(e.pointerId)}catch(_){}ll={x:e.clientX,y:e.clientY}});
+look.addEventListener('pointerdown',e=>{e.preventDefault();blurActive();if(lp!==null)return;lp=e.pointerId;try{look.setPointerCapture(e.pointerId)}catch(_){}ll={x:e.clientX,y:e.clientY}});
 look.addEventListener('pointermove',e=>{if(e.pointerId!==lp)return;e.preventDefault();yaw-=(e.clientX-ll.x)*.0055;pitch-=(e.clientY-ll.y)*.0055;pitch=Math.max(-Math.PI/2+.05,Math.min(Math.PI/2-.05,pitch));ll={x:e.clientX,y:e.clientY}});
 function el(e){if(e.pointerId!==lp)return;lp=null}
 look.addEventListener('pointerup',el);look.addEventListener('pointercancel',el);
-fb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();fireHold=true;if(!playerDead)shoot()});
+fb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();blurActive();fireHold=true;if(!playerDead)shoot()});
 fb.addEventListener('pointerup',()=>fireHold=false);fb.addEventListener('pointercancel',()=>fireHold=false);
-db.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(!playerDead)doDash()});
-jb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(!playerDead)doJump()});
-sb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(!playerDead)swapWeapon()});
-rb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(!playerDead)startReload()});
+db.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();blurActive();if(!playerDead)doDash()});
+jb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();blurActive();if(!playerDead)doJump()});
+sb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();blurActive();if(!playerDead)swapWeapon()});
+rb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();blurActive();if(!playerDead)startReload()});
 const specNext=document.getElementById('specNextBtn');
 const specFree=document.getElementById('specFreeBtn');
-if(specNext)specNext.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();pickSpectateTarget()});
-if(specFree)specFree.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();spectateFreeCamera=!spectateFreeCamera;specFree.textContent=spectateFreeCamera?'СЛЕДИТЬ ЗА ИГРОКОМ':'СВОБОДНАЯ КАМЕРА'});
+if(specNext)specNext.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();blurActive();pickSpectateTarget()});
+if(specFree)specFree.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();blurActive();spectateFreeCamera=!spectateFreeCamera;specFree.textContent=spectateFreeCamera?'СЛЕДИТЬ ЗА ИГРОКОМ':'СВОБОДНАЯ КАМЕРА'});
 }
 
 function doJump(){if(onGround&&gamePhase==='playing'&&waveInProgress&&!playerDead){velocityY=JUMP_SPEED;onGround=false;SFX.jump()}}
@@ -1276,7 +1329,7 @@ weaponReloadTilt=Math.sin(pct*Math.PI)*.6;
 if(pct>=1)finishReload();
 }else{weaponReloadTilt*=.8;if(weaponReloadTilt<.001)weaponReloadTilt=0}
 
-const chatActive=document.activeElement&&document.activeElement.id==='chatInput';
+const chatActive=chatModalOpen;
 if(!isMobile){
 if(!chatActive&&!playerDead){
 if(keys['Space']&&gamePhase==='playing'){doJump();keys['Space']=false}
@@ -1905,7 +1958,7 @@ function showChat(){
 if(netRole==='single')return;
 const cb=document.getElementById('chatBox');
 if(cb)cb.style.display='block';
-if(isMobile&&cb){cb.style.bottom='';cb.style.right='';cb.style.top='90px';cb.style.left='12px';cb.style.width='220px'}
+if(isMobile){const ctb=document.getElementById('chatToggleBtn');if(ctb)ctb.style.display='flex'}
 }
 
 function addChat(who,msg,isMe,isDead){
@@ -1917,10 +1970,11 @@ d.innerHTML='<span class="'+cls+'">'+esc(who)+':</span> '+esc(msg);
 el.appendChild(d);
 el.scrollTop=el.scrollHeight;
 while(el.children.length>30)el.removeChild(el.firstChild);
+syncChatModalLog();
 }
 
 function sendChat(){
-const inp=document.getElementById('chatInput');
+const inp=document.getElementById('chatModalInput');
 if(!inp)return;
 const v=inp.value.trim();
 if(!v)return;

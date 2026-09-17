@@ -1628,22 +1628,19 @@ if(r)r.textContent=netRole==='single'?'СОЛО':(netRole==='host'?'ХОСТ':'�
 async function publishServer(){
 if(!myRoomCode)return;
 const payload={code:myRoomCode,name:myServerName,nick:myNick,wave:currentWave,started:(gamePhase!=='menu'&&gamePhase!=='lobby'),ts:Date.now()};
-try{await fetch('https://ntfy.sh/'+NTFY_TOPIC,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})}catch(e){console.warn('[NTFY]',e)}
-try{const k='uk3d_srv_'+myRoomCode;localStorage.setItem(k,JSON.stringify(payload));localStorage.setItem(k+'_exp',String(payload.ts+120000))}catch(e){}
+try{await fetch('https://ntfy.sh/'+NTFY_TOPIC,{method:'POST',headers:{'Content-Type':'text/plain','Cache-Control':'no-cache'},body:JSON.stringify(payload)})}catch(e){console.warn('[NTFY publish]',e)}
 }
 function publishServerUpdate(){if(netRole==='host'&&myRoomCode)publishServer()}
 function startServerHeartbeat(){stopServerHeartbeat();if(netRole!=='host'||!myRoomCode)return;heartbeatTimer=setInterval(()=>{if(myRoomCode)publishServer()},15000)}
-function stopServerHeartbeat(){if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=null}if(myRoomCode){try{localStorage.removeItem('uk3d_srv_'+myRoomCode);localStorage.removeItem('uk3d_srv_'+myRoomCode+'_exp')}catch(e){}}}
+function stopServerHeartbeat(){if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=null}}
 
 async function pollServers(){
 const map={};
 const now=Date.now();
 try{
-const ctrl=typeof AbortController!=='undefined'?new AbortController():null;
-let timer=ctrl?setTimeout(()=>ctrl.abort(),7000):null;
-const r=await fetch('https://ntfy.sh/'+NTFY_TOPIC+'/json?poll=1&since=90s',ctrl?{signal:ctrl.signal}:{});
-if(timer)clearTimeout(timer);
-const text=await r.text();
+const r=await fetch('https://ntfy.sh/'+NTFY_TOPIC+'/json?poll=1&since=90s',{cache:'no-store'});
+const buf=await r.arrayBuffer();
+const text=new TextDecoder().decode(buf);
 for(const line of text.trim().split('\n').filter(Boolean)){
 try{
 const m=JSON.parse(line);
@@ -1654,7 +1651,7 @@ if(now-info.ts>120000)continue;
 if(!map[info.code]||map[info.code].ts<info.ts)map[info.code]=info;
 }catch(e){}
 }
-}catch(e){console.warn('[NTFY]',e);srvStatus('ОШИБКА СВЯЗИ');}
+}catch(e){console.warn('[NTFY poll]',e);srvStatus('ОШИБКА СВЯЗИ');}
 const list=Object.values(map).sort((a,b)=>b.ts-a.ts);
 renderServerList(list);
 }

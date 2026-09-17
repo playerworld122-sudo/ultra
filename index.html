@@ -92,11 +92,29 @@ button:disabled{opacity:.35;cursor:not-allowed}
 #muteBtn.muted{color:#555;border-color:#333}
 .sub{color:#888;font-size:13px;font-family:var(--mono);margin-bottom:20px;letter-spacing:.2em}
 .owned{color:var(--gold);font-family:var(--mono);font-size:12px;margin-bottom:20px}
-#chatBox{position:fixed;bottom:12px;right:12px;width:300px;z-index:170;font-family:var(--mono);display:none;pointer-events:none}
-#chatLog{max-height:130px;overflow-y:auto;background:rgba(4,0,1,.82);border:1px solid var(--panel-line);padding:6px;font-size:11px;color:#eee;margin-bottom:4px;pointer-events:auto}
+#chatToggle{position:fixed;top:64px;left:12px;width:48px;height:48px;background:rgba(6,1,2,.85);border:1px solid var(--panel-line);color:var(--gold);font-size:22px;cursor:pointer;z-index:171;display:none;align-items:center;justify-content:center;border-radius:50%;touch-action:none;user-select:none}
+#chatToggle:active{background:var(--gold);color:#2a1e00}
+#chatToggle.badge::after{content:'';position:absolute;top:2px;right:2px;width:12px;height:12px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);animation:bk .8s infinite}
+#chatToggle.open{background:var(--red);color:#0a0002;border-color:var(--red)}
+#chatPanel{position:fixed;top:120px;left:12px;width:min(92vw,340px);max-height:60vh;background:rgba(4,0,1,.95);border:1px solid var(--panel-line);z-index:172;display:none;flex-direction:column;box-shadow:0 0 24px rgba(255,23,68,.3)}
+#chatPanel.open{display:flex}
+#chatPanel::before,#chatPanel::after{content:'';position:absolute;width:14px;height:14px}
+#chatPanel::before{top:-1px;left:-1px;border-top:2px solid var(--red);border-left:2px solid var(--red)}
+#chatPanel::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--red);border-right:2px solid var(--red)}
+#chatPanelHeader{padding:8px 12px;background:rgba(255,23,68,.12);border-bottom:1px solid var(--panel-line);color:var(--red);font-family:var(--mono);font-size:11px;letter-spacing:.2em;display:flex;align-items:center;justify-content:space-between}
+#chatClose{background:transparent;border:none;color:var(--red);font-size:16px;padding:0 6px;cursor:pointer;letter-spacing:0}
+#chatClose:hover{background:var(--red);color:#0a0002;box-shadow:none}
+#chatLog{max-height:40vh;overflow-y:auto;background:rgba(4,0,1,.85);padding:8px;font-size:12px;color:#eee;font-family:var(--mono);flex:1;min-height:60px}
 #chatLog .w{color:var(--gold);font-weight:700}
 #chatLog .me{color:var(--cyan)}
-#chatInput{width:100%;padding:6px;background:rgba(4,0,1,.9);border:1px solid var(--panel-line);color:#fff;font-family:var(--mono);font-size:11px;outline:none;pointer-events:auto}
+#chatLog .sys{color:#888;font-style:italic}
+#chatLog::-webkit-scrollbar{width:6px}
+#chatLog::-webkit-scrollbar-thumb{background:var(--red)}
+#chatInputRow{display:flex;gap:6px;padding:8px;border-top:1px solid var(--panel-line);background:rgba(6,1,2,.9)}
+#chatInput{flex:1;padding:10px 12px;background:rgba(4,0,1,.95);border:1px solid var(--panel-line);color:#fff;font-family:var(--mono);font-size:16px;outline:none;min-width:0}
+#chatInput:focus{border-color:var(--red)}
+#chatSend{padding:10px 16px;font-size:12px;letter-spacing:.1em;background:rgba(20,4,7,.6);border:1px solid var(--red);color:var(--red);cursor:pointer}
+#chatSend:hover{background:var(--red);color:#0a0002}
 .lobby-input{padding:12px 14px;background:#0e0508;border:1px solid var(--panel-line);color:#fff;font-family:var(--mono);letter-spacing:1px;outline:none;font-size:13px;transition:border-color .15s}
 .lobby-input:focus{border-color:var(--red);box-shadow:0 0 0 2px rgba(255,23,68,.2)}
 .lobby-input::placeholder{color:#5a3038}
@@ -223,6 +241,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
   .panel-title{font-size:20px}
   h1{font-size:36px}
   #lobbyFooter{padding:0 16px;font-size:9px}
+  #chatPanel{width:calc(100vw - 24px);left:12px}
 }
 </style>
 </head>
@@ -375,6 +394,20 @@ button:disabled{opacity:.35;cursor:not-allowed}
 <div class="btn" id="fireBtn">FIRE</div><div class="btn" id="dashBtn">DASH</div><div class="btn" id="jumpBtn">JUMP</div><div class="btn" id="swapBtn">SWAP</div><div class="btn" id="reloadBtn">RELOAD</div>
 <div id="hint"></div>
 <button id="muteBtn">🔊</button>
+
+<button id="chatToggle">💬</button>
+<div id="chatPanel">
+  <div id="chatPanelHeader">
+    <span>ЧАТ</span>
+    <button id="chatClose">✕</button>
+  </div>
+  <div id="chatLog"></div>
+  <div id="chatInputRow">
+    <input id="chatInput" placeholder="сообщение..." maxlength="120" enterkeyhint="send" autocomplete="off">
+    <button id="chatSend">ОК</button>
+  </div>
+</div>
+
 <div id="elevatorUI"><div id="floorCounter">-12</div><div id="elevatorStatus">ПОДЪЁМ...</div></div>
 <div id="dialogueBox"><div class="speaker">V1-TRADER</div><div class="text" id="dialogueText"></div><div class="continue">▼ КЛИК / ПРОБЕЛ</div></div>
 <div id="introShop"><h1>ARSENAL</h1><div class="sub" id="introSub"></div><div class="owned" id="introOwned"></div><div id="introItems"></div></div>
@@ -382,7 +415,6 @@ button:disabled{opacity:.35;cursor:not-allowed}
 <div id="shop"><h1>ARSENAL</h1><div class="sub" id="shopSub"></div><div class="owned" id="shopOwned"></div><div id="shopItems"></div></div>
 <div id="victory"><h1>VICTORY</h1><div class="sub">30 ВОЛН ПРОЙДЕНО</div><p id="victoryStats" style="color:#fff;font-family:monospace;margin-bottom:30px"></p><div style="display:flex;gap:20px"><button id="restartVictoryBtn">ЗАНОВО</button><button id="endlessBtn" style="border-color:var(--violet);color:var(--violet)">ENDLESS</button></div></div>
 <div id="gameOver"><h1>YOU DIED</h1><p id="finalScore" style="color:#fff;font-size:20px;margin-bottom:24px"></p><button id="restartBtn">RESTART</button></div>
-<div id="chatBox"><div id="chatLog"></div><input id="chatInput" placeholder="Сообщение..." maxlength="120"></div>
 <div id="spectatorHud">ВЫ МЕРТВЫ<span id="spectatorTarget"></span><div class="sub2">[ПРОБЕЛ] — СМЕНИТЬ ИГРОКА</div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -458,6 +490,7 @@ let playerDead=false;
 let spectateTarget=null;
 const deadPeers=new Set();
 let mouseSens=1.0;
+let chatOpen=false;
 
 function esc(s){return String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c])}
 function sanitizeNick(s){let n=String(s||'').toLowerCase().replace(/[^a-z0-9а-яё\-_]/gi,'').trim();if(!n)n='player';return n.slice(0,14)}
@@ -483,12 +516,57 @@ document.getElementById('muteBtn').onclick=e=>{e.stopPropagation();SFX.init();SF
 document.getElementById('restartBtn').onclick=restart;
 document.getElementById('restartVictoryBtn').onclick=restart;
 document.getElementById('endlessBtn').onclick=startEndless;
-document.getElementById('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();sendChat()}});
-addEventListener('pointerdown',e=>{if(playerDead&&e.target&&e.target.tagName!=='INPUT')pickSpectateTarget()});
+addEventListener('pointerdown',e=>{if(playerDead&&e.target&&e.target.tagName!=='INPUT'&&!e.target.closest('#chatPanel')&&!e.target.closest('#chatToggle'))pickSpectateTarget()});
 setupLobbyTabs();
 setupLobbyButtons();
 setupSettingsUI();
+setupChatUI();
 animate();
+}
+
+function setupChatUI(){
+const toggle=document.getElementById('chatToggle');
+const panel=document.getElementById('chatPanel');
+const closeBtn=document.getElementById('chatClose');
+const sendBtn=document.getElementById('chatSend');
+const inp=document.getElementById('chatInput');
+function openChat(){
+chatOpen=true;
+panel.classList.add('open');
+toggle.classList.add('open');
+toggle.classList.remove('badge');
+setTimeout(()=>{try{inp.focus()}catch(_){}},80);
+}
+function closeChat(){
+chatOpen=false;
+panel.classList.remove('open');
+toggle.classList.remove('open');
+try{inp.blur()}catch(_){}
+}
+toggle.addEventListener('click',e=>{
+e.stopPropagation();
+if(chatOpen)closeChat();else openChat();
+});
+closeBtn.addEventListener('click',e=>{e.stopPropagation();closeChat()});
+sendBtn.addEventListener('click',e=>{e.stopPropagation();doSendChat()});
+inp.addEventListener('keydown',e=>{
+if(e.key==='Enter'){e.preventDefault();doSendChat()}
+e.stopPropagation();
+});
+inp.addEventListener('keyup',e=>e.stopPropagation());
+inp.addEventListener('focus',e=>e.stopPropagation());
+inp.addEventListener('pointerdown',e=>e.stopPropagation());
+panel.addEventListener('pointerdown',e=>e.stopPropagation());
+}
+
+function doSendChat(){
+const inp=document.getElementById('chatInput');
+if(!inp)return;
+const v=inp.value.trim();
+if(!v){inp.value='';return}
+sendChat(v);
+inp.value='';
+try{inp.focus()}catch(_){}
 }
 
 function setNetStatus(ok,text){
@@ -832,7 +910,7 @@ document.addEventListener('touchstart',dialogueAdvanceHandler,{passive:true});
 
 function dialogueAdvanceHandler(e){
 if(gamePhase!=='dialogue')return;
-if(e.target&&e.target.closest){if(e.target.closest('.introItem')||e.target.closest('.shopItem')||e.target.closest('#gameOver')||e.target.closest('#victory')||e.target.closest('#muteBtn')||e.target.closest('#chatBox'))return}
+if(e.target&&e.target.closest){if(e.target.closest('.introItem')||e.target.closest('.shopItem')||e.target.closest('#gameOver')||e.target.closest('#victory')||e.target.closest('#muteBtn')||e.target.closest('#chatPanel')||e.target.closest('#chatToggle'))return}
 if(e.type==='keydown'){if(e.code!=='Space'&&e.code!=='Enter')return;e.preventDefault()}
 dialogueState.lineIdx++;
 if(dialogueState.lineIdx<dialogueState.lines.length){document.getElementById('dialogueText').textContent=dialogueState.lines[dialogueState.lineIdx];SFX.dialogueBlip()}
@@ -1113,15 +1191,32 @@ if(e.minionCooldown<=0){const c=2+Math.floor(Math.random()*2);for(let i=0;i<c;i+
 if(e.dashTimer>0){e.dashTimer--;e.mesh.position.x+=e.dashVX;e.mesh.position.z+=e.dashVZ;const l=ARENA-3;e.mesh.position.x=Math.max(-l,Math.min(l,e.mesh.position.x));e.mesh.position.z=Math.max(-l,Math.min(l,e.mesh.position.z))}
 }
 
-function onEnemyKilled(e){
+function healKiller(killerId,amount){
+if(!killerId||killerId===myPeerId){
+player.hp=Math.min(player.maxHp,player.hp+(amount>=9999?player.maxHp:amount));
+return;
+}
+if(netRole==='host'){
+const c=clientConns.find(c=>c.peer===killerId);
+if(c&&c.open){try{c.send({t:'heal',amount:amount})}catch(e){}}
+}
+}
+
+function onEnemyKilled(e,killerId){
 if(e.isBoss){
 const rb=enemies.filter(x=>x.isBoss&&x!==e).length;
 if(rb===0){boss=null;document.getElementById('bossBar').style.display='none';document.getElementById('bossName').style.display='none';
 for(const x of enemies)if(!x.isBoss){spawnBloodAt(x.mesh.position,20);scene.remove(x.mesh)}
 enemies=enemies.filter(x=>x.isBoss)}
-player.hp=player.maxHp;addStyle(500);SFX.bossDie();
-}else{addStyle(80);SFX.kill()}
-player.hp=Math.min(player.maxHp,player.hp+15);kills++;
+healKiller(killerId,9999);
+if(!killerId||killerId===myPeerId)addStyle(500);
+SFX.bossDie();
+}else{
+healKiller(killerId,15);
+if(!killerId||killerId===myPeerId)addStyle(80);
+SFX.kill();
+}
+if(!killerId||killerId===myPeerId)kills++;
 if(waveActive&&enemies.length===0)completeWave();
 }
 
@@ -1186,13 +1281,13 @@ if(netRole!=='client')startWave(currentWave+1);
 
 function setupDesktopControls(){
 if(desktopControlsReady)return;desktopControlsReady=true;
-document.getElementById('hint').textContent='WASD · МЫШЬ · ЛКМ · R · Q · SHIFT · ПРОБЕЛ · ENTER — ЧАТ';
+document.getElementById('hint').textContent='WASD · МЫШЬ · ЛКМ · R · Q · SHIFT · ПРОБЕЛ';
 addEventListener('keydown',e=>{if(e.target&&e.target.id==='chatInput')return;if(playerDead&&e.code==='Space'){e.preventDefault();pickSpectateTarget();return}keys[e.code]=true;if(e.code==='Space')e.preventDefault();if(e.code==='KeyQ'&&gamePhase==='playing')swapWeapon();if(e.code==='KeyR'&&gamePhase==='playing')startReload()});
 addEventListener('keyup',e=>keys[e.code]=false);
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false});
 const ctp=document.getElementById('clickToPlay');
-renderer.domElement.addEventListener('click',()=>{if(gamePhase==='playing'&&!pointerLocked&&!playerDead)try{renderer.domElement.requestPointerLock()}catch(e){}});
-ctp.addEventListener('click',()=>{if(gamePhase==='playing'&&!pointerLocked&&!playerDead)try{renderer.domElement.requestPointerLock()}catch(e){}});
+renderer.domElement.addEventListener('click',()=>{if(gamePhase==='playing'&&!pointerLocked&&!playerDead&&!chatOpen)try{renderer.domElement.requestPointerLock()}catch(e){}});
+ctp.addEventListener('click',()=>{if(gamePhase==='playing'&&!pointerLocked&&!playerDead&&!chatOpen)try{renderer.domElement.requestPointerLock()}catch(e){}});
 document.addEventListener('pointerlockchange',()=>{pointerLocked=document.pointerLockElement===renderer.domElement;ctp.style.display=(gamePhase==='playing'&&!pointerLocked&&!playerDead)?'flex':'none'});
 document.addEventListener('mousemove',e=>{if(pointerLocked&&!playerDead){yaw-=e.movementX*.0022*mouseSens;pitch-=e.movementY*.0022*mouseSens;pitch=Math.max(-Math.PI/2+.05,Math.min(Math.PI/2-.05,pitch))}});
 document.addEventListener('mousedown',e=>{if(e.target&&e.target.id==='chatInput')return;if(e.button===0&&pointerLocked&&!playerDead)mouseDown=true;if(e.button===2&&pointerLocked&&!playerDead)startReload()});
@@ -1202,7 +1297,7 @@ document.addEventListener('contextmenu',e=>{if(pointerLocked)e.preventDefault()}
 
 function setupMobileControls(){
 if(mobileControlsReady)return;mobileControlsReady=true;
-document.getElementById('hint').textContent='ДЖОЙСТИК · ПРАВО — ОБЗОР';
+document.getElementById('hint').textContent='ДЖОЙСТИК · ПРАВО — ОБЗОР · 💬 — ЧАТ';
 const joy=document.getElementById('joystick'),knob=document.getElementById('joystickKnob'),look=document.getElementById('lookArea');
 const fb=document.getElementById('fireBtn'),db=document.getElementById('dashBtn'),jb=document.getElementById('jumpBtn'),sb=document.getElementById('swapBtn'),rb=document.getElementById('reloadBtn');
 const JR=50;let jp=null,jc={x:0,y:0};
@@ -1260,7 +1355,7 @@ dir.x+=(Math.random()-.5)*W.spread;dir.y+=(Math.random()-.5)*W.spread;dir.z+=(Ma
 const o=camera.position.clone();const ray=new THREE.Raycaster(o,dir);ray.far=120;
 let ce=null,cd=Infinity,hp=null;
 for(const e of enemies){const box=new THREE.Box3().setFromObject(e.mesh);const pt=new THREE.Vector3();if(ray.ray.intersectBox(box,pt)){const d=o.distanceTo(pt);if(d<cd){cd=d;ce=e;hp=pt}}}
-if(ce){ce.hp-=W.damage;ce.hitFlash=6;addStyle(10);spawnBloodAt(hp||ce.mesh.position,8);if(ce.isBoss)SFX.bossHit();else SFX.hit();if(ce.hp<=0)killEnemy(ce)}
+if(ce){ce.hp-=W.damage;ce.hitFlash=6;addStyle(10);spawnBloodAt(hp||ce.mesh.position,8);if(ce.isBoss)SFX.bossHit();else SFX.hit();if(ce.hp<=0)killEnemy(ce,null)}
 else{const fp=new THREE.Plane(new THREE.Vector3(0,1,0),0);const pt=new THREE.Vector3();if(ray.ray.intersectPlane(fp,pt))spawnSparksAt(pt,3)}
 }
 if(muzzleFlash)muzzleFlash.material.opacity=1;
@@ -1269,13 +1364,13 @@ weaponRecoil=W.recoil;
 if(c===0)startReload();
 }
 
-function killEnemy(e){
+function killEnemy(e,killerId){
 spawnBloodAt(e.mesh.position,e.isBoss?120:30);
 scene.remove(e.mesh);
 e.mesh.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){if(Array.isArray(o.material))o.material.forEach(m=>m.dispose());else o.material.dispose()}});
 const i=enemies.indexOf(e);if(i>=0)enemies.splice(i,1);
-onEnemyKilled(e);
-if(netRole==='host'&&e.netId)netBroadcast({t:'kill',eid:e.netId});
+onEnemyKilled(e,killerId);
+if(netRole==='host'&&e.netId)netBroadcast({t:'kill',eid:e.netId,killer:killerId||null});
 }
 
 function spawnBloodAt(p,c){
@@ -1365,7 +1460,7 @@ if((keys['ShiftLeft']||keys['ShiftRight'])&&gamePhase==='playing'){doDash();keys
 if(mouseDown&&pointerLocked&&gamePhase==='playing'){const W=WP[currentWeaponIdx];if(W.auto)shoot();else{if(!shoot._lr){shoot();shoot._lr=true}}}else shoot._lr=false;
 }
 }else{
-if(fireHold&&!playerDead&&gamePhase==='playing'){const W=WP[currentWeaponIdx];if(W.auto)shoot();else{if(!shoot._lr){shoot();shoot._lr=true}}}else shoot._lr=false;
+if(fireHold&&!playerDead&&gamePhase==='playing'&&!chatOpen){const W=WP[currentWeaponIdx];if(W.auto)shoot();else{if(!shoot._lr){shoot();shoot._lr=true}}}else shoot._lr=false;
 }
 
 const wd=weaponGroup&&weaponGroup.userData;
@@ -1673,12 +1768,8 @@ addServerToCache(info);
 renderCachedServers();
 }catch(err){}
 });
-sseConn.addEventListener('error',()=>{
-// EventSource auto-reconnects. Silent here.
-});
-}catch(e){
-console.warn('[SSE] failed',e);
-}
+sseConn.addEventListener('error',()=>{});
+}catch(e){console.warn('[SSE] failed',e)}
 }
 function stopServerSSE(){
 if(sseConn){try{sseConn.close()}catch(e){}sseConn=null}
@@ -1690,9 +1781,7 @@ srvError(null);
 srvStatus('Загрузка списка серверов...');
 fetchRecentServers(false);
 startServerSSE();
-pollTimer=setInterval(()=>{
-fetchRecentServers(false);
-},NTFY_POLL_INTERVAL);
+pollTimer=setInterval(()=>{fetchRecentServers(false)},NTFY_POLL_INTERVAL);
 }
 function stopServerPolling(){
 if(pollTimer){clearInterval(pollTimer);pollTimer=null}
@@ -1936,7 +2025,7 @@ return;
 }
 if(msg.t==='shoot'){
 if(deadPeers.has(conn.peer))return;
-hostHandleClientShot(msg);
+hostHandleClientShot(msg,conn.peer);
 return;
 }
 if(msg.t==='dead'){
@@ -1962,12 +2051,13 @@ if(msg.t==='p'){updateRemotePlayer(msg.id,msg,msg.nick);return}
 if(msg.t==='e'){applyEnemyState(msg.list);return}
 if(msg.t==='kill'){removeGhostEnemy(msg.eid);return}
 if(msg.t==='dmg'){if(playerDead)return;player.hp-=msg.amount;damageTimer=8;SFX.playerDamage();if(player.hp<=0){player.hp=0;gameOver()}return}
+if(msg.t==='heal'){player.hp=Math.min(player.maxHp,player.hp+(msg.amount>=9999?player.maxHp:msg.amount));return}
 if(msg.t==='wave'){if(gamePhase==='playing'||gamePhase==='shop')startWave(msg.n);return}
 if(msg.t==='dead'){deadPeers.add(msg.id);removeRemotePlayer(msg.id);if(spectateTarget===msg.id)pickSpectateTarget();return}
 if(msg.t==='chat')addChat(msg.nick,msg.msg,false);
 }
 
-function hostHandleClientShot(msg){
+function hostHandleClientShot(msg,killerId){
 const o=new THREE.Vector3(msg.x,msg.y,msg.z);
 const d=new THREE.Vector3(-Math.sin(msg.yaw)*Math.cos(msg.pitch),Math.sin(msg.pitch),-Math.cos(msg.yaw)*Math.cos(msg.pitch));
 const ray=new THREE.Raycaster(o,d);ray.far=120;
@@ -1984,16 +2074,18 @@ best.hp-=msg.dmg;
 best.hitFlash=6;
 spawnBloodAt(hp||best.mesh.position,8);
 if(best.isBoss)SFX.bossHit();else SFX.hit();
-if(best.hp<=0)killEnemy(best);
+if(best.hp<=0)killEnemy(best,killerId);
 }
 
 function netUpdate(dt){
-if(netRole==='single'||playerDead)return;
+if(netRole==='single')return;
 netSendAcc+=dt;
 if(netSendAcc<.04)return;
 netSendAcc=0;
+if(!playerDead){
 const posMsg={t:'p',nick:myNick,x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:yaw,pitch:pitch};
 if(netRole==='host')netBroadcast(posMsg);else netToHost(posMsg);
+}
 if(netRole!=='host')return;
 const list=enemies.map(e=>({id:e.netId,x:e.mesh.position.x,y:e.mesh.position.y,z:e.mesh.position.z,ry:e.mesh.rotation.y,boss:e.isBoss,imm:e.immortal}));
 netBroadcast({t:'e',list:list});
@@ -2142,9 +2234,8 @@ if(m.userData.aura){m.userData.aura.rotation.z-=.015;m.userData.aura.material.op
 
 function showChat(){
 if(netRole==='single')return;
-const cb=document.getElementById('chatBox');
-if(cb)cb.style.display='block';
-if(isMobile&&cb){cb.style.bottom='';cb.style.right='';cb.style.top='90px';cb.style.left='12px';cb.style.width='220px'}
+const t=document.getElementById('chatToggle');
+if(t)t.style.display='flex';
 }
 
 function addChat(who,msg,isMe){
@@ -2154,18 +2245,18 @@ const d=document.createElement('div');
 d.innerHTML='<span class="w'+(isMe?' me':'')+'">'+esc(who)+':</span> '+esc(msg);
 el.appendChild(d);
 el.scrollTop=el.scrollHeight;
-while(el.children.length>30)el.removeChild(el.firstChild);
+while(el.children.length>50)el.removeChild(el.firstChild);
+if(!chatOpen&&!isMe){
+const t=document.getElementById('chatToggle');
+if(t)t.classList.add('badge');
+}
 }
 
-function sendChat(){
-const inp=document.getElementById('chatInput');
-if(!inp)return;
-const v=inp.value.trim();
+function sendChat(v){
 if(!v)return;
 addChat(myNick,v,true);
 if(netRole==='host')netBroadcast({t:'chat',nick:myNick,msg:v});
-else netToHost({t:'chat',nick:myNick,msg:v});
-inp.value='';
+else if(netRole==='client')netToHost({t:'chat',nick:myNick,msg:v});
 }
 
 addEventListener('beforeunload',()=>{

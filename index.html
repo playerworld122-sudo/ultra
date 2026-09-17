@@ -103,7 +103,6 @@ button:disabled{opacity:.35;cursor:not-allowed}
 #spectatorHud{position:fixed;left:50%;top:20px;transform:translateX(-50%);color:var(--gold);font-family:var(--mono);font-size:13px;letter-spacing:.15em;z-index:180;display:none;background:rgba(6,1,2,.85);padding:14px 28px;border:1px solid var(--red);text-align:center;pointer-events:none}
 #spectatorHud .sub2{color:#888;font-size:10px;margin-top:6px;letter-spacing:.15em}
 .nameTag{position:fixed;transform:translate(-50%,-100%);color:var(--green);font-family:var(--mono);font-size:12px;font-weight:700;text-shadow:0 0 4px #000,0 0 8px #000;background:rgba(0,0,0,.6);padding:2px 8px;border:1px solid rgba(0,255,136,.5);border-radius:3px;pointer-events:none;z-index:15;white-space:nowrap;letter-spacing:.06em}
-
 #lobby{position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 0%,rgba(255,23,68,.14),transparent 60%),repeating-linear-gradient(0deg,rgba(255,255,255,.014) 0,rgba(255,255,255,.014) 1px,transparent 1px,transparent 3px),#050103;overflow:hidden}
 #lobbyHeader{height:76px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 40px;background:rgba(6,1,3,.92);border-bottom:1px solid var(--panel-line);position:relative;z-index:2}
 #lobbyHeader::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--red),transparent);opacity:.6}
@@ -171,6 +170,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 #lobbyFooter{flex:none;height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 40px;background:rgba(6,1,3,.9);border-top:1px solid rgba(255,23,68,.15);color:#555;font-family:var(--mono);font-size:10px;letter-spacing:.14em}
 #lobbyFooter .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);margin-right:8px;vertical-align:middle;animation:blip 2s infinite}
 #lobbyFooter .dot.bad{background:var(--red);box-shadow:0 0 8px var(--red)}
+#lobbyFooter .dot.warn{background:var(--gold);box-shadow:0 0 8px var(--gold)}
 @keyframes blip{50%{opacity:.4}}
 #lobbyStatus{color:var(--gold);font-family:var(--mono);font-size:11px;text-align:center;min-height:16px;letter-spacing:.05em;margin-top:20px}
 #lobbyOverlay{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;background:rgba(2,0,1,.85);backdrop-filter:blur(3px);padding:20px}
@@ -389,10 +389,20 @@ button:disabled{opacity:.35;cursor:not-allowed}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 'use strict';
-const _ICE=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}];
-const NTFY_TOPIC='uk3d-public-lobby-7x2kq-v3';
-const NTFY_POLL_INTERVAL=5000;
-const SERVER_STALE_MS=45000;
+const _ICE=[
+{urls:'stun:stun.l.google.com:19302'},
+{urls:'stun:stun1.l.google.com:19302'},
+{urls:'stun:stun2.l.google.com:19302'},
+{urls:'stun:stun3.l.google.com:19302'},
+{urls:'stun:global.stun.twilio.com:3478'},
+{urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},
+{urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
+{urls:'turn:openrelay.metered.ca:443?transport=tcp',username:'openrelayproject',credential:'openrelayproject'}
+];
+const NTFY_TOPIC='uk3d-8xk2q-v1-lobby-2025';
+const SERVER_STALE_MS=90000;
+const NTFY_PUBLISH_INTERVAL=30000;
+const NTFY_POLL_INTERVAL=15000;
 const SFX={ctx:null,muted:false,
 init(){if(!this.ctx){try{this.ctx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}},
 resume(){if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume()},
@@ -484,7 +494,7 @@ animate();
 function setNetStatus(ok,text){
 const dot=document.getElementById('netStatusDot');
 const t=document.getElementById('netStatusText');
-if(dot)dot.classList.toggle('bad',!ok);
+if(dot){dot.classList.remove('bad','warn');if(ok===false)dot.classList.add('bad');if(ok==='warn')dot.classList.add('warn')}
 if(t&&text)t.textContent=text;
 }
 
@@ -532,11 +542,12 @@ document.getElementById('lobbyJoin').onclick=()=>joinByCode();
 document.getElementById('srvCreateBtn').onclick=()=>{
 let name=String(document.getElementById('srvName').value||'').trim().slice(0,24);
 myNick=sanitizeNick(document.getElementById('nickInput').value);
+document.getElementById('nickInput').value=myNick;
 if(!name)name='Сервер '+myNick;
 myServerName=name;
 initNetwork('host');
 };
-document.getElementById('srvRefresh').onclick=()=>{srvStatus('Обновление...');pollServers(true).then(()=>srvStatus(''))};
+document.getElementById('srvRefresh').onclick=()=>{srvStatus('Обновление...');fetchRecentServers(true);};
 document.getElementById('startGameBtn').onclick=()=>{
 if(netRole!=='host')return;
 const h=Math.random();mapHue=h;
@@ -1534,9 +1545,10 @@ let myRoomCode=null;
 let myServerName='Сервер';
 let clientNicks=[];
 let heartbeatTimer=null;
-let serverPollTimer=null;
-let lastServerList=[];
-let peerInitAttempts=0;
+let pollTimer=null;
+let sseConn=null;
+let peerRetryCount=0;
+const serverCache=new Map();
 
 function lobbyStatus(s){const el=document.getElementById('lobbyStatus');if(el)el.textContent=s}
 function roomStatus(s){const el=document.getElementById('roomStatus');if(el)el.textContent=s}
@@ -1551,8 +1563,7 @@ promise.then(v=>{clearTimeout(t);resolve(v)},e=>{clearTimeout(t);reject(e)});
 }
 
 async function publishServer(){
-if(!myRoomCode)return;
-try{
+if(!myRoomCode||netRole!=='host')return;
 const payload={
 code:myRoomCode,
 name:myServerName,
@@ -1561,9 +1572,9 @@ wave:currentWave||1,
 started:(gamePhase==='playing'||gamePhase==='shop'),
 ts:Date.now()
 };
+try{
 await withTimeout(fetch('https://ntfy.sh/'+NTFY_TOPIC,{
 method:'POST',
-headers:{'Content-Type':'text/plain'},
 body:JSON.stringify(payload)
 }),6000);
 }catch(e){
@@ -1574,62 +1585,118 @@ console.warn('[NTFY] publish err',e&&e.message||e);
 function startServerHeartbeat(){
 stopServerHeartbeat();
 if(netRole!=='host'||!myRoomCode)return;
-heartbeatTimer=setInterval(()=>{if(myRoomCode&&netRole==='host')publishServer()},10000);
+publishServer();
+heartbeatTimer=setInterval(()=>{if(myRoomCode&&netRole==='host')publishServer()},NTFY_PUBLISH_INTERVAL);
 }
-
 function stopServerHeartbeat(){
 if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=null}
 }
 
-async function pollServers(manual){
+function addServerToCache(info){
+if(!info||!info.code)return;
+if(info.code===myRoomCode)return;
+const existing=serverCache.get(info.code);
+if(!existing||existing.ts<info.ts){
+serverCache.set(info.code,info);
+}
+}
+
+function pruneStaleServers(){
+const now=Date.now();
+for(const [code,info] of serverCache){
+if(now-info.ts>SERVER_STALE_MS)serverCache.delete(code);
+}
+}
+
+function renderCachedServers(){
+pruneStaleServers();
+const list=[...serverCache.values()].sort((a,b)=>b.ts-a.ts);
+renderServerList(list);
+const info=document.getElementById('srvLiveInfo');
+if(info)info.textContent='онлайн: '+list.length;
+srvStatus('Серверов онлайн: '+list.length+' · '+new Date().toLocaleTimeString('ru-RU'));
+}
+
+async function fetchRecentServers(manual){
 try{
-const r=await withTimeout(fetch('https://ntfy.sh/'+NTFY_TOPIC+'/json?poll=1&since=60s'),7000);
+const r=await withTimeout(fetch('https://ntfy.sh/'+NTFY_TOPIC+'/json?poll=1&since=all',{cache:'no-store'}),8000);
 if(!r.ok)throw new Error('HTTP '+r.status);
 const text=await r.text();
 const lines=text.trim().split('\n').filter(Boolean);
-const map={};
 const now=Date.now();
 for(const line of lines){
 try{
 const m=JSON.parse(line);
-if(!m.message)continue;
+if(!m||!m.message)continue;
 let info;
-try{info=JSON.parse(m.message)}catch(e){continue}
-if(!info.code)continue;
-if(now-info.ts>SERVER_STALE_MS)continue;
-if(!map[info.code]||map[info.code].ts<info.ts)map[info.code]=info;
-}catch(e){}
+try{info=JSON.parse(m.message)}catch(err){continue}
+if(!info||!info.code)continue;
+if(now-(info.ts||0)>SERVER_STALE_MS)continue;
+addServerToCache(info);
+}catch(err){}
 }
-const list=Object.values(map).sort((a,b)=>b.ts-a.ts);
-lastServerList=list;
-renderServerList(list);
+renderCachedServers();
 srvError(null);
-srvStatus('Серверов онлайн: '+list.length+' · '+new Date().toLocaleTimeString('ru-RU'));
-const info=document.getElementById('srvLiveInfo');
-if(info)info.textContent='онлайн: '+list.length;
-return list;
+if(manual)srvStatus('Обновлено · '+new Date().toLocaleTimeString('ru-RU'));
+return true;
 }catch(e){
 console.warn('[NTFY] poll err',e&&e.message||e);
-if(lastServerList.length){
-renderServerList(lastServerList);
+if(serverCache.size>0){
+renderCachedServers();
 srvStatus('Кэш · последние данные');
 }else{
-srvError('НЕ УДАЛОСЬ ПОЛУЧИТЬ СПИСОК СЕРВЕРОВ · проверьте интернет и попробуйте ОБНОВИТЬ');
+srvError('НЕ УДАЛОСЬ ПОЛУЧИТЬ СПИСОК СЕРВЕРОВ · проверьте интернет и нажмите ОБНОВИТЬ');
 srvStatus('ОШИБКА СВЯЗИ');
 }
-return [];
+return false;
 }
 }
 
+function startServerSSE(){
+stopServerSSE();
+try{
+const url='https://ntfy.sh/'+NTFY_TOPIC+'/sse';
+sseConn=new EventSource(url);
+sseConn.addEventListener('open',()=>{
+srvError(null);
+srvStatus('Подключено к списку · '+new Date().toLocaleTimeString('ru-RU'));
+});
+sseConn.addEventListener('message',e=>{
+try{
+const data=JSON.parse(e.data);
+if(!data||data.event==='open'||data.event==='keepalive')return;
+if(!data.message)return;
+let info;
+try{info=JSON.parse(data.message)}catch(err){return}
+if(!info||!info.code)return;
+addServerToCache(info);
+renderCachedServers();
+}catch(err){}
+});
+sseConn.addEventListener('error',()=>{
+// EventSource auto-reconnects. Silent here.
+});
+}catch(e){
+console.warn('[SSE] failed',e);
+}
+}
+function stopServerSSE(){
+if(sseConn){try{sseConn.close()}catch(e){}sseConn=null}
+}
+
 function startServerPolling(){
+stopServerPolling();
 srvError(null);
 srvStatus('Загрузка списка серверов...');
-pollServers();
-if(serverPollTimer)clearInterval(serverPollTimer);
-serverPollTimer=setInterval(()=>pollServers(),NTFY_POLL_INTERVAL);
+fetchRecentServers(false);
+startServerSSE();
+pollTimer=setInterval(()=>{
+fetchRecentServers(false);
+},NTFY_POLL_INTERVAL);
 }
 function stopServerPolling(){
-if(serverPollTimer){clearInterval(serverPollTimer);serverPollTimer=null}
+if(pollTimer){clearInterval(pollTimer);pollTimer=null}
+stopServerSSE();
 }
 
 function renderServerList(list){
@@ -1649,10 +1716,15 @@ row.innerHTML='<div class="nm">'+namePart+'<div class="meta">ХОСТ: '+esc(s.n
 '<div class="wave-cell">'+(s.started?('ВОЛНА '+(s.wave||1)):'—')+'</div>'+
 '<div class="st '+(s.started?'live':'lobby')+'">'+(s.started?'В ИГРЕ':'В ЛОББИ')+'</div>';
 const b=document.createElement('button');
-b.textContent=isMine?'ВЫ ХОСТ':'ВОЙТИ';
-b.disabled=isMine;
-if(isMine){b.style.opacity='.5';b.style.cursor='default'}
-else b.onclick=()=>joinServerFromList(s.code);
+if(isMine){
+b.textContent='ВЫ ХОСТ';
+b.disabled=true;
+b.style.opacity='.5';
+b.style.cursor='default';
+}else{
+b.textContent='ВОЙТИ';
+b.onclick=()=>joinServerFromList(s.code);
+}
 row.appendChild(b);
 el.appendChild(row);
 }
@@ -1718,6 +1790,7 @@ for(const id in ghostEnemies)removeGhostEnemy(id);
 netRole='single';
 myRoomCode=null;
 myPeerId=null;
+peerRetryCount=0;
 setNetStatus(true,'СИСТЕМА ГОТОВА');
 }
 
@@ -1726,12 +1799,12 @@ netRole=role;
 myPeerId=null;
 myRoomCode=(role==='host')?null:roomId;
 clientNicks=[];
-peerInitAttempts=0;
+peerRetryCount=0;
 if(peer){try{peer.destroy()}catch(e){}peer=null}
-setNetStatus(false,'СОЗДАНИЕ КОМНАТЫ...');
+setNetStatus('warn',role==='host'?'СОЗДАНИЕ КОМНАТЫ...':'ПОДКЛЮЧЕНИЕ...');
 
 try{
-peer=new Peer(undefined,{debug:1,config:{iceServers:_ICE}});
+peer=new Peer(undefined,{debug:1,config:{iceServers:_ICE,iceCandidatePoolSize:10}});
 }catch(e){
 console.error('[NET] create err',e);
 lobbyStatus('ОШИБКА: '+e.message);
@@ -1743,7 +1816,7 @@ return;
 peer.on('open',id=>{
 console.log('[NET] opened as',id);
 myPeerId=id;
-peerInitAttempts=0;
+peerRetryCount=0;
 if(role==='host'){
 myRoomCode=id;
 lobbyStatus('');
@@ -1755,7 +1828,7 @@ startServerHeartbeat();
 setNetStatus(true,'КОМНАТА АКТИВНА');
 }else{
 showRoomScreen(roomId,false);
-setNetStatus(false,'ПОДКЛЮЧЕНИЕ...');
+setNetStatus('warn','ПОДКЛЮЧЕНИЕ...');
 console.log('[NET] connecting to',roomId);
 try{
 hostConn=peer.connect(roomId,{reliable:false});
@@ -1813,16 +1886,14 @@ document.getElementById('lobby').style.display='flex';
 },2000);
 return;
 }
-if(errType==='server-error'||errType==='socket-error'||errType==='socket-closed'||errType==='network'){
-peerInitAttempts++;
-if(peerInitAttempts<4){
-const wait=1500*peerInitAttempts;
-lobbyStatus('ПЕРЕПОДКЛЮЧЕНИЕ... попытка '+peerInitAttempts);
+if(errType==='server-error'||errType==='socket-error'||errType==='socket-closed'||errType==='network'||errType==='browser-incompatible'){
+peerRetryCount++;
+if(peerRetryCount<5){
+const wait=1500*peerRetryCount;
+lobbyStatus('ПЕРЕПОДКЛЮЧЕНИЕ... попытка '+peerRetryCount);
 roomStatus('ПЕРЕПОДКЛЮЧЕНИЕ...');
-setNetStatus(false,'ПЕРЕПОДКЛЮЧЕНИЕ...');
-setTimeout(()=>{
-try{if(peer)peer.reconnect()}catch(_){}
-},wait);
+setNetStatus('warn','ПЕРЕПОДКЛЮЧЕНИЕ...');
+setTimeout(()=>{try{if(peer)peer.reconnect()}catch(_){}},wait);
 }else{
 lobbyStatus('СЕРВЕР НЕДОСТУПЕН — попробуйте позже');
 roomStatus('СЕРВЕР НЕДОСТУПЕН');
@@ -1837,7 +1908,7 @@ setNetStatus(false,'ОШИБКА: '+errType);
 
 peer.on('disconnected',()=>{
 console.log('[NET] disconnected, retry');
-setNetStatus(false,'ВОССТАНОВЛЕНИЕ СВЯЗИ...');
+setNetStatus('warn','ВОССТАНОВЛЕНИЕ СВЯЗИ...');
 try{peer.reconnect()}catch(e){}
 });
 }

@@ -235,7 +235,7 @@ h1{font-size:36px}
 <div class="menu-header">
 <div class="menu-tag">V1 // MACHINE PROTOCOL</div>
 <h1 class="menu-title">ULTRAKILL</h1>
-<div class="menu-version">3D REBUILD · v2.3</div>
+<div class="menu-version">3D REBUILD · v2.4</div>
 </div>
 <div class="menu-sub">30 WAVES · 4 ZONES · CO-OP</div>
 <div class="menu-divider"></div>
@@ -1194,12 +1194,12 @@ function update(){
 const now=performance.now();
 let dt=(now-lastTime)/1000;lastTime=now;if(dt>.1)dt=.1;
 
-if(gamePhase==='elevator'){updateElevator(dt);camera.rotation.y=yaw;camera.rotation.x=pitch;camera.position.copy(player.pos);renderer.render(scene,camera);netUpdate(dt);interpRemotePlayers();interpGhostEnemies();return}
+if(gamePhase==='elevator'){updateElevator(dt);camera.rotation.y=yaw;camera.rotation.x=pitch;camera.position.copy(player.pos);netUpdate(dt);interpRemotePlayers();interpGhostEnemies();renderer.render(scene,camera);return}
 if(gamePhase==='dialogue'){
 if(npcGroup){const dx=player.pos.x-npcGroup.position.x,dz=player.pos.z-npcGroup.position.z;npcGroup.rotation.y=Math.atan2(dx,dz);npcGroup.position.y=Math.sin(performance.now()*.004)*.03}
-camera.rotation.y=yaw;camera.rotation.x=pitch;camera.position.copy(player.pos);renderer.render(scene,camera);netUpdate(dt);interpRemotePlayers();interpGhostEnemies();return;
+camera.rotation.y=yaw;camera.rotation.x=pitch;camera.position.copy(player.pos);netUpdate(dt);interpRemotePlayers();interpGhostEnemies();renderer.render(scene,camera);return;
 }
-if(!gameRunning){renderer.render(scene,camera);netUpdate(dt);interpRemotePlayers();interpGhostEnemies();return}
+if(!gameRunning){netUpdate(dt);interpRemotePlayers();interpGhostEnemies();renderer.render(scene,camera);return}
 
 if(styleTimer>0)styleTimer--;else stylePoints=Math.max(0,stylePoints-1);
 document.getElementById('styleMeter').textContent='STYLE: '+getStyleRank();
@@ -1365,8 +1365,10 @@ if(_em){const pa=_em.geometry.attributes.position.array;for(let i=0;i<pa.length;
 if(damageTimer>0){damageTimer--;const op=Math.min(1,damageTimer/8)*.7;document.getElementById('damage').style.opacity=op;document.getElementById('chromatic').style.opacity=op*.6}
 else{document.getElementById('damage').style.opacity=0;document.getElementById('chromatic').style.opacity=0}
 
+netUpdate(dt);
+interpRemotePlayers();
+interpGhostEnemies();
 renderer.render(scene,camera);
-netUpdate(dt);interpRemotePlayers();interpGhostEnemies();
 }
 
 function gameOver(){
@@ -1385,8 +1387,13 @@ document.getElementById('clickToPlay').style.display='none';
 SFX.death();
 const myId=peer?peer.id:null;
 if(netRole!=='single'&&myId)deadPeers.add(myId);
-if(netRole==='host')netBroadcast({t:'dead',id:myId,nick:myNick});
-else if(netRole==='client')netToHost({t:'dead',id:myId,nick:myNick});
+if(netRole==='host'){
+netBroadcast({t:'dead',id:myId,nick:myNick});
+const list=enemies.map(e=>({id:e.netId,x:e.mesh.position.x,y:e.mesh.position.y,z:e.mesh.position.z,ry:e.mesh.rotation.y,boss:e.isBoss,imm:e.immortal}));
+netBroadcast({t:'e',list:list});
+}else if(netRole==='client'){
+netToHost({t:'dead',id:myId,nick:myNick});
+}
 if(netRole==='single'){
 setTimeout(()=>{
 gameRunning=false;waveInProgress=false;gamePhase='dead';
@@ -1689,6 +1696,8 @@ deadPeers.add(msg.id);
 removeRemotePlayer(msg.id);
 if(spectateTarget===msg.id)pickSpectateTarget();
 netBroadcastExcept(conn,msg);
+const list=enemies.map(e=>({id:e.netId,x:e.mesh.position.x,y:e.mesh.position.y,z:e.mesh.position.z,ry:e.mesh.rotation.y,boss:e.isBoss,imm:e.immortal}));
+netBroadcast({t:'e',list:list});
 return;
 }
 if(msg.t==='chat'){
@@ -1739,10 +1748,10 @@ if(best.hp<=0)killEnemy(best);
 function netUpdate(dt){
 if(netRole==='single')return;
 netSendAcc+=dt;
-if(netSendAcc<.04)return;
+if(netSendAcc<.025)return;
 netSendAcc=0;
 if(!playerDead){
-const posMsg={t:'p',nick:myNick,x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:yaw,pitch:pitch};
+const posMsg={t:'p',id:myPeerId,nick:myNick,x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:yaw,pitch:pitch};
 if(netRole==='host')netBroadcast(posMsg);else netToHost(posMsg);
 }
 if(netRole==='host'){

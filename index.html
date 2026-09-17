@@ -235,7 +235,7 @@ h1{font-size:36px}
 <div class="menu-header">
 <div class="menu-tag">V1 // MACHINE PROTOCOL</div>
 <h1 class="menu-title">ULTRAKILL</h1>
-<div class="menu-version">3D REBUILD · v2.2</div>
+<div class="menu-version">3D REBUILD · v2.3</div>
 </div>
 <div class="menu-sub">30 WAVES · 4 ZONES · CO-OP</div>
 <div class="menu-divider"></div>
@@ -1247,9 +1247,8 @@ yaw=camera.rotation.y;
 }else{
 camera.rotation.y=yaw;
 camera.rotation.x=pitch;
-if(freeCamVel.length()<.01)freeCamVel.copy(camera.position);
 const speed=.35;
-let fx=0,fz=0,fy=0;
+let fx=0,fz=0;
 if(isMobile){fx=joyInput.x;fz=joyInput.y}
 else{if(keys['KeyW'])fz-=1;if(keys['KeyS'])fz+=1;if(keys['KeyA'])fx-=1;if(keys['KeyD'])fx+=1}
 const s=Math.sin(yaw),c=Math.cos(yaw);
@@ -1738,15 +1737,18 @@ if(best.hp<=0)killEnemy(best);
 }
 
 function netUpdate(dt){
-if(netRole==='single'||playerDead)return;
+if(netRole==='single')return;
 netSendAcc+=dt;
 if(netSendAcc<.04)return;
 netSendAcc=0;
+if(!playerDead){
 const posMsg={t:'p',nick:myNick,x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:yaw,pitch:pitch};
 if(netRole==='host')netBroadcast(posMsg);else netToHost(posMsg);
-if(netRole!=='host')return;
+}
+if(netRole==='host'){
 const list=enemies.map(e=>({id:e.netId,x:e.mesh.position.x,y:e.mesh.position.y,z:e.mesh.position.z,ry:e.mesh.rotation.y,boss:e.isBoss,imm:e.immortal}));
 netBroadcast({t:'e',list:list});
+}
 }
 
 function makeGhostMesh(nick){
@@ -1804,10 +1806,6 @@ while(dy>Math.PI)dy-=Math.PI*2;
 while(dy<-Math.PI)dy+=Math.PI*2;
 g.rotation.y+=dy*.25;
 if(!rp.tagEl)continue;
-if(playerDead&&!spectateFreeCamera){
-const t=spectateTarget&&remotePlayers[spectateTarget];
-if(t&&t===rp){rp.tagEl.style.display='none';continue}
-}
 if(playerDead){rp.tagEl.style.display='none';continue}
 _tagV.set(g.position.x,g.position.y+2.75,g.position.z);
 const dist=camera.position.distanceTo(_tagV);

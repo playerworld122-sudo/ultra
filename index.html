@@ -1627,36 +1627,36 @@ if(r)r.textContent=netRole==='single'?'СОЛО':(netRole==='host'?'ХОСТ':'�
 
 async function publishServer(){
 if(!myRoomCode)return;
-try{
 const payload={code:myRoomCode,name:myServerName,nick:myNick,wave:currentWave,started:(gamePhase!=='menu'&&gamePhase!=='lobby'),ts:Date.now()};
-await fetch('https://ntfy.sh/'+NTFY_TOPIC,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
-}catch(e){console.warn('[NTFY]',e)}
+try{await fetch('https://ntfy.sh/'+NTFY_TOPIC,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})}catch(e){console.warn('[NTFY]',e)}
+try{const k='uk3d_srv_'+myRoomCode;localStorage.setItem(k,JSON.stringify(payload));localStorage.setItem(k+'_exp',String(payload.ts+120000))}catch(e){}
 }
 function publishServerUpdate(){if(netRole==='host'&&myRoomCode)publishServer()}
-function startServerHeartbeat(){stopServerHeartbeat();if(netRole!=='host'||!myRoomCode)return;heartbeatTimer=setInterval(()=>{if(myRoomCode)publishServer()},8000)}
-function stopServerHeartbeat(){if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=null}}
+function startServerHeartbeat(){stopServerHeartbeat();if(netRole!=='host'||!myRoomCode)return;heartbeatTimer=setInterval(()=>{if(myRoomCode)publishServer()},15000)}
+function stopServerHeartbeat(){if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=null}if(myRoomCode){try{localStorage.removeItem('uk3d_srv_'+myRoomCode);localStorage.removeItem('uk3d_srv_'+myRoomCode+'_exp')}catch(e){}}}
 
 async function pollServers(){
-try{
-const r=await fetch('https://ntfy.sh/'+NTFY_TOPIC+'/json?poll=1&since=15s');
-const text=await r.text();
-const lines=text.trim().split('\n').filter(Boolean);
 const map={};
 const now=Date.now();
-for(const line of lines){
+try{
+const ctrl=typeof AbortController!=='undefined'?new AbortController():null;
+let timer=ctrl?setTimeout(()=>ctrl.abort(),7000):null;
+const r=await fetch('https://ntfy.sh/'+NTFY_TOPIC+'/json?poll=1&since=90s',ctrl?{signal:ctrl.signal}:{});
+if(timer)clearTimeout(timer);
+const text=await r.text();
+for(const line of text.trim().split('\n').filter(Boolean)){
 try{
 const m=JSON.parse(line);
 if(!m.message)continue;
 const info=JSON.parse(m.message);
 if(!info.code)continue;
-if(info.code===myRoomCode)continue;
-if(now-info.ts>20000)continue;
+if(now-info.ts>120000)continue;
 if(!map[info.code]||map[info.code].ts<info.ts)map[info.code]=info;
 }catch(e){}
 }
+}catch(e){console.warn('[NTFY]',e);srvStatus('ОШИБКА СВЯЗИ');}
 const list=Object.values(map).sort((a,b)=>b.ts-a.ts);
 renderServerList(list);
-}catch(e){console.warn('[NTFY]',e);srvStatus('ОШИБКА СВЯЗИ');}
 }
 
 function renderServerList(list){
@@ -1670,12 +1670,14 @@ el.innerHTML='<div id="srvEmpty">Пока никто не играет.<br>От�
 return;
 }
 for(const s of list){
+const isOwn=(s.code===myRoomCode);
 const row=document.createElement('div');
 row.className='srvRow';
-row.innerHTML='<div class="nm">'+esc(s.name||'Сервер')+'<div class="meta">'+esc(s.nick||'?')+'</div></div><div class="st '+(s.started?'live':'lobby')+'">'+(s.started?('ВОЛНА '+(s.wave||1)):'В ЛОББИ')+'</div>';
+row.innerHTML='<div class="nm">'+esc(s.name||'Сервер')+(isOwn?' <span style="color:var(--green);font-size:10px">[ВАШ]</span>':'')+'<div class="meta">'+esc(s.nick||'?')+'</div></div><div class="st '+(s.started?'live':'lobby')+'">'+(s.started?('ВОЛНА '+(s.wave||1)):'В ЛОББИ')+'</div>';
 const b=document.createElement('button');
-b.textContent='ВОЙТИ';
-b.onclick=()=>joinServerFromList(s.code);
+b.textContent=isOwn?'ВЫ':'ВОЙТИ';
+b.disabled=isOwn;
+if(!isOwn)b.onclick=()=>joinServerFromList(s.code);
 row.appendChild(b);
 el.appendChild(row);
 }

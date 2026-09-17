@@ -1837,7 +1837,7 @@ if(msg.t==='players'){updatePlayerListUI(msg.players);return}
 if(msg.t==='go'){document.getElementById('lobby').style.display='none';startGame();return}
 if(msg.t==='p'){updateRemotePlayer(msg.id,msg,msg.nick);return}
 if(msg.t==='e'){applyEnemyState(msg.list);return}
-if(msg.t==='kill'){removeGhostEnemy(msg.eid);if(msg.isBoss){player.hp=player.maxHp}else{player.hp=Math.min(player.maxHp,player.hp+15)};return}
+if(msg.t==='kill'){removeGhostEnemy(msg.eid);if(msg.isBoss){player.hp=player.maxHp;SFX.bossDie()}else{player.hp=Math.min(player.maxHp,player.hp+15);SFX.kill()};kills++;document.getElementById('kills').textContent=kills;return}
 if(msg.t==='healFull'){player.hp=player.maxHp;return}
 if(msg.t==='shop'){
 showBanner('WAVE CLEARED',null,1200);SFX.waveClear();
@@ -1873,8 +1873,10 @@ if(msg.t==='dmg'){player.hp-=msg.amount;damageTimer=8;SFX.playerDamage();if(play
 if(msg.t==='wave'){
 document.getElementById('shop').style.display='none';
 document.getElementById('introShop').style.display='none';
+const wasIntroShop=(gamePhase==='introShop');
 if(gamePhase==='shop'||gamePhase==='introShop')gamePhase='playing';
-if(gamePhase==='playing'||gamePhase==='shop')startWave(msg.n);
+if(wasIntroShop&&ownedWeapons.length===0){ownedWeapons=[0];weaponAmmo[0]=WP[0].mag;currentWeaponIdx=0;buildWeapon(0);if(weaponGroup)weaponGroup.visible=true;removeNPC()}
+if(gamePhase==='playing'||gamePhase==='shop'||gamePhase==='introShop')startWave(msg.n);
 return;
 }
 if(msg.t==='dead'){

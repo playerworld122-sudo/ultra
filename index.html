@@ -152,8 +152,10 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .srv-head{display:grid;grid-template-columns:1fr 140px 120px 120px;gap:12px;padding:10px 16px;color:#666;font-family:var(--mono);font-size:10px;letter-spacing:.24em;border-bottom:1px solid rgba(34,224,208,.2);text-transform:uppercase}
 .srvRow{display:grid;grid-template-columns:1fr 140px 120px 120px;gap:12px;align-items:center;padding:14px 16px;border:1px solid rgba(34,224,208,.35);background:rgba(34,224,208,.04);font-family:var(--mono);transition:all .15s}
 .srvRow:hover{border-color:var(--cyan);background:rgba(34,224,208,.1)}
+.srvRow.mine{border-color:rgba(0,255,136,.5);background:rgba(0,255,136,.06)}
 .srvRow .nm{min-width:0;color:#fff;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:.04em}
 .srvRow .nm .meta{color:#6b6b6b;font-size:10px;margin-top:3px;letter-spacing:.08em}
+.srvRow .nm .badge{color:var(--green);font-size:9px;border:1px solid rgba(0,255,136,.5);padding:1px 6px;margin-left:8px;letter-spacing:.12em;vertical-align:middle}
 .srvRow .wave-cell{color:var(--gold);font-size:11px;letter-spacing:.12em;text-align:center}
 .srvRow .st{font-size:10px;text-align:center;padding:5px 0;border:1px solid;letter-spacing:.14em;font-weight:600}
 .srvRow .st.lobby{color:var(--cyan);border-color:rgba(34,224,208,.5);background:rgba(34,224,208,.08)}
@@ -168,6 +170,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .setting-row button{padding:8px 18px;font-size:11px}
 #lobbyFooter{flex:none;height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 40px;background:rgba(6,1,3,.9);border-top:1px solid rgba(255,23,68,.15);color:#555;font-family:var(--mono);font-size:10px;letter-spacing:.14em}
 #lobbyFooter .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);margin-right:8px;vertical-align:middle;animation:blip 2s infinite}
+#lobbyFooter .dot.bad{background:var(--red);box-shadow:0 0 8px var(--red)}
 @keyframes blip{50%{opacity:.4}}
 #lobbyStatus{color:var(--gold);font-family:var(--mono);font-size:11px;text-align:center;min-height:16px;letter-spacing:.05em;margin-top:20px}
 #lobbyOverlay{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;background:rgba(2,0,1,.85);backdrop-filter:blur(3px);padding:20px}
@@ -205,6 +208,8 @@ button:disabled{opacity:.35;cursor:not-allowed}
 #roomBack{padding:10px 26px;font-size:11px;border-color:#555;color:#888;margin-top:8px}
 #roomBack:hover{background:#333;color:#fff;box-shadow:none}
 #playerCount{color:var(--gold)}
+#srvErrorBanner{display:none;padding:12px 18px;margin-bottom:12px;border:1px solid rgba(255,23,68,.5);background:rgba(255,23,68,.08);color:var(--red);font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-align:center}
+#srvErrorBanner.show{display:block}
 @media (max-width:820px){
   #lobbyHeader{padding:0 20px;height:64px}
   .logo{font-size:24px}
@@ -271,7 +276,8 @@ button:disabled{opacity:.35;cursor:not-allowed}
 
     <div id="tab-servers" class="tab-panel">
       <div class="panel-title">ОТКРЫТЫЕ СЕРВЕРЫ</div>
-      <div class="panel-desc">Список обновляется автоматически каждые 4 секунды</div>
+      <div class="panel-desc">Список обновляется автоматически · <span id="srvLiveInfo">—</span></div>
+      <div id="srvErrorBanner"></div>
       <div class="srv-toolbar">
         <input id="srvName" placeholder="название сервера" maxlength="24" class="lobby-input">
         <button id="srvCreateBtn" style="border-color:var(--green);color:var(--green)">ОТКРЫТЬ СЕРВЕР</button>
@@ -283,7 +289,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
         <div class="st-col" style="text-align:center">СТАТУС</div>
         <div class="st-col" style="text-align:center">ДЕЙСТВИЕ</div>
       </div>
-      <div id="serverList"><div id="srvEmpty">Пока никто не играет.<br>Открой свой сервер — друзья увидят его здесь.</div></div>
+      <div id="serverList"><div id="srvEmpty">Загрузка списка серверов...</div></div>
       <div id="srvStatus" style="color:var(--gold);font-family:var(--mono);font-size:11px;min-height:16px;text-align:center;margin-top:14px"></div>
     </div>
 
@@ -328,7 +334,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
   </div>
 
   <div id="lobbyFooter">
-    <div><span class="dot"></span>СИСТЕМА ГОТОВА</div>
+    <div><span class="dot" id="netStatusDot"></span><span id="netStatusText">СИСТЕМА ГОТОВА</span></div>
     <div>V1 // 30 ВОЛН · 3 БОССА · КООПЕРАТИВ</div>
   </div>
 </div>
@@ -384,7 +390,9 @@ button:disabled{opacity:.35;cursor:not-allowed}
 <script>
 'use strict';
 const _ICE=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}];
-const NTFY_TOPIC='uk3d-servers-v1-x7k2q';
+const NTFY_TOPIC='uk3d-public-lobby-7x2kq-v3';
+const NTFY_POLL_INTERVAL=5000;
+const SERVER_STALE_MS=45000;
 const SFX={ctx:null,muted:false,
 init(){if(!this.ctx){try{this.ctx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}},
 resume(){if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume()},
@@ -473,6 +481,13 @@ setupSettingsUI();
 animate();
 }
 
+function setNetStatus(ok,text){
+const dot=document.getElementById('netStatusDot');
+const t=document.getElementById('netStatusText');
+if(dot)dot.classList.toggle('bad',!ok);
+if(t&&text)t.textContent=text;
+}
+
 function setupLobbyTabs(){
 const tabs=document.querySelectorAll('#lobbyTabs .tab');
 tabs.forEach(t=>t.addEventListener('click',()=>{
@@ -521,7 +536,7 @@ if(!name)name='Сервер '+myNick;
 myServerName=name;
 initNetwork('host');
 };
-document.getElementById('srvRefresh').onclick=()=>{srvStatus('Обновление...');pollServers().then(()=>srvStatus(''))};
+document.getElementById('srvRefresh').onclick=()=>{srvStatus('Обновление...');pollServers(true).then(()=>srvStatus(''))};
 document.getElementById('startGameBtn').onclick=()=>{
 if(netRole!=='host')return;
 const h=Math.random();mapHue=h;
@@ -529,7 +544,7 @@ netBroadcast({t:'go',h:h});
 document.getElementById('lobby').style.display='none';
 document.getElementById('lobbyOverlay').classList.remove('show');
 startGame();
-publishServer(true);
+publishServer();
 };
 document.getElementById('copyCodeBtn').onclick=()=>{
 const code=document.getElementById('roomCode').textContent;
@@ -541,9 +556,7 @@ b.textContent='СКОПИРОВАНО';
 setTimeout(()=>b.textContent=old,1200);
 };
 document.getElementById('roomBack').onclick=()=>{
-try{if(peer)peer.destroy()}catch(e){}
-stopServerHeartbeat();
-stopServerPolling();
+cleanupNetwork();
 document.getElementById('lobbyOverlay').classList.remove('show');
 document.getElementById('lobby').style.display='flex';
 };
@@ -973,7 +986,7 @@ document.getElementById('waveLabel').textContent='WAVE '+n+(endlessMode&&n>MAX_W
 const isBoss=n%10===0;
 showBanner(isBoss?'BOSS':'WAVE '+n,isBoss?'WAVE '+n:null,isBoss?2000:1500);
 SFX.waveStart();
-if(netRole==='host'){netBroadcast({t:'wave',n:n});publishServerUpdate()}
+if(netRole==='host'){netBroadcast({t:'wave',n:n});publishServer()}
 if(netRole==='client'){waveActive=true;waveInProgress=true;return}
 setTimeout(()=>{hideBanner();spawnWaveEnemies(n,isBoss);waveActive=true;waveInProgress=true},isBoss?2000:1500);
 }
@@ -1522,46 +1535,56 @@ let myServerName='Сервер';
 let clientNicks=[];
 let heartbeatTimer=null;
 let serverPollTimer=null;
+let lastServerList=[];
+let peerInitAttempts=0;
 
 function lobbyStatus(s){const el=document.getElementById('lobbyStatus');if(el)el.textContent=s}
 function roomStatus(s){const el=document.getElementById('roomStatus');if(el)el.textContent=s}
 function srvStatus(s){const el=document.getElementById('srvStatus');if(el)el.textContent=s}
+function srvError(msg){const el=document.getElementById('srvErrorBanner');if(!el)return;if(msg){el.textContent=msg;el.classList.add('show')}else{el.textContent='';el.classList.remove('show')}}
+
+function withTimeout(promise,ms){
+return new Promise((resolve,reject)=>{
+const t=setTimeout(()=>reject(new Error('timeout')),ms);
+promise.then(v=>{clearTimeout(t);resolve(v)},e=>{clearTimeout(t);reject(e)});
+});
+}
 
 async function publishServer(){
+if(!myRoomCode)return;
 try{
 const payload={
 code:myRoomCode,
 name:myServerName,
 nick:myNick,
-wave:currentWave,
-started:(gamePhase!=='menu'&&gamePhase!=='lobby'&&gamePhase!=='elevator'&&gamePhase!=='dialogue'&&gamePhase!=='introShop'),
+wave:currentWave||1,
+started:(gamePhase==='playing'||gamePhase==='shop'),
 ts:Date.now()
 };
-await fetch('https://ntfy.sh/'+NTFY_TOPIC,{
+await withTimeout(fetch('https://ntfy.sh/'+NTFY_TOPIC,{
 method:'POST',
 headers:{'Content-Type':'text/plain'},
 body:JSON.stringify(payload)
-});
-}catch(e){console.warn('[NTFY] publish err',e)}
+}),6000);
+}catch(e){
+console.warn('[NTFY] publish err',e&&e.message||e);
 }
-
-function publishServerUpdate(){
-if(netRole==='host'&&myRoomCode)publishServer();
 }
 
 function startServerHeartbeat(){
 stopServerHeartbeat();
 if(netRole!=='host'||!myRoomCode)return;
-heartbeatTimer=setInterval(()=>{if(myRoomCode)publishServer()},8000);
+heartbeatTimer=setInterval(()=>{if(myRoomCode&&netRole==='host')publishServer()},10000);
 }
 
 function stopServerHeartbeat(){
 if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=null}
 }
 
-async function pollServers(){
+async function pollServers(manual){
 try{
-const r=await fetch('https://ntfy.sh/'+NTFY_TOPIC+'/json?poll=1&since=15s');
+const r=await withTimeout(fetch('https://ntfy.sh/'+NTFY_TOPIC+'/json?poll=1&since=60s'),7000);
+if(!r.ok)throw new Error('HTTP '+r.status);
 const text=await r.text();
 const lines=text.trim().split('\n').filter(Boolean);
 const map={};
@@ -1570,23 +1593,40 @@ for(const line of lines){
 try{
 const m=JSON.parse(line);
 if(!m.message)continue;
-const info=JSON.parse(m.message);
+let info;
+try{info=JSON.parse(m.message)}catch(e){continue}
 if(!info.code)continue;
-if(info.code===myRoomCode)continue;
-if(now-info.ts>20000)continue;
+if(now-info.ts>SERVER_STALE_MS)continue;
 if(!map[info.code]||map[info.code].ts<info.ts)map[info.code]=info;
 }catch(e){}
 }
 const list=Object.values(map).sort((a,b)=>b.ts-a.ts);
+lastServerList=list;
 renderServerList(list);
-}catch(e){console.warn('[NTFY] poll err',e);srvStatus('ОШИБКА СВЯЗИ');}
+srvError(null);
+srvStatus('Серверов онлайн: '+list.length+' · '+new Date().toLocaleTimeString('ru-RU'));
+const info=document.getElementById('srvLiveInfo');
+if(info)info.textContent='онлайн: '+list.length;
+return list;
+}catch(e){
+console.warn('[NTFY] poll err',e&&e.message||e);
+if(lastServerList.length){
+renderServerList(lastServerList);
+srvStatus('Кэш · последние данные');
+}else{
+srvError('НЕ УДАЛОСЬ ПОЛУЧИТЬ СПИСОК СЕРВЕРОВ · проверьте интернет и попробуйте ОБНОВИТЬ');
+srvStatus('ОШИБКА СВЯЗИ');
+}
+return [];
+}
 }
 
 function startServerPolling(){
-srvStatus('Загрузка...');
-pollServers().then(()=>srvStatus(''));
+srvError(null);
+srvStatus('Загрузка списка серверов...');
+pollServers();
 if(serverPollTimer)clearInterval(serverPollTimer);
-serverPollTimer=setInterval(pollServers,4000);
+serverPollTimer=setInterval(()=>pollServers(),NTFY_POLL_INTERVAL);
 }
 function stopServerPolling(){
 if(serverPollTimer){clearInterval(serverPollTimer);serverPollTimer=null}
@@ -1596,19 +1636,23 @@ function renderServerList(list){
 const el=document.getElementById('serverList');
 if(!el)return;
 el.innerHTML='';
-if(!list.length){
+if(!list||!list.length){
 el.innerHTML='<div id="srvEmpty">Пока никто не играет.<br>Открой свой сервер — друзья увидят его здесь.</div>';
 return;
 }
 for(const s of list){
+const isMine=(s.code===myRoomCode);
 const row=document.createElement('div');
-row.className='srvRow';
-row.innerHTML='<div class="nm">'+esc(s.name||'Сервер')+'<div class="meta">ХОСТ: '+esc(s.nick||'?')+'</div></div>'+
+row.className='srvRow'+(isMine?' mine':'');
+const namePart=esc(s.name||'Сервер')+(isMine?'<span class="badge">ВАШ</span>':'');
+row.innerHTML='<div class="nm">'+namePart+'<div class="meta">ХОСТ: '+esc(s.nick||'?')+'</div></div>'+
 '<div class="wave-cell">'+(s.started?('ВОЛНА '+(s.wave||1)):'—')+'</div>'+
 '<div class="st '+(s.started?'live':'lobby')+'">'+(s.started?'В ИГРЕ':'В ЛОББИ')+'</div>';
 const b=document.createElement('button');
-b.textContent='ВОЙТИ';
-b.onclick=()=>joinServerFromList(s.code);
+b.textContent=isMine?'ВЫ ХОСТ':'ВОЙТИ';
+b.disabled=isMine;
+if(isMine){b.style.opacity='.5';b.style.cursor='default'}
+else b.onclick=()=>joinServerFromList(s.code);
 row.appendChild(b);
 el.appendChild(row);
 }
@@ -1663,24 +1707,43 @@ updatePlayerListUI(players);
 netBroadcast({t:'players',players:players});
 }
 
+function cleanupNetwork(){
+stopServerHeartbeat();
+stopServerPolling();
+try{if(peer)peer.destroy()}catch(e){}
+peer=null;hostConn=null;clientConns=[];
+clientNicks=[];
+for(const id in remotePlayers)removeRemotePlayer(id);
+for(const id in ghostEnemies)removeGhostEnemy(id);
+netRole='single';
+myRoomCode=null;
+myPeerId=null;
+setNetStatus(true,'СИСТЕМА ГОТОВА');
+}
+
 function initNetwork(role,roomId){
 netRole=role;
 myPeerId=null;
 myRoomCode=(role==='host')?null:roomId;
 clientNicks=[];
+peerInitAttempts=0;
 if(peer){try{peer.destroy()}catch(e){}peer=null}
+setNetStatus(false,'СОЗДАНИЕ КОМНАТЫ...');
 
 try{
 peer=new Peer(undefined,{debug:1,config:{iceServers:_ICE}});
 }catch(e){
 console.error('[NET] create err',e);
 lobbyStatus('ОШИБКА: '+e.message);
+roomStatus('ОШИБКА: '+e.message);
+setNetStatus(false,'ОШИБКА');
 return;
 }
 
 peer.on('open',id=>{
 console.log('[NET] opened as',id);
 myPeerId=id;
+peerInitAttempts=0;
 if(role==='host'){
 myRoomCode=id;
 lobbyStatus('');
@@ -1689,28 +1752,34 @@ clientNicks=[];
 broadcastPlayers();
 publishServer();
 startServerHeartbeat();
+setNetStatus(true,'КОМНАТА АКТИВНА');
 }else{
 showRoomScreen(roomId,false);
+setNetStatus(false,'ПОДКЛЮЧЕНИЕ...');
 console.log('[NET] connecting to',roomId);
 try{
 hostConn=peer.connect(roomId,{reliable:false});
 }catch(e){
 roomStatus('ОШИБКА ПОДКЛЮЧЕНИЯ');
+setNetStatus(false,'ОШИБКА ПОДКЛЮЧЕНИЯ');
 return;
 }
 hostConn.on('open',()=>{
 console.log('[NET] connected to host');
 roomStatus('Подключено! Ждём список игроков...');
+setNetStatus(true,'ПОДКЛЮЧЕНО');
 hostConn.send({t:'hello',nick:myNick});
 });
 hostConn.on('data',onHostMsg);
 hostConn.on('close',()=>{
 console.log('[NET] host closed');
 roomStatus('Хост отключился');
+setNetStatus(false,'ХОСТ ОТКЛЮЧИЛСЯ');
 });
 hostConn.on('error',e=>{
 console.error('[NET] conn err',e);
-roomStatus('ОШИБКА: '+(e&&e.type||'сеть'));
+roomStatus('ОШИБКА СОЕДИНЕНИЯ');
+setNetStatus(false,'ОШИБКА СОЕДИНЕНИЯ');
 });
 }
 });
@@ -1733,20 +1802,42 @@ conn.on('error',e=>console.error('[NET] client conn err',e));
 
 peer.on('error',e=>{
 console.error('[NET] error',e);
-if(e.type==='peer-unavailable'){
-lobbyStatus('КОМНАТА НЕ НАЙДЕНА');
+const errType=(e&&e.type)||'unknown';
+if(errType==='peer-unavailable'){
+lobbyStatus('КОМНАТА НЕ НАЙДЕНА — проверьте код');
 roomStatus('КОМНАТА НЕ НАЙДЕНА');
+setNetStatus(false,'КОМНАТА НЕ НАЙДЕНА');
 setTimeout(()=>{
 document.getElementById('lobbyOverlay').classList.remove('show');
+document.getElementById('lobby').style.display='flex';
 },2000);
 return;
 }
-lobbyStatus('ОШИБКА: '+e.type);
-roomStatus('ОШИБКА: '+e.type);
+if(errType==='server-error'||errType==='socket-error'||errType==='socket-closed'||errType==='network'){
+peerInitAttempts++;
+if(peerInitAttempts<4){
+const wait=1500*peerInitAttempts;
+lobbyStatus('ПЕРЕПОДКЛЮЧЕНИЕ... попытка '+peerInitAttempts);
+roomStatus('ПЕРЕПОДКЛЮЧЕНИЕ...');
+setNetStatus(false,'ПЕРЕПОДКЛЮЧЕНИЕ...');
+setTimeout(()=>{
+try{if(peer)peer.reconnect()}catch(_){}
+},wait);
+}else{
+lobbyStatus('СЕРВЕР НЕДОСТУПЕН — попробуйте позже');
+roomStatus('СЕРВЕР НЕДОСТУПЕН');
+setNetStatus(false,'СЕРВЕР НЕДОСТУПЕН');
+}
+return;
+}
+lobbyStatus('ОШИБКА: '+errType);
+roomStatus('ОШИБКА: '+errType);
+setNetStatus(false,'ОШИБКА: '+errType);
 });
 
 peer.on('disconnected',()=>{
 console.log('[NET] disconnected, retry');
+setNetStatus(false,'ВОССТАНОВЛЕНИЕ СВЯЗИ...');
 try{peer.reconnect()}catch(e){}
 });
 }

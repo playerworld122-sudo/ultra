@@ -266,7 +266,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 <div id="lobby-header">
 <div class="menu-tag">V1 // MACHINE PROTOCOL</div>
 <h1 class="menu-title">ULTRAKILL</h1>
-<div class="menu-version">3D REBUILD · v3.1</div>
+<div class="menu-version">3D REBUILD · v3.2</div>
 </div>
 <div id="lobby-body">
 <div class="tab-page active" id="page-play">
@@ -320,7 +320,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 <div class="tab-page" id="page-settings">
 <div class="menu-sub">ИНФОРМАЦИЯ</div>
 <div class="info-card">
-<div class="row"><span>Версия</span><span>3.1</span></div>
+<div class="row"><span>Версия</span><span>3.2</span></div>
 <div class="row"><span>Движок</span><span>Three.js r128</span></div>
 <div class="row"><span>Сеть</span><span>PeerJS / WebRTC</span></div>
 <div class="row"><span>Волн</span><span>30</span></div>
@@ -488,7 +488,7 @@ const page=document.getElementById('page-'+name);
 if(page)page.classList.add('active');
 const btn=document.querySelector('.tab-btn[data-tab="'+name+'"]');
 if(btn)btn.classList.add('active');
-if(name==='servers'){srvStatus('Загрузка...');pollServers().then(()=>srvStatus(''));if(serverPollTimer)clearInterval(serverPollTimer);serverPollTimer=setInterval(pollServers,4000)}
+if(name==='servers'){srvStatus('Загрузка...');pollServers().then(()=>srvStatus(''));if(serverPollTimer)clearInterval(serverPollTimer);serverPollTimer=setInterval(pollServers,3500)}
 else{if(serverPollTimer){clearInterval(serverPollTimer);serverPollTimer=null}}
 }
 
@@ -1613,6 +1613,7 @@ let myServerName='Сервер';
 let clientNicks=[];
 let heartbeatTimer=null;
 let serverPollTimer=null;
+const myServerCodes=new Set();
 
 function lobbyStatus(s){const el=document.getElementById('lobbyStatus');if(el)el.textContent=s}
 function roomStatus(s){const el=document.getElementById('roomStatus');if(el)el.textContent=s}
@@ -1629,17 +1630,33 @@ async function publishServer(){
 if(!myRoomCode)return;
 try{
 const payload={code:myRoomCode,name:myServerName,nick:myNick,wave:currentWave,started:(gamePhase!=='menu'&&gamePhase!=='lobby'),ts:Date.now()};
-await fetch('https://ntfy.sh/'+NTFY_TOPIC,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
-}catch(e){console.warn('[NTFY]',e)}
+const r=await fetch('https://ntfy.sh/'+NTFY_TOPIC,{
+method:'POST',
+cache:'no-store',
+mode:'cors',
+headers:{'Content-Type':'text/plain','Cache-Control':'no-cache'},
+body:JSON.stringify(payload)
+});
+if(!r.ok)console.warn('[NTFY] publish HTTP',r.status);
+}catch(e){console.warn('[NTFY] publish err',e)}
 }
 function publishServerUpdate(){if(netRole==='host'&&myRoomCode)publishServer()}
-function startServerHeartbeat(){stopServerHeartbeat();if(netRole!=='host'||!myRoomCode)return;heartbeatTimer=setInterval(()=>{if(myRoomCode)publishServer()},8000)}
+function startServerHeartbeat(){stopServerHeartbeat();if(netRole!=='host'||!myRoomCode)return;heartbeatTimer=setInterval(()=>{if(myRoomCode)publishServer()},7000)}
 function stopServerHeartbeat(){if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=null}}
 
 async function pollServers(){
 try{
-const r=await fetch('https://ntfy.sh/'+NTFY_TOPIC+'/json?poll=1&since=15s');
+const url='https://ntfy.sh/'+NTFY_TOPIC+'/json?poll=1&since=10m&_cb='+Date.now()+'_'+Math.random();
+const r=await fetch(url,{
+method:'GET',
+cache:'no-store',
+mode:'cors',
+headers:{'Cache-Control':'no-cache','Pragma':'no-cache'}
+});
+if(!r.ok){console.warn('[NTFY] poll HTTP',r.status);srvStatus('HTTP '+r.status);return}
 const text=await r.text();
+console.log('[NTFY] got',text.length,'chars');
+if(!text||!text.trim()){renderServerList([]);return}
 const lines=text.trim().split('\n').filter(Boolean);
 const map={};
 const now=Date.now();
@@ -1647,15 +1664,20 @@ for(const line of lines){
 try{
 const m=JSON.parse(line);
 if(!m.message)continue;
-const info=JSON.parse(m.message);
-if(!info.code)continue;
-if(now-info.ts>20000)continue;
+let info;
+try{info=JSON.parse(m.message)}catch(e){continue}
+if(!info||!info.code)continue;
+if(info.code===myRoomCode)continue;
+if(now-info.ts>60000)continue;
 if(!map[info.code]||map[info.code].ts<info.ts)map[info.code]=info;
 }catch(e){}
 }
 const list=Object.values(map).sort((a,b)=>b.ts-a.ts);
 renderServerList(list);
-}catch(e){console.warn('[NTFY]',e);srvStatus('ОШИБКА СВЯЗИ');}
+}catch(e){
+console.warn('[NTFY] poll err',e);
+srvStatus('ОШИБКА: '+(e.message||'network'));
+}
 }
 
 function renderServerList(list){
@@ -1665,18 +1687,16 @@ if(cnt)cnt.textContent='('+list.length+')';
 if(!el)return;
 el.innerHTML='';
 if(!list.length){
-el.innerHTML='<div id="srvEmpty">Пока никто не играет.<br>Открой свой сервер — друзья увидят его здесь.</div>';
+el.innerHTML='<div id="srvEmpty">Пока никто не играет.<br>Открой свой сервер — друзья увидят его здесь.<br><br><span style="color:#888;font-size:10px">Проверь интернет или нажми ОБНОВИТЬ</span></div>';
 return;
 }
 for(const s of list){
 const row=document.createElement('div');
 row.className='srvRow';
-row.innerHTML='<div class="nm">'+esc(s.name||'Сервер')+'<div class="meta">'+esc(s.nick||'?')+'</div></div><div class="st '+(s.started?'live':'lobby')+'">'+(s.started?('ВОЛНА '+(s.wave||1)):'В ЛОББИ')+'</div>';
-const isOwn=(s.code===myRoomCode);
+row.innerHTML='<div class="nm">'+esc(s.name||'Сервер')+'<div class="meta">'+esc(s.nick||'?')+' · '+esc(s.code||'')+'</div></div><div class="st '+(s.started?'live':'lobby')+'">'+(s.started?('ВОЛНА '+(s.wave||1)):'В ЛОББИ')+'</div>';
 const b=document.createElement('button');
-b.textContent=isOwn?'ВАШ СЕРВЕР':'ВОЙТИ';
-b.disabled=isOwn;
-if(!isOwn)b.onclick=()=>joinServerFromList(s.code);
+b.textContent='ВОЙТИ';
+b.onclick=()=>joinServerFromList(s.code);
 row.appendChild(b);
 el.appendChild(row);
 }
@@ -1744,6 +1764,7 @@ myPeerId=id;
 updateMyInfoLabels();
 if(role==='host'){
 myRoomCode=id;
+myServerCodes.add(id);
 lobbyStatus('');
 showRoomScreen(id,true);
 clientNicks=[];
@@ -1784,9 +1805,7 @@ console.error('[NET]',e);
 if(e.type==='peer-unavailable'){
 lobbyStatus('КОМНАТА НЕ НАЙДЕНА — проверьте код');
 roomStatus('КОМНАТА НЕ НАЙДЕНА');
-setTimeout(()=>{
-switchTab('play');
-},2000);
+setTimeout(()=>{switchTab('play')},2000);
 return;
 }
 lobbyStatus('ОШИБКА: '+e.type);

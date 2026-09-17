@@ -104,7 +104,6 @@ button:disabled{opacity:.35;cursor:not-allowed}
 #chatLog .w{color:var(--gold);font-weight:700}
 #chatLog .me{color:var(--cyan)}
 #chatLog .dead{color:#888;font-style:italic}
-#chatInput{width:100%;padding:8px;background:rgba(4,0,1,.9);border:1px solid var(--panel-line);color:#fff;font-family:var(--mono);font-size:11px;outline:none;pointer-events:auto}
 #chatToggleBtn{position:fixed;top:14px;right:66px;width:46px;height:46px;background:rgba(6,1,2,.7);border:2px solid var(--panel-line);color:var(--gold);font-size:18px;cursor:pointer;z-index:50;display:none;align-items:center;justify-content:center;clip-path:polygon(0 6px,6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px))}
 #chatModal{position:fixed;inset:0;z-index:400;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.85);backdrop-filter:blur(8px)}
 #chatModalInner{width:min(92vw,500px);background:rgba(8,2,4,.98);border:2px solid var(--panel-line);padding:20px;clip-path:polygon(0 12px,12px 0,calc(100% - 12px) 0,100% 12px,100% calc(100% - 12px),calc(100% - 12px) 100%,12px 100%,0 calc(100% - 12px));box-shadow:0 0 60px rgba(255,23,68,.4)}
@@ -133,7 +132,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 #specFreeBtn:active{background:var(--cyan);color:#032a26;box-shadow:0 0 25px var(--cyan)}
 #spectatorMobileHint{color:#888;font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-align:center;background:rgba(0,0,0,.75);padding:8px 16px;border:1px solid rgba(255,23,68,.4);width:100%}
 .nameTag{position:fixed;transform:translate(-50%,-100%);color:var(--green);font-family:var(--mono);font-size:12px;font-weight:700;text-shadow:0 0 4px #000,0 0 8px #000,0 0 12px rgba(0,255,136,.4);background:rgba(0,0,0,.7);padding:3px 10px;border:1px solid rgba(0,255,136,.5);border-radius:3px;pointer-events:none;z-index:15;white-space:nowrap;letter-spacing:.06em;backdrop-filter:blur(2px)}
-#lobby{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;font-family:var(--disp);background:#020002;overflow:auto}
+#lobby{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;font-family:var(--disp);background:#020002;overflow:hidden}
 #lobby-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none}
 #lobby-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 80%,rgba(255,23,68,.18),transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(162,75,255,.15),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(34,224,208,.08),transparent 60%)}
 #lobby-grid{position:absolute;inset:-20%;background-image:linear-gradient(rgba(255,23,68,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,23,68,.08) 1px,transparent 1px);background-size:60px 60px;transform:perspective(400px) rotateX(60deg);transform-origin:center bottom;animation:gridMove 20s linear infinite;opacity:.5}
@@ -142,52 +141,63 @@ button:disabled{opacity:.35;cursor:not-allowed}
 #lobby-flash{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent);animation:flashMove 8s linear infinite;opacity:.6;filter:blur(1px)}
 @keyframes flashMove{0%{top:0;opacity:0}10%{opacity:.8}90%{opacity:.8}100%{top:100%;opacity:0}}
 #lobby-particles{position:absolute;inset:0;pointer-events:none;z-index:1}
-#lobbyMain,#lobbyRoom,#serverPanel{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;background:linear-gradient(160deg,rgba(10,2,6,.96),rgba(4,0,2,.98));border:1px solid var(--panel-line);box-shadow:0 0 100px rgba(255,23,68,.25),0 30px 80px rgba(0,0,0,.8),inset 0 0 60px rgba(255,23,68,.05);padding:44px 40px;clip-path:polygon(0 20px,20px 0,calc(100% - 20px) 0,100% 20px,100% calc(100% - 20px),calc(100% - 20px) 100%,20px 100%,0 calc(100% - 20px))}
-#lobbyMain::before,#lobbyRoom::before,#serverPanel::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--red),transparent)}
-#lobbyMain::after,#lobbyRoom::after,#serverPanel::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(255,23,68,.4),transparent)}
-#lobbyMain{width:min(96vw,580px)}
-#lobbyRoom{width:min(96vw,600px);display:none}
-#serverPanel{width:min(96vw,660px);display:none}
-.menu-header{display:flex;flex-direction:column;align-items:center;width:100%;margin-bottom:8px}
-.menu-tag{color:var(--red);font-family:var(--mono);font-size:11px;letter-spacing:.55em;opacity:.9;margin-bottom:6px}
-.menu-title{font-family:var(--title);font-size:80px;letter-spacing:.08em;margin:0;line-height:.9;color:#fff;text-shadow:0 0 30px var(--red),0 0 60px rgba(255,23,68,.6),4px 4px 0 var(--red);animation:titleGlow 3s ease-in-out infinite;text-align:center}
+#lobby-content{position:relative;z-index:2;display:flex;flex-direction:column;width:min(96vw,700px);height:min(92vh,720px);background:linear-gradient(160deg,rgba(10,2,6,.96),rgba(4,0,2,.98));border:1px solid var(--panel-line);box-shadow:0 0 100px rgba(255,23,68,.25),0 30px 80px rgba(0,0,0,.8),inset 0 0 60px rgba(255,23,68,.05);clip-path:polygon(0 20px,20px 0,calc(100% - 20px) 0,100% 20px,100% calc(100% - 20px),calc(100% - 20px) 100%,20px 100%,0 calc(100% - 20px))}
+#lobby-content::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--red),transparent)}
+#lobby-content::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(255,23,68,.4),transparent)}
+#lobby-header{display:flex;flex-direction:column;align-items:center;padding:24px 28px 12px;border-bottom:1px solid rgba(255,23,68,.2)}
+.menu-tag{color:var(--red);font-family:var(--mono);font-size:10px;letter-spacing:.55em;opacity:.9;margin-bottom:4px}
+.menu-title{font-family:var(--title);font-size:52px;letter-spacing:.08em;margin:0;line-height:.9;color:#fff;text-shadow:0 0 30px var(--red),0 0 60px rgba(255,23,68,.6),4px 4px 0 var(--red);animation:titleGlow 3s ease-in-out infinite;text-align:center}
 @keyframes titleGlow{0%,100%{text-shadow:0 0 30px var(--red),0 0 60px rgba(255,23,68,.6),4px 4px 0 var(--red)}50%{text-shadow:0 0 45px var(--red),0 0 90px rgba(255,23,68,.8),4px 4px 0 var(--red)}}
-.menu-version{color:#666;font-family:var(--mono);font-size:10px;letter-spacing:.3em;margin-top:8px}
-.menu-sub{color:#999;font-family:var(--mono);font-size:12px;letter-spacing:.32em;margin:16px 0 8px;text-align:center}
-.menu-divider{width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,23,68,.5),transparent);margin:20px 0}
-.menu-section-label{color:#666;font-family:var(--mono);font-size:10px;letter-spacing:.4em;margin-bottom:12px;align-self:flex-start}
-.menu-nick-row{display:flex;gap:12px;align-items:center;width:100%;justify-content:center;margin-bottom:8px}
+.menu-version{color:#666;font-family:var(--mono);font-size:10px;letter-spacing:.3em;margin-top:6px}
+#lobby-body{flex:1;position:relative;overflow-y:auto;overflow-x:hidden;padding:20px 28px}
+#lobby-body::-webkit-scrollbar{width:6px}
+#lobby-body::-webkit-scrollbar-thumb{background:var(--red)}
+#lobby-body::-webkit-scrollbar-track{background:rgba(255,23,68,.05)}
+.tab-page{display:none;flex-direction:column;align-items:center;gap:14px;animation:tabFade .3s ease-out}
+.tab-page.active{display:flex}
+@keyframes tabFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.menu-sub{color:#999;font-family:var(--mono);font-size:11px;letter-spacing:.28em;text-align:center;margin-bottom:4px}
+.menu-section-label{color:#666;font-family:var(--mono);font-size:10px;letter-spacing:.4em;margin-bottom:10px;align-self:flex-start;width:100%}
+.menu-nick-row{display:flex;gap:12px;align-items:center;width:100%;justify-content:center;margin-bottom:4px}
 .menu-nick-label{color:#888;font-family:var(--mono);font-size:11px;letter-spacing:.2em;white-space:nowrap}
-.menu-nick-row input{flex:1;max-width:280px}
-.menu-buttons{display:flex;flex-direction:column;gap:12px;width:100%;max-width:360px;margin:8px auto}
-.btn-menu{padding:18px 24px;font-size:16px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;position:relative;font-family:var(--disp);clip-path:polygon(0 6px,6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px));transition:all .2s}
+.menu-nick-row input{flex:1;max-width:320px}
+.menu-buttons{display:flex;flex-direction:column;gap:10px;width:100%;max-width:400px}
+.btn-menu{padding:16px 24px;font-size:15px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;position:relative;font-family:var(--disp);clip-path:polygon(0 6px,6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px));transition:all .2s}
 .btn-menu::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:currentColor;opacity:.6;transition:width .2s}
 .btn-menu:hover::before{width:8px;opacity:1}
 .btn-menu .arrow{position:absolute;right:16px;top:50%;transform:translateY(-50%);opacity:0;transition:all .2s;font-size:20px}
 .btn-menu:hover .arrow{opacity:1;right:12px}
-.btn-solo{padding:20px 24px;font-size:18px;border-width:2px;background:linear-gradient(90deg,rgba(255,23,68,.15),rgba(255,23,68,.05))}
+.btn-solo{padding:18px 24px;font-size:17px;border-width:2px;background:linear-gradient(90deg,rgba(255,23,68,.15),rgba(255,23,68,.05))}
 .btn-solo:hover{background:linear-gradient(90deg,rgba(255,23,68,.9),var(--red));color:#0a0002;box-shadow:0 0 30px var(--red)}
 .btn-servers{border-color:var(--cyan);color:var(--cyan);background:linear-gradient(90deg,rgba(34,224,208,.12),rgba(34,224,208,.03))}
 .btn-servers:hover{background:linear-gradient(90deg,rgba(34,224,208,.9),var(--cyan));color:#032a26;box-shadow:0 0 30px var(--cyan)}
 .btn-create{border-color:var(--green);color:var(--green);background:linear-gradient(90deg,rgba(0,255,136,.12),rgba(0,255,136,.03))}
 .btn-create:hover{background:linear-gradient(90deg,rgba(0,255,136,.9),var(--green));color:#002a17;box-shadow:0 0 30px var(--green)}
-.btn-join{border-color:var(--gold);color:var(--gold);background:linear-gradient(90deg,rgba(255,204,51,.12),rgba(255,204,51,.03));padding:13px 22px;font-size:12px}
+.btn-join{border-color:var(--gold);color:var(--gold);background:linear-gradient(90deg,rgba(255,204,51,.12),rgba(255,204,51,.03));padding:12px 22px;font-size:12px}
 .btn-join:hover{background:linear-gradient(90deg,rgba(255,204,51,.9),var(--gold));color:#2a1e00;box-shadow:0 0 30px var(--gold)}
 .menu-quick-row{display:flex;gap:10px;align-items:center;width:100%;justify-content:center;flex-wrap:wrap}
-.menu-quick-row input{flex:1;min-width:200px;max-width:280px}
-.menu-hint{color:#555;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-align:center;line-height:1.7;margin-top:14px}
+.menu-quick-row input{flex:1;min-width:200px;max-width:320px}
+.menu-hint{color:#555;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-align:center;line-height:1.6;margin-top:6px}
 .menu-hint span{color:var(--gold)}
-#lobbyStatus{color:var(--gold);font-family:var(--mono);font-size:12px;min-height:18px;text-align:center;letter-spacing:.06em;margin-top:12px;animation:statusPulse 2s ease-in-out infinite}
-@keyframes statusPulse{0%,100%{opacity:.85}50%{opacity:1}}
-.room-header{display:flex;align-items:center;gap:14px;width:100%;justify-content:center;margin-bottom:16px}
-.room-header .rt{font-family:var(--title);color:var(--red);font-size:36px;letter-spacing:.16em;text-shadow:0 0 20px var(--red)}
-#roomTitle{color:#ccc;font-family:var(--mono);font-size:12px;text-align:center;letter-spacing:.05em;margin-bottom:18px}
-#roomCode{color:var(--gold);font-family:var(--mono);font-size:22px;letter-spacing:.1em;padding:14px 26px;border:2px solid var(--gold);background:linear-gradient(90deg,rgba(255,204,51,.1),rgba(255,204,51,.02));text-shadow:0 0 15px rgba(255,204,51,.6);word-break:break-all;max-width:100%;text-align:center;box-shadow:0 0 30px rgba(255,204,51,.2),inset 0 0 20px rgba(255,204,51,.05);clip-path:polygon(0 6px,6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px))}
-.room-code-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center;margin-bottom:16px}
-.room-code-row button{padding:12px 18px;font-size:11px;border-color:var(--gold);color:var(--gold)}
+.menu-divider{width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,23,68,.5),transparent);margin:10px 0}
+#lobbyStatus{color:var(--gold);font-family:var(--mono);font-size:12px;min-height:18px;text-align:center;letter-spacing:.06em;margin-top:8px}
+.tab-bar{display:flex;border-top:1px solid rgba(255,23,68,.3);background:rgba(0,0,0,.4);padding:0;gap:0}
+.tab-btn{flex:1;padding:14px 8px;background:transparent;border:none;border-right:1px solid rgba(255,23,68,.15);color:#777;font-family:var(--disp);font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:all .2s;clip-path:none;position:relative}
+.tab-btn:last-child{border-right:none}
+.tab-btn:hover{background:rgba(255,23,68,.08);color:#ccc;box-shadow:none;transform:none}
+.tab-btn.active{color:var(--red);background:rgba(255,23,68,.12);text-shadow:0 0 8px var(--red)}
+.tab-btn.active::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--red);box-shadow:0 0 12px var(--red)}
+.tab-btn .tab-icon{display:block;font-size:18px;margin-bottom:4px;line-height:1}
+.tab-btn .tab-label{display:block}
+.room-header{display:flex;align-items:center;gap:14px;width:100%;justify-content:center;margin-bottom:12px}
+.room-header .rt{font-family:var(--title);color:var(--red);font-size:32px;letter-spacing:.16em;text-shadow:0 0 20px var(--red)}
+#roomTitle{color:#ccc;font-family:var(--mono);font-size:12px;text-align:center;letter-spacing:.05em;margin-bottom:14px}
+#roomCode{color:var(--gold);font-family:var(--mono);font-size:18px;letter-spacing:.1em;padding:12px 22px;border:2px solid var(--gold);background:linear-gradient(90deg,rgba(255,204,51,.1),rgba(255,204,51,.02));text-shadow:0 0 15px rgba(255,204,51,.6);word-break:break-all;max-width:100%;text-align:center;box-shadow:0 0 30px rgba(255,204,51,.2),inset 0 0 20px rgba(255,204,51,.05);clip-path:polygon(0 6px,6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px))}
+.room-code-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center;margin-bottom:14px}
+.room-code-row button{padding:10px 16px;font-size:11px;border-color:var(--gold);color:var(--gold)}
 .room-code-row button:hover{background:var(--gold);color:#2a1e00;box-shadow:0 0 20px var(--gold)}
-.room-label{color:#888;font-family:var(--mono);font-size:10px;letter-spacing:.32em;margin-bottom:8px;text-align:center}
-#playerList{display:flex;flex-direction:column;gap:8px;width:100%;min-height:40px;max-height:260px;overflow-y:auto;padding:4px}
+.room-label{color:#888;font-family:var(--mono);font-size:10px;letter-spacing:.28em;margin-bottom:6px;text-align:center}
+#playerList{display:flex;flex-direction:column;gap:8px;width:100%;min-height:40px;max-height:280px;overflow-y:auto;padding:4px}
 #playerList::-webkit-scrollbar{width:6px}
 #playerList::-webkit-scrollbar-thumb{background:var(--red);border-radius:3px}
 #playerList::-webkit-scrollbar-track{background:rgba(255,23,68,.05)}
@@ -195,48 +205,54 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .playerRow.me{border-color:rgba(0,255,136,.5);background:linear-gradient(90deg,rgba(0,255,136,.08),rgba(0,255,136,.02));box-shadow:0 0 20px rgba(0,255,136,.15)}
 .playerRow.host{border-color:rgba(255,204,51,.5);background:linear-gradient(90deg,rgba(255,204,51,.08),rgba(255,204,51,.02))}
 .playerRow.host.me{border-color:rgba(255,204,51,.7);background:linear-gradient(90deg,rgba(255,204,51,.14),rgba(255,204,51,.04));box-shadow:0 0 25px rgba(255,204,51,.25)}
-.playerRow .playerIcon{width:38px;height:38px;flex:none;display:flex;align-items:center;justify-content:center;background:rgba(255,23,68,.18);border:1px solid rgba(255,23,68,.5);color:var(--red);font-weight:700;font-size:14px;letter-spacing:.05em;text-transform:uppercase;font-family:var(--title)}
+.playerRow .playerIcon{width:36px;height:36px;flex:none;display:flex;align-items:center;justify-content:center;background:rgba(255,23,68,.18);border:1px solid rgba(255,23,68,.5);color:var(--red);font-weight:700;font-size:13px;letter-spacing:.05em;text-transform:uppercase;font-family:var(--title)}
 .playerRow.me .playerIcon{background:rgba(0,255,136,.15);border-color:rgba(0,255,136,.5);color:var(--green)}
 .playerRow.host .playerIcon{background:rgba(255,204,51,.15);border-color:rgba(255,204,51,.5);color:var(--gold)}
 .playerRow .playerNick{flex:1;color:#fff;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:.02em}
-.playerRow .playerNick .crown{color:var(--gold);margin-left:8px;font-size:16px;filter:drop-shadow(0 0 6px rgba(255,204,51,.6))}
+.playerRow .playerNick .crown{color:var(--gold);margin-left:8px;font-size:15px;filter:drop-shadow(0 0 6px rgba(255,204,51,.6))}
 .playerRow .youTag{color:var(--green);font-size:9px;border:1px solid rgba(0,255,136,.45);padding:2px 6px;margin-left:10px;letter-spacing:.14em;vertical-align:middle}
 .playerRow .playerStatus{font-size:10px;letter-spacing:.16em;padding:5px 12px;border:1px solid;flex:none;font-weight:600}
 .playerRow .playerStatus.ready{color:var(--green);border-color:rgba(0,255,136,.55);background:rgba(0,255,136,.08);text-shadow:0 0 8px rgba(0,255,136,.6)}
 .playerRow .playerStatus.host{color:var(--gold);border-color:rgba(255,204,51,.55);background:rgba(255,204,51,.08);text-shadow:0 0 8px rgba(255,204,51,.6)}
-.room-actions{display:flex;gap:12px;width:100%;margin-top:14px;flex-wrap:wrap;justify-content:center}
-#startGameBtn{padding:16px 44px;font-size:15px;letter-spacing:.24em;flex:1;min-width:200px;border-width:2px;background:linear-gradient(90deg,rgba(255,23,68,.15),rgba(255,23,68,.05))}
+.room-actions{display:flex;gap:12px;width:100%;margin-top:12px;flex-wrap:wrap;justify-content:center}
+#startGameBtn{padding:14px 40px;font-size:14px;letter-spacing:.22em;flex:1;min-width:200px;border-width:2px;background:linear-gradient(90deg,rgba(255,23,68,.15),rgba(255,23,68,.05))}
 #startGameBtn:hover{background:linear-gradient(90deg,rgba(255,23,68,.9),var(--red));box-shadow:0 0 30px var(--red)}
-#roomStatus{color:var(--gold);font-family:var(--mono);font-size:12px;min-height:18px;text-align:center;letter-spacing:.06em;margin-top:12px}
-#roomBack{padding:12px 30px;font-size:11px;border-color:#555;color:#888;margin-top:10px}
+#roomStatus{color:var(--gold);font-family:var(--mono);font-size:12px;min-height:18px;text-align:center;letter-spacing:.06em;margin-top:10px}
+#roomBack{padding:10px 26px;font-size:11px;border-color:#555;color:#888;margin-top:8px}
 #roomBack:hover{background:#333;color:#fff;box-shadow:none}
 #playerCount{color:var(--gold);font-family:var(--mono);font-size:12px}
-.srvTitle{font-family:var(--title);font-size:32px;letter-spacing:.16em;color:var(--cyan);text-shadow:0 0 20px var(--cyan);margin-bottom:16px;text-align:center}
-#serverList{display:flex;flex-direction:column;gap:8px;width:100%;max-height:340px;overflow-y:auto;padding:10px;background:rgba(0,0,0,.5);border:1px solid rgba(34,224,208,.25);min-height:100px}
+.srvTitle{font-family:var(--title);font-size:26px;letter-spacing:.16em;color:var(--cyan);text-shadow:0 0 20px var(--cyan);margin-bottom:12px;text-align:center}
+#serverList{display:flex;flex-direction:column;gap:8px;width:100%;max-height:320px;overflow-y:auto;padding:10px;background:rgba(0,0,0,.5);border:1px solid rgba(34,224,208,.25);min-height:120px}
 #serverList::-webkit-scrollbar{width:8px}
 #serverList::-webkit-scrollbar-thumb{background:var(--cyan)}
 #serverList::-webkit-scrollbar-track{background:#0a1416}
-#srvEmpty{color:#555;font-family:var(--mono);font-size:12px;text-align:center;padding:50px 10px;line-height:2;letter-spacing:.06em}
-.srvRow{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid rgba(34,224,208,.35);background:linear-gradient(90deg,rgba(34,224,208,.06),rgba(34,224,208,.01));font-family:var(--mono);transition:all .2s;clip-path:polygon(0 4px,4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px))}
+#srvEmpty{color:#555;font-family:var(--mono);font-size:12px;text-align:center;padding:40px 10px;line-height:2;letter-spacing:.06em}
+.srvRow{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid rgba(34,224,208,.35);background:linear-gradient(90deg,rgba(34,224,208,.06),rgba(34,224,208,.01));font-family:var(--mono);transition:all .2s;clip-path:polygon(0 4px,4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px))}
 .srvRow:hover{border-color:var(--cyan);background:linear-gradient(90deg,rgba(34,224,208,.12),rgba(34,224,208,.03));box-shadow:0 0 20px rgba(34,224,208,.2)}
 .srvRow .nm{flex:1;min-width:0;color:#fff;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
 .srvRow .meta{color:#6b6b6b;font-size:10px;margin-top:5px;letter-spacing:.1em}
-.srvRow .st{font-size:10px;width:100px;text-align:center;flex:none;padding:5px 0;border:1px solid;letter-spacing:.12em;font-weight:600}
+.srvRow .st{font-size:10px;width:90px;text-align:center;flex:none;padding:5px 0;border:1px solid;letter-spacing:.12em;font-weight:600}
 .srvRow .st.lobby{color:var(--cyan);border-color:rgba(34,224,208,.5);background:rgba(34,224,208,.08)}
 .srvRow .st.live{color:var(--gold);border-color:rgba(255,204,51,.5);background:rgba(255,204,51,.08);animation:livePulse 1.5s ease-in-out infinite}
 @keyframes livePulse{0%,100%{box-shadow:0 0 6px rgba(255,204,51,.3)}50%{box-shadow:0 0 14px rgba(255,204,51,.6)}}
-.srvRow button{padding:9px 20px;font-size:11px;flex:none;border-color:var(--cyan);color:var(--cyan)}
+.srvRow button{padding:8px 18px;font-size:11px;flex:none;border-color:var(--cyan);color:var(--cyan)}
 .srvRow button:hover{background:var(--cyan);color:#032a26;box-shadow:0 0 15px var(--cyan)}
-#srvStatus{color:var(--gold);font-family:var(--mono);font-size:11px;min-height:16px;text-align:center;margin-top:10px}
+#srvStatus{color:var(--gold);font-family:var(--mono);font-size:11px;min-height:16px;text-align:center;margin-top:8px}
+.info-card{width:100%;max-width:440px;background:linear-gradient(160deg,rgba(255,23,68,.08),rgba(255,23,68,.01));border:1px solid rgba(255,23,68,.3);padding:18px 20px;font-family:var(--mono);font-size:12px;color:#ccc;line-height:1.8;clip-path:polygon(0 6px,6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px))}
+.info-card b{color:var(--gold);font-weight:700}
+.info-card .row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed rgba(255,23,68,.15)}
+.info-card .row:last-child{border-bottom:none}
+.info-card .row span:last-child{color:#fff}
 @media (max-width:720px){
-h1{font-size:36px}
-#lobbyMain,#lobbyRoom,#serverPanel{padding:28px 20px}
-.menu-title{font-size:52px}
-#ui{padding:8px 14px;font-size:11px}
-#styleMeter{font-size:22px}
-#kills{font-size:15px}
-.menu-quick-row input{width:180px;min-width:auto}
-.menu-nick-row input{width:180px}
+#lobby-content{height:96vh;width:96vw}
+.menu-title{font-size:36px}
+.menu-tag{font-size:9px;letter-spacing:.4em}
+#lobby-header{padding:16px 18px 8px}
+#lobby-body{padding:14px 18px}
+.menu-nick-row input{max-width:220px}
+.tab-btn{padding:12px 4px;font-size:10px;letter-spacing:.14em}
+.tab-btn .tab-icon{font-size:16px}
+.info-card{font-size:11px}
 #chatBox{display:none !important}
 #chatInput{display:none !important}
 }
@@ -247,14 +263,15 @@ h1{font-size:36px}
 <div id="lobby-bg"><div id="lobby-grid"></div><div id="lobby-flash"></div></div>
 <div id="lobby-scan"></div>
 <canvas id="lobby-particles"></canvas>
-<div id="lobbyMain">
-<div class="menu-header">
+<div id="lobby-content">
+<div id="lobby-header">
 <div class="menu-tag">V1 // MACHINE PROTOCOL</div>
 <h1 class="menu-title">ULTRAKILL</h1>
-<div class="menu-version">3D REBUILD · v2.6</div>
+<div class="menu-version">3D REBUILD · v3.0</div>
 </div>
+<div id="lobby-body">
+<div class="tab-page active" id="page-play">
 <div class="menu-sub">30 WAVES · 4 ZONES · CO-OP</div>
-<div class="menu-divider"></div>
 <div class="menu-section-label">// ИГРОК</div>
 <div class="menu-nick-row">
 <span class="menu-nick-label">НИК:</span>
@@ -264,7 +281,6 @@ h1{font-size:36px}
 <div class="menu-section-label">// РЕЖИМ</div>
 <div class="menu-buttons">
 <button id="lobbySolo" class="btn-menu btn-solo">ОДИНОЧНАЯ ИГРА <span class="arrow">→</span></button>
-<button id="lobbyServers" class="btn-menu btn-servers">СПИСОК СЕРВЕРОВ <span class="arrow">→</span></button>
 <button id="lobbyHost" class="btn-menu btn-create">СОЗДАТЬ ПАТИ <span class="arrow">→</span></button>
 </div>
 <div class="menu-divider"></div>
@@ -276,7 +292,19 @@ h1{font-size:36px}
 <div class="menu-hint">Хост создаёт пати → отправляет код друзьям → друзья вводят его и жмут <span>ВОЙТИ</span></div>
 <div id="lobbyStatus"></div>
 </div>
-<div id="lobbyRoom">
+<div class="tab-page" id="page-servers">
+<div class="srvTitle">СЕРВЕРЫ <span id="srvCount" style="color:var(--gold);font-size:16px">(0)</span></div>
+<div id="serverList"><div id="srvEmpty">Загрузка...<br>Если список пуст — открой свой сервер.</div></div>
+<div style="display:flex;gap:10px;width:100%;flex-wrap:wrap;margin-top:12px">
+<input id="srvName" placeholder="название сервера" maxlength="24" class="lobby-input" style="flex:1;min-width:160px;text-transform:none;letter-spacing:1px">
+<button id="srvCreateBtn" class="btn-menu btn-create" style="padding:12px 20px;font-size:12px">ОТКРЫТЬ СЕРВЕР</button>
+</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:10px">
+<button id="srvRefresh" style="padding:8px 24px;border-color:var(--gold);color:var(--gold);font-size:11px">ОБНОВИТЬ</button>
+</div>
+<div id="srvStatus"></div>
+</div>
+<div class="tab-page" id="page-room">
 <div class="room-header"><div class="rt">ПАТИ</div></div>
 <div id="roomTitle">ОЖИДАНИЕ</div>
 <div class="room-label">КОД ДЛЯ ДРУЗЕЙ</div>
@@ -288,20 +316,47 @@ h1{font-size:36px}
 <div id="playerList"></div>
 <div class="room-actions"><button id="startGameBtn" style="display:none">НАЧАТЬ ИГРУ</button></div>
 <div id="roomStatus"></div>
-<button id="roomBack">ВЫЙТИ</button>
+<button id="roomBack">ВЫЙТИ ИЗ ПАТИ</button>
 </div>
-<div id="serverPanel">
-<div class="srvTitle">СЕРВЕРЫ <span id="srvCount" style="color:var(--gold);font-size:20px">(0)</span></div>
-<div id="serverList"><div id="srvEmpty">Загрузка...<br>Если список пуст — открой свой сервер.</div></div>
-<div style="display:flex;gap:10px;width:100%;flex-wrap:wrap;margin-top:14px">
-<input id="srvName" placeholder="название сервера" maxlength="24" class="lobby-input" style="flex:1;min-width:160px;text-transform:none;letter-spacing:1px">
-<button id="srvCreateBtn" class="btn-menu btn-create" style="padding:13px 22px;font-size:12px">ОТКРЫТЬ СЕРВЕР</button>
+<div class="tab-page" id="page-settings">
+<div class="menu-sub">ИНФОРМАЦИЯ</div>
+<div class="info-card">
+<div class="row"><span>Версия</span><span>3.0</span></div>
+<div class="row"><span>Движок</span><span>Three.js r128</span></div>
+<div class="row"><span>Сеть</span><span>PeerJS / WebRTC</span></div>
+<div class="row"><span>Волн</span><span>30</span></div>
+<div class="row"><span>Боссов</span><span>3</span></div>
+<div class="row"><span>Зон</span><span>4 (INDUSTRIAL · HELL · GLACIER · VOID)</span></div>
+<div class="row"><span>Режим</span><span>СОЛО · КООП</span></div>
 </div>
-<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:10px">
-<button id="srvRefresh" style="padding:9px 26px;border-color:var(--gold);color:var(--gold);font-size:11px">ОБНОВИТЬ</button>
-<button id="srvBack" style="padding:9px 26px;border-color:#555;color:#888;font-size:11px">НАЗАД</button>
+<div class="menu-divider"></div>
+<div class="menu-section-label">// УПРАВЛЕНИЕ</div>
+<div class="info-card">
+<div class="row"><span>WASD</span><span>движение</span></div>
+<div class="row"><span>МЫШЬ</span><span>обзор</span></div>
+<div class="row"><span>ЛКМ</span><span>огонь</span></div>
+<div class="row"><span>R / ПКМ</span><span>перезарядка</span></div>
+<div class="row"><span>Q</span><span>смена оружия</span></div>
+<div class="row"><span>SHIFT</span><span>рывок</span></div>
+<div class="row"><span>ПРОБЕЛ</span><span>прыжок</span></div>
+<div class="row"><span>F (мёртв)</span><span>свободная камера</span></div>
+<div class="row"><span>ENTER</span><span>чат</span></div>
+<div class="row"><span>INSERT</span><span>прыжок на 30 волну</span></div>
 </div>
-<div id="srvStatus"></div>
+<div class="menu-divider"></div>
+<div class="menu-section-label">// СЕТЬ</div>
+<div class="info-card">
+<div class="row"><span>PeerJS ID</span><span id="myPeerIdLabel">—</span></div>
+<div class="row"><span>Роль</span><span id="myRoleLabel">—</span></div>
+</div>
+</div>
+</div>
+<div class="tab-bar">
+<button class="tab-btn active" data-tab="play"><span class="tab-icon">▶</span><span class="tab-label">ИГРА</span></button>
+<button class="tab-btn" data-tab="servers"><span class="tab-icon">🌐</span><span class="tab-label">СЕРВЕРА</span></button>
+<button class="tab-btn" data-tab="room"><span class="tab-icon">👥</span><span class="tab-label">ПАТИ</span></button>
+<button class="tab-btn" data-tab="settings"><span class="tab-icon">⚙</span><span class="tab-label">ИНФО</span></button>
+</div>
 </div>
 </div>
 <div id="game"></div>
@@ -416,6 +471,7 @@ let spectateTarget=null;
 let spectateFreeCamera=false;
 let freeCamVel=new THREE.Vector3();
 let chatModalOpen=false;
+let currentTab='play';
 const deadPeers=new Set();
 
 function esc(s){return String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c])}
@@ -424,6 +480,18 @@ function blurActive(){try{const a=document.activeElement;if(a&&a.blur)a.blur()}c
 function closeChatModal(){chatModalOpen=false;const m=document.getElementById('chatModal');if(m)m.style.display='none';const i=document.getElementById('chatModalInput');if(i){i.blur();i.value=''}}
 function openChatModal(){if(netRole==='single')return;chatModalOpen=true;const m=document.getElementById('chatModal');if(m)m.style.display='flex';const i=document.getElementById('chatModalInput');if(i)setTimeout(()=>i.focus(),80);syncChatModalLog()}
 function syncChatModalLog(){const src=document.getElementById('chatLog');const dst=document.getElementById('chatModalLog');if(src&&dst)dst.innerHTML=src.innerHTML}
+
+function switchTab(name){
+currentTab=name;
+document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+const page=document.getElementById('page-'+name);
+if(page)page.classList.add('active');
+const btn=document.querySelector('.tab-btn[data-tab="'+name+'"]');
+if(btn)btn.classList.add('active');
+if(name==='servers'){srvStatus('Загрузка...');pollServers().then(()=>srvStatus(''));if(serverPollTimer)clearInterval(serverPollTimer);serverPollTimer=setInterval(pollServers,4000)}
+else{if(serverPollTimer){clearInterval(serverPollTimer);serverPollTimer=null}}
+}
 
 document.addEventListener('focusin',e=>{
 if(e.target&&e.target.id==='chatModalInput'){if(!chatModalOpen)e.target.blur();return}
@@ -469,6 +537,7 @@ const cmc=document.getElementById('chatModalClose');
 if(cmc)cmc.addEventListener('click',e=>{e.stopPropagation();closeChatModal()});
 const cmi=document.getElementById('chatModalInput');
 if(cmi)cmi.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();sendChat();closeChatModal()}});
+document.querySelectorAll('.tab-btn').forEach(b=>{b.addEventListener('click',()=>switchTab(b.dataset.tab))});
 document.getElementById('startBtn').onclick=startGame;
 document.getElementById('restartBtn').onclick=restart;
 document.getElementById('restartVictoryBtn').onclick=restart;
@@ -1045,6 +1114,7 @@ if(rb===0){boss=null;document.getElementById('bossBar').style.display='none';doc
 for(const x of enemies)if(!x.isBoss){spawnBloodAt(x.mesh.position,20);scene.remove(x.mesh)}
 enemies=enemies.filter(x=>x.isBoss)}
 player.hp=player.maxHp;addStyle(500);SFX.bossDie();
+if(netRole==='host')netBroadcast({t:'healFull'});
 }else{addStyle(80);SFX.kill()}
 player.hp=Math.min(player.maxHp,player.hp+15);kills++;
 if(waveActive&&enemies.length===0)completeWave();
@@ -1065,6 +1135,7 @@ SFX.waveClear();
 setTimeout(()=>{hideBanner();player.pos.set(0,PLAYER_HEIGHT,0);velX=0;velZ=0;velocityY=0;startElevatorIntro(n+1)},2500);
 }else if(n%5===0){
 showBanner('WAVE CLEARED',null,1200);SFX.waveClear();
+if(netRole==='host')netBroadcast({t:'shop'});
 setTimeout(()=>{hideBanner();showShop()},1300);
 }else{
 showBanner('WAVE CLEARED',null,900);SFX.waveClear();
@@ -1202,6 +1273,7 @@ const tEnd=hp||ce.mesh.position.clone();
 if(cd<50)addTracer(o,tEnd,W.accent);
 ce.hp-=W.damage;ce.hitFlash=6;addStyle(10);spawnBloodAt(hp||ce.mesh.position,10);
 if(ce.isBoss)SFX.bossHit();else SFX.hit();
+if(netRole==='host'&&ce.netId){const p2=hp||ce.mesh.position;netBroadcast({t:'hitFx',x:p2.x,y:p2.y,z:p2.z,eid:ce.netId,isBoss:ce.isBoss})}
 if(ce.hp<=0)killEnemy(ce)
 }else{
 const fp=new THREE.Plane(new THREE.Vector3(0,1,0),0);const pt=new THREE.Vector3();
@@ -1218,7 +1290,7 @@ scene.remove(e.mesh);
 e.mesh.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){if(Array.isArray(o.material))o.material.forEach(m=>m.dispose());else o.material.dispose()}});
 const i=enemies.indexOf(e);if(i>=0)enemies.splice(i,1);
 onEnemyKilled(e);
-if(netRole==='host'&&e.netId)netBroadcast({t:'kill',eid:e.netId});
+if(netRole==='host'&&e.netId)netBroadcast({t:'kill',eid:e.netId,isBoss:e.isBoss});
 }
 
 function spawnBloodAt(p,c){
@@ -1536,6 +1608,13 @@ function lobbyStatus(s){const el=document.getElementById('lobbyStatus');if(el)el
 function roomStatus(s){const el=document.getElementById('roomStatus');if(el)el.textContent=s}
 function srvStatus(s){const el=document.getElementById('srvStatus');if(el)el.textContent=s}
 
+function updateMyInfoLabels(){
+const p=document.getElementById('myPeerIdLabel');
+const r=document.getElementById('myRoleLabel');
+if(p)p.textContent=myPeerId?myPeerId.slice(0,12)+'…':'—';
+if(r)r.textContent=netRole==='single'?'СОЛО':(netRole==='host'?'ХОСТ':'КЛИЕНТ');
+}
+
 async function publishServer(){
 if(!myRoomCode)return;
 try{
@@ -1592,35 +1671,18 @@ el.appendChild(row);
 }
 }
 
-function showServersPanel(){
-document.getElementById('lobbyMain').style.display='none';
-document.getElementById('lobbyRoom').style.display='none';
-document.getElementById('serverPanel').style.display='flex';
-srvStatus('Загрузка...');
-pollServers().then(()=>srvStatus(''));
-if(serverPollTimer)clearInterval(serverPollTimer);
-serverPollTimer=setInterval(pollServers,4000);
-}
-function hideServersPanel(){
-if(serverPollTimer){clearInterval(serverPollTimer);serverPollTimer=null}
-document.getElementById('serverPanel').style.display='none';
-document.getElementById('lobbyMain').style.display='flex';
-}
 function joinServerFromList(code){
 myNick=sanitizeNick(document.getElementById('nickInput').value);
 document.getElementById('nickInput').value=myNick;
-hideServersPanel();
 initNetwork('client',code);
 }
 
 function showRoomScreen(code,isHost){
-document.getElementById('lobbyMain').style.display='none';
-document.getElementById('serverPanel').style.display='none';
-document.getElementById('lobbyRoom').style.display='flex';
 document.getElementById('roomCode').textContent=code;
 document.getElementById('startGameBtn').style.display=isHost?'block':'none';
 document.getElementById('roomTitle').textContent=isHost?'ВЫ ХОСТ — ЖДИТЕ ИГРОКОВ':'ВЫ ПОДКЛЮЧЕНЫ К ХОСТУ';
 roomStatus(isHost?'Отправьте код друзьям → нажмите НАЧАТЬ ИГРУ':'Ожидание, пока хост начнёт игру...');
+switchTab('room');
 }
 
 function updatePlayerListUI(players){
@@ -1668,6 +1730,7 @@ catch(e){console.error('[NET]',e);lobbyStatus('ОШИБКА: '+e.message);return
 
 peer.on('open',id=>{
 myPeerId=id;
+updateMyInfoLabels();
 if(role==='host'){
 myRoomCode=id;
 lobbyStatus('');
@@ -1711,8 +1774,7 @@ if(e.type==='peer-unavailable'){
 lobbyStatus('КОМНАТА НЕ НАЙДЕНА — проверьте код');
 roomStatus('КОМНАТА НЕ НАЙДЕНА');
 setTimeout(()=>{
-document.getElementById('lobbyRoom').style.display='none';
-document.getElementById('lobbyMain').style.display='flex';
+switchTab('play');
 },2000);
 return;
 }
@@ -1765,9 +1827,46 @@ if(msg.t==='players'){updatePlayerListUI(msg.players);return}
 if(msg.t==='go'){document.getElementById('lobby').style.display='none';startGame();return}
 if(msg.t==='p'){updateRemotePlayer(msg.id,msg,msg.nick);return}
 if(msg.t==='e'){applyEnemyState(msg.list);return}
-if(msg.t==='kill'){removeGhostEnemy(msg.eid);return}
+if(msg.t==='kill'){removeGhostEnemy(msg.eid);if(msg.isBoss){player.hp=player.maxHp}else{player.hp=Math.min(player.maxHp,player.hp+15)};return}
+if(msg.t==='healFull'){player.hp=player.maxHp;return}
+if(msg.t==='shop'){
+showBanner('WAVE CLEARED',null,1200);SFX.waveClear();
+setTimeout(()=>{hideBanner();showShop()},1300);
+return;
+}
+if(msg.t==='hitFx'){
+const p=new THREE.Vector3(msg.x,msg.y,msg.z);
+spawnBloodAt(p,8);
+const g=ghostEnemies[String(msg.eid)];
+if(g&&g.mesh){
+g.mesh.traverse(o=>{
+if(o.material&&o.material.emissive&&o.material.emissive.setHex){
+if(o.userData._origEmHex===undefined){o.userData._origEmHex=o.material.emissive.getHex();o.userData._origEmInt=o.material.emissiveIntensity;}
+o.material.emissive.setHex(0xffffff);
+o.material.emissiveIntensity=3;
+}
+});
+if(g._flashTO)clearTimeout(g._flashTO);
+g._flashTO=setTimeout(()=>{
+g.mesh.traverse(o=>{
+if(o.material&&o.material.emissive&&o.material.emissive.setHex&&o.userData._origEmHex!==undefined){
+o.material.emissive.setHex(o.userData._origEmHex);
+if(o.userData._origEmInt!==undefined)o.material.emissiveIntensity=o.userData._origEmInt;
+}
+});
+},90);
+}
+if(msg.isBoss)SFX.bossHit();else SFX.hit();
+return;
+}
 if(msg.t==='dmg'){player.hp-=msg.amount;damageTimer=8;SFX.playerDamage();if(player.hp<=0){player.hp=0;gameOver()}return}
-if(msg.t==='wave'){if(gamePhase==='playing'||gamePhase==='shop')startWave(msg.n);return}
+if(msg.t==='wave'){
+document.getElementById('shop').style.display='none';
+document.getElementById('introShop').style.display='none';
+if(gamePhase==='shop'||gamePhase==='introShop')gamePhase='playing';
+if(gamePhase==='playing'||gamePhase==='shop')startWave(msg.n);
+return;
+}
 if(msg.t==='dead'){
 deadPeers.add(msg.id);
 removeRemotePlayer(msg.id);
@@ -1795,6 +1894,8 @@ if(dd<bd){bd=dd;best=e;hp=p}
 if(!best)return;
 best.hp-=msg.dmg;best.hitFlash=6;spawnBloodAt(hp||best.mesh.position,8);
 if(best.isBoss)SFX.bossHit();else SFX.hit();
+const hitP=hp||best.mesh.position;
+netBroadcast({t:'hitFx',x:hitP.x,y:hitP.y,z:hitP.z,eid:best.netId,isBoss:best.isBoss});
 if(best.hp<=0)killEnemy(best);
 }
 
@@ -2009,8 +2110,6 @@ lobbyStatus('Подключение к '+room+'...');
 initNetwork('client',room);
 };
 
-document.getElementById('lobbyServers').onclick=showServersPanel;
-document.getElementById('srvBack').onclick=hideServersPanel;
 document.getElementById('srvRefresh').onclick=()=>{srvStatus('Обновление...');pollServers().then(()=>srvStatus(''))};
 document.getElementById('srvCreateBtn').onclick=()=>{
 myNick=sanitizeNick(document.getElementById('nickInput').value);
@@ -2018,7 +2117,6 @@ document.getElementById('nickInput').value=myNick;
 let name=String(document.getElementById('srvName').value||'').trim().slice(0,24);
 if(!name)name='Сервер '+myNick;
 myServerName=name;
-hideServersPanel();
 initNetwork('host');
 };
 
